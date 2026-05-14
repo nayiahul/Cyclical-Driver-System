@@ -82,10 +82,16 @@ def _get_close_price(code: str, date: str) -> float | None:
     if len(prices) == 0:
         return None
     if date in prices.index:
-        return float(prices[date])
+        val = prices[date]
+        if pd.isna(val):
+            return None
+        return float(val)
     available = prices[prices.index <= date]
     if len(available) > 0:
-        return float(available.iloc[-1])
+        val = available.iloc[-1]
+        if pd.isna(val):
+            return None
+        return float(val)
     return None
 
 
@@ -190,22 +196,22 @@ def run_backtest(
                     price = _get_close_price(code, day)
                     if price is None or price <= 0:
                         logger.warning(
-                            f"{day}: {code} 无有效价格，按 0 元清仓"
+                            f"{day}: {code} 无有效价格，保留持仓不卖出"
                         )
-                    else:
-                        value = shares * price
-                        cost = value * TOTAL_COST_RATE
-                        cash += value - cost
-                        trade_records.append(
-                            {
-                                "date": day,
-                                "code": code,
-                                "direction": "sell",
-                                "qty": int(shares),
-                                "price": round(price, 2),
-                                "cost": round(cost, 2),
-                            }
-                        )
+                        continue
+                    value = shares * price
+                    cost = value * TOTAL_COST_RATE
+                    cash += value - cost
+                    trade_records.append(
+                        {
+                            "date": day,
+                            "code": code,
+                            "direction": "sell",
+                            "qty": int(shares),
+                            "price": round(price, 2),
+                            "cost": round(cost, 2),
+                        }
+                    )
                     del holdings[code]
 
                 # Step 2: Reconcile remaining holdings to target weights
@@ -231,9 +237,8 @@ def run_backtest(
                         if price is None or price <= 0:
                             if current_shares > 0:
                                 logger.warning(
-                                    f"{day}: {code} 无有效价格，清除持仓"
+                                    f"{day}: {code} 无有效价格，保留现有持仓"
                                 )
-                                del holdings[code]
                             continue
 
                         current_value = current_shares * price
