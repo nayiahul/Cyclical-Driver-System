@@ -3,20 +3,17 @@
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import akshare as ak
 import pandas as pd
+from loguru import logger
 
 from config.params import IPO_LOCK_DAYS, STOCK_LIST_CACHE
-from loguru import logger
 from trade_calendar import get_trade_calendar
 
-# AKShare 1.18.60: stock_info_a_code_name() returns columns ["code", "name"] only.
-# No list_date column is present. However, the individual exchange APIs
-# (SZ, SH main/STAR, BJ) each include listing dates in their responses.
-# _get_listing_dates uses those bulk endpoints (~4 calls) as the primary path.
-
-_WORKERS = 5  # parallel workers for per-stock listing-date queries
-_RETRIES = 3  # retry count for flaky API connections
+_WORKERS = 5
+_RETRIES = 3
+_FAR_FUTURE = "20991231"
 
 
 def get_stock_list() -> pd.DataFrame:
@@ -27,7 +24,12 @@ def get_stock_list() -> pd.DataFrame:
         DataFrame with columns: code, name, list_date
     """
     if os.path.exists(STOCK_LIST_CACHE):
-        return pd.read_csv(STOCK_LIST_CACHE, dtype={"code": str, "name": str, "list_date": str})
+        try:
+            df = pd.read_csv(STOCK_LIST_CACHE, dtype={"code": str, "name": str, "list_date": str})
+            if len(df) > 0:
+                return df
+        except Exception:
+            logger.warning(f"缓存文件 {STOCK_LIST_CACHE} 损坏，重新获取")
 
     df = ak.stock_info_a_code_name()
     df["code"] = df["code"].astype(str).str.zfill(6)
@@ -35,7 +37,11 @@ def get_stock_list() -> pd.DataFrame:
 
     list_dates = _get_listing_dates(df["code"].tolist())
     df["list_date"] = df["code"].map(list_dates)
+    missing_before = len(df)
     df = df.dropna(subset=["list_date"])
+    missing_after = len(df)
+    if missing_before > missing_after:
+        logger.warning(f"{missing_before - missing_after} 只股票无上市日期，已剔除")
     df["list_date"] = df["list_date"].astype(str)
 
     os.makedirs(os.path.dirname(STOCK_LIST_CACHE), exist_ok=True)
@@ -45,42 +51,21 @@ def get_stock_list() -> pd.DataFrame:
 
 
 def _get_listing_dates(codes: list[str]) -> dict[str, str]:
-    """Get listing date for each stock code. Try bulk methods first, fall back to per-stock.
-
-    AKShare 1.18.60's stock_info_a_code_name() does not include a list_date column,
-    but the individual exchange APIs (SZ, SH, BJ) each include listing dates in their
-    responses. This function uses those exchange-specific APIs in bulk (~4 calls)
-    before falling back to per-stock queries.
-    """
-    # Fast path: check if stock_info_a_code_name now includes a list_date column
-    # (future AKShare versions may add it, making this function trivial).
-    try:
-        df = ak.stock_info_a_code_name()  # cached, so cheap to re-query
-        if "list_date" in df.columns:
-            date_map = {}
-            for _, row in df.iterrows():
-                code = str(row["code"]).zfill(6)
-                ld = str(row.get("list_date", ""))
-                if ld and ld != "nan":
-                    date_map[code] = ld[:8]
-            if date_map:
-                return date_map
-    except Exception:
-        pass
-
-    # Bulk method: query exchange-specific APIs that include listing dates.
-    date_map: dict[str, str] = {}
+    """Get listing date for each stock code. Try bulk exchange APIs first, per-stock fallback."""
 
     def _mmdd(date_val) -> str:
         """Normalize various date types to YYYYMMDD string."""
+        if date_val is None or (isinstance(date_val, float) and pd.isna(date_val)):
+            return ""
         if isinstance(date_val, str):
             return date_val.replace("-", "")[:8]
         if hasattr(date_val, "strftime"):
             return date_val.strftime("%Y%m%d")
         return str(date_val)[:8]
 
+    date_map: dict[str, str] = {}
+
     try:
-        # SZ (Shenzhen) - includes A股上市日期 as string "1991-04-03"
         df_sz = ak.stock_info_sz_name_code(symbol="A股列表")
         if "A股上市日期" in df_sz.columns:
             for _, row in df_sz.iterrows():
@@ -92,7 +77,6 @@ def _get_listing_dates(codes: list[str]) -> dict[str, str]:
         pass
 
     try:
-        # SH main board A shares - includes 上市日期 as datetime.date
         df_sh = ak.stock_info_sh_name_code(symbol="主板A股")
         if "上市日期" in df_sh.columns:
             for _, row in df_sh.iterrows():
@@ -104,7 +88,6 @@ def _get_listing_dates(codes: list[str]) -> dict[str, str]:
         pass
 
     try:
-        # SH STAR market (科创板) - same columns as main board
         df_kcb = ak.stock_info_sh_name_code(symbol="科创板")
         if "上市日期" in df_kcb.columns:
             for _, row in df_kcb.iterrows():
@@ -116,7 +99,6 @@ def _get_listing_dates(codes: list[str]) -> dict[str, str]:
         pass
 
     try:
-        # BJ (Beijing Stock Exchange) - includes 上市日期 as datetime.date
         df_bj = ak.stock_info_bj_name_code()
         if "上市日期" in df_bj.columns:
             for _, row in df_bj.iterrows():
@@ -127,7 +109,6 @@ def _get_listing_dates(codes: list[str]) -> dict[str, str]:
     except Exception:
         pass
 
-    # If bulk APIs covered all requested codes, return immediately.
     missing = [c for c in codes if c not in date_map]
     if not missing:
         return date_map
@@ -138,12 +119,9 @@ def _get_listing_dates(codes: list[str]) -> dict[str, str]:
         f"via per-stock queries (slow path)."
     )
 
-    # Per-stock fallback for codes not covered by bulk APIs.
-    # Thread pool with retries for flaky network connections.
     def _fetch_listing_date(code: str) -> tuple[str, str] | None:
         for attempt in range(_RETRIES):
             try:
-                # Primary: East Money individual stock info (direct 上市时间 field)
                 info = ak.stock_individual_info_em(symbol=code)
                 row = info[info["item"] == "上市时间"]
                 if not row.empty:
@@ -153,10 +131,9 @@ def _get_listing_dates(codes: list[str]) -> dict[str, str]:
             except Exception:
                 pass
             try:
-                # Fallback: monthly history, first row = listing date
                 hist = ak.stock_zh_a_hist(
                     symbol=code, period="monthly",
-                    start_date="19900101", end_date="20241231", adjust="qfq",
+                    start_date="19900101", end_date=_FAR_FUTURE, adjust="qfq",
                 )
                 if len(hist) > 0:
                     raw = hist["日期"].iloc[0]
@@ -167,14 +144,13 @@ def _get_listing_dates(codes: list[str]) -> dict[str, str]:
                 time.sleep(1.5)
         return None
 
-    if missing:
-        with ThreadPoolExecutor(max_workers=_WORKERS) as pool:
-            futures = {pool.submit(_fetch_listing_date, code): code for code in missing}
-            for fut in as_completed(futures):
-                result = fut.result()
-                if result is not None:
-                    code, ld = result
-                    date_map[code] = ld
+    with ThreadPoolExecutor(max_workers=_WORKERS) as pool:
+        futures = {pool.submit(_fetch_listing_date, code): code for code in missing}
+        for fut in as_completed(futures):
+            result = fut.result()
+            if result is not None:
+                code, ld = result
+                date_map[code] = ld
 
     return date_map
 
@@ -209,7 +185,7 @@ def get_universe(trade_date: str) -> pd.DataFrame:
         t_idx = cal_dates.index(trade_date)
     except ValueError:
         logger.warning(f"{trade_date} 非交易日，返回空 universe")
-        return not_st.head(0)
+        return not_st.iloc[:0]
 
     lock_idx = max(0, t_idx - IPO_LOCK_DAYS)
     lock_date = cal_dates[lock_idx]
