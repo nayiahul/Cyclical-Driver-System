@@ -44,9 +44,9 @@ NEW_HIGH_BEAR = 0.15         # 创新高(代理)：指数距52周高点 > 15%
 PE_CHANGE_BEAR = -0.05       # 风险偏好：PE 60日变化 < -5%
 
 # 状态切换
-BULL_VOTE = 3                # 牛市最少命中项数（共5项）
-BEAR_CONFIRM_MONTHS = 2      # 结构→牛市需连续确认月数
+BULL_VOTE = 3                # 牛市最少命中项数（指数/广度/新高/风险偏好/流动性 共5项）
+STRUCT_TO_BULL_CONFIRM = 2   # 结构→牛市需连续确认月数
 BEAR_WEEKLY_CONFIRM = 4      # 熊市需维持周数
 
 # 仓位映射
-POSITION_CAP = {"BULL": 1.0, "STRUCT": 1.0, "BEAR": 0.60}
+POSITION_CAP = {"BULL": 1.0, "STRUCT": 1.0, "BEAR": 0.6}
