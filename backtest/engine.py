@@ -1,7 +1,6 @@
 """等权回测引擎"""
 
 import os
-import time
 from dataclasses import dataclass
 
 import akshare as ak
@@ -32,8 +31,26 @@ class BacktestResult:
     stats: dict  # summary statistics
 
 
+def _to_tx_symbol(code: str) -> str:
+    """Convert plain stock code to Tencent-format symbol.
+
+    e.g. '000001' → 'sz000001', '600519' → 'sh600519'
+    """
+    if code.startswith(("0", "3")):
+        return f"sz{code}"
+    if code.startswith("6"):
+        return f"sh{code}"
+    if code.startswith(("4", "8", "9")):
+        return f"bj{code}"
+    return f"sz{code}"  # fallback
+
+
 def _load_price_cache(code: str) -> pd.Series:
-    """Load daily close prices for a stock, caching to CSV and in-memory."""
+    """Load daily close prices for a stock, caching to CSV and in-memory.
+
+    Uses Tencent data source (akshare stock_zh_a_hist_tx) which is
+    more accessible from non-mainland networks.
+    """
     if code in _PRICE_CACHE:
         return _PRICE_CACHE[code]
 
@@ -48,17 +65,15 @@ def _load_price_cache(code: str) -> pd.Series:
             logger.warning(f"{code} 缓存文件损坏，重新下载")
 
     try:
-        hist = ak.stock_zh_a_hist(
-            symbol=code,
-            period="daily",
+        symbol = _to_tx_symbol(code)
+        hist = ak.stock_zh_a_hist_tx(
+            symbol=symbol,
             start_date="20140101",
             end_date="20251231",
             adjust="qfq",
         )
-        time.sleep(0.1)  # be nice to akshare API
-        df = hist[["日期", "收盘"]].copy()
-        df.columns = ["date", "close"]
-        df["date"] = df["date"].str.replace("-", "")
+        df = hist[["date", "close"]].copy()
+        df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y%m%d")
         df["close"] = df["close"].astype(float)
         os.makedirs(os.path.dirname(cache_path), exist_ok=True)
         df.to_csv(cache_path, index=False)
