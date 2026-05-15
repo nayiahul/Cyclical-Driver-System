@@ -51,3 +51,23 @@ BEAR_WEEKLY_CONFIRM = 4      # 熊市需维持周数
 
 # 仓位映射
 POSITION_CAP = {"BULL": 1.0, "STRUCT": 1.0, "BEAR": 0.6}
+
+# ============================================================
+# Alpha 信号阈值
+# ============================================================
+
+# S3 个股动量
+RPS60_MIN = 65              # RPS60最低百分位
+MOMENTUM_DAYS_ABOVE_MA = 30 # 60日中收盘>MA50的最少天数
+
+# S4 行业趋势共振
+SECTOR_TOP_PCT = 0.40       # 行业涨幅排名前40%
+SECTOR_BREADTH_MIN = 0.50   # 行业内上涨占比下限
+SECTOR_NEWHIGH_LOOKBACK = 5 # 行业新高占比对比年限
+
+# Alpha 合成
+TOP_N_STOCKS = 100           # 入选股票数
+
+# 财务数据
+FIN_START_YEAR = 2012        # 财务数据起始年份(2015-3=2012)
+ROE_MIN_QUARTERS = 8         # ROE最少季度数
