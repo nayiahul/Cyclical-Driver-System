@@ -8,7 +8,8 @@ from loguru import logger
 from config.params import (
     BREADTH_BEAR, BREADTH_BULL,
     BULL_VOTE, INDEX_DROP_20D,
-    MARGIN_WEEKLY_DROP, NEW_HIGH_BEAR, NEW_HIGH_BULL,
+    LIQUIDITY_BEAR_FLOW, MARGIN_WEEKLY_DROP,
+    NEW_HIGH_BEAR, NEW_HIGH_BULL,
     PE_CHANGE_BEAR, PE_CHANGE_BULL,
     STRUCT_TO_BULL_CONFIRM, BEAR_WEEKLY_CONFIRM,
 )
@@ -60,7 +61,7 @@ def detect_regime(t_date: str) -> RegimeResult:
 
     # === 极端快速通道 ===
     # 指数急跌：滚动20日跌幅 > 15%
-    if len(it) >= 20:
+    if len(it) > 20:
         close_20d_ago = float(it["close"].iloc[-21])
         drop_20d = (idx_close - close_20d_ago) / close_20d_ago
         if drop_20d < -INDEX_DROP_20D:
@@ -76,8 +77,8 @@ def detect_regime(t_date: str) -> RegimeResult:
     # 牛市条件
     bull_details = {
         "index": idx_above_ma200 and idx_ma60_gt_ma120,
-        "breadth": breadth_val > BREADTH_BULL,
-        "new_high": nh_val < NEW_HIGH_BULL,
+        "breadth": not np.isnan(breadth_val) and breadth_val > BREADTH_BULL,
+        "new_high": not np.isnan(nh_val) and nh_val < NEW_HIGH_BULL,
         "risk": not np.isnan(pe_change) and pe_change > PE_CHANGE_BULL,
         "liquidity": not np.isnan(flow_3week) and flow_3week > 0,
     }
@@ -89,7 +90,7 @@ def detect_regime(t_date: str) -> RegimeResult:
         "breadth": not np.isnan(breadth_val) and breadth_val < BREADTH_BEAR,
         "new_high": not np.isnan(nh_val) and nh_val > NEW_HIGH_BEAR,
         "risk": not np.isnan(pe_change) and pe_change < PE_CHANGE_BEAR,
-        "liquidity": not np.isnan(flow_3week) and flow_3week < -2,
+        "liquidity": not np.isnan(flow_3week) and flow_3week < LIQUIDITY_BEAR_FLOW,
     }
     bear_count = sum(bear_details.values())
 

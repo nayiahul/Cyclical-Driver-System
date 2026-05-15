@@ -42,6 +42,7 @@ PE_CHANGE_BULL = 0.0         # 风险偏好：PE 60日变化 > 0
 BREADTH_BEAR = 0.40          # 广度(代理)：指数>MA20占比 < 40%
 NEW_HIGH_BEAR = 0.15         # 创新高(代理)：指数距52周高点 > 15%
 PE_CHANGE_BEAR = -0.05       # 风险偏好：PE 60日变化 < -5%
+LIQUIDITY_BEAR_FLOW = -2     # 流动性熊市：融资连续3周净流出（flow_3week < -2）
 
 # 状态切换
 BULL_VOTE = 3                # 牛市最少命中项数（指数/广度/新高/风险偏好/流动性 共5项）
