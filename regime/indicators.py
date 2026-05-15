@@ -6,8 +6,6 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
-from trade_calendar import get_trade_calendar
-
 INDEX_CACHE = "data/cache/index_399300.csv"
 PE_CACHE = "data/cache/market_pe.csv"
 MARGIN_CACHE = "data/cache/margin_data.csv"
@@ -20,7 +18,11 @@ def _load_index_data() -> pd.DataFrame:
         df["date"] = pd.to_datetime(df["date"])
         return df
 
-    raw = ak.stock_zh_index_daily(symbol="sz399300")
+    try:
+        raw = ak.stock_zh_index_daily(symbol="sz399300")
+    except Exception:
+        logger.error("获取沪深300指数数据失败")
+        raise
     df = raw[["date", "close"]].copy()
     df["close"] = df["close"].astype(float)
     os.makedirs(os.path.dirname(INDEX_CACHE), exist_ok=True)
@@ -111,9 +113,13 @@ def risk_appetite(trade_dates: list[str]) -> pd.DataFrame:
         DataFrame index=YYYYMM, columns=[pe_60d_change]
     """
     if os.path.exists(PE_CACHE):
-        pe_df = pd.read_csv(PE_CACHE, dtype={"日期": str})
+        pe_df = pd.read_csv(PE_CACHE)
     else:
-        raw = ak.stock_market_pe_lg(symbol="上证A股")
+        try:
+            raw = ak.stock_market_pe_lg(symbol="上证A股")
+        except Exception:
+            logger.error("获取全市场PE数据失败")
+            raise
         pe_df = raw[["日期", "市盈率"]].copy()
         pe_df.columns = ["date", "pe"]
         pe_df["pe"] = pe_df["pe"].astype(float)
@@ -141,10 +147,14 @@ def liquidity(trade_dates: list[str]) -> pd.DataFrame:
         DataFrame index=YYYYMM, columns=[margin_weekly_change, flow_3week]
     """
     if os.path.exists(MARGIN_CACHE):
-        margin_df = pd.read_csv(MARGIN_CACHE, dtype={"日期": str})
+        margin_df = pd.read_csv(MARGIN_CACHE)
     else:
-        sh = ak.macro_china_market_margin_sh()
-        sz = ak.macro_china_market_margin_sz()
+        try:
+            sh = ak.macro_china_market_margin_sh()
+            sz = ak.macro_china_market_margin_sz()
+        except Exception:
+            logger.error("获取融资融券数据失败")
+            raise
         sh_df = sh[["日期", "融资融券余额"]].copy()
         sh_df.columns = ["date", "balance_sh"]
         sz_df = sz[["日期", "融资融券余额"]].copy()
