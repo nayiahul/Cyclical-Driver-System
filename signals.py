@@ -16,16 +16,22 @@ from industry import get_sw_industry
 from trade_calendar import get_trade_calendar
 
 FIN_CACHE = "data/cache/financial_data.csv"
+_PRICE_MEM_CACHE: dict[str, pd.DataFrame] = {}
 
 
 def _load_price_data(code: str) -> pd.DataFrame:
-    """Load cached daily OHLCV data for a stock."""
+    """Load cached daily OHLCV data for a stock (memory + disk cache)."""
+    if code in _PRICE_MEM_CACHE:
+        return _PRICE_MEM_CACHE[code]
     path = f"data/cache/daily_prices/{code}.csv"
     if os.path.exists(path):
         df = pd.read_csv(path, dtype={"date": str})
         df["date"] = pd.to_datetime(df["date"])
-        return df.set_index("date").sort_index()
-    return pd.DataFrame()
+        result = df.set_index("date").sort_index()
+    else:
+        result = pd.DataFrame()
+    _PRICE_MEM_CACHE[code] = result
+    return result
 
 
 def _zscore(series: pd.Series) -> pd.Series:
