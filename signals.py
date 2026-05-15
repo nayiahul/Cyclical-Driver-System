@@ -8,6 +8,9 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
+from orthogonalizer import symmetric_orthogonalize
+from weights import IRWeightManager
+
 from config.params import (
     FIN_START_YEAR, MOMENTUM_DAYS_ABOVE_MA, ROE_MIN_QUARTERS,
     RPS60_MIN, SECTOR_BREADTH_MIN, SECTOR_TOP_PCT,
@@ -16,6 +19,7 @@ from industry import get_sw_industry
 from trade_calendar import get_trade_calendar
 
 FIN_CACHE = "data/cache/financial_data.csv"
+_ir_manager = IRWeightManager(["S3", "S4", "S5", "S7"], window=36)
 _PRICE_MEM_CACHE: dict[str, pd.DataFrame] = {}
 
 
@@ -322,11 +326,15 @@ def compute_S7(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
 
 def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     """
-    Alpha = mean of non-NaN signals S3, S4, S5, S7.
-    Industry map is shared across all signals.
+    Alpha = Sigma w_j * F_j
+    F_j = block-symmetric orthogonalized factors
+    w_j = IR dynamic weights
     """
+    global _ir_manager
+
     industry_map = get_sw_industry()
 
+    # Original signals
     s3 = compute_S3(t_date, codes, industry_map)
     s4 = compute_S4(t_date, codes, industry_map)
     s5 = compute_S5(t_date, codes, industry_map)
@@ -339,13 +347,45 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
         f"S7:{s7.notna().sum()}/{len(codes)}"
     )
 
-    alpha = {}
-    for code in codes:
-        vals = []
-        for s in [s3, s4, s5, s7]:
-            if code in s.index and not pd.isna(s[code]):
-                vals.append(s[code])
-        if vals:
-            alpha[code] = sum(vals) / len(vals)
+    # Build signal arrays (N x 1, NaN preserved)
+    signal_arrays = {}
+    for s_name, s_series in [("S3", s3), ("S4", s4), ("S5", s5), ("S7", s7)]:
+        arr = np.full(len(codes), np.nan)
+        for i, code in enumerate(codes):
+            if code in s_series.index and not pd.isna(s_series[code]):
+                arr[i] = s_series[code]
+        signal_arrays[s_name] = arr
 
+    # Block symmetric orthogonalization
+    blocks = [["S3", "S4"], ["S5", "S7"]]
+    orthogonal = symmetric_orthogonalize(signal_arrays, blocks)
+
+    # IR weights
+    weights = _ir_manager.get_weights()
+
+    # Composite Alpha
+    alpha = {}
+    for i, code in enumerate(codes):
+        vals = []
+        ws = []
+        for s_name in ["S3", "S4", "S5", "S7"]:
+            val = orthogonal.get(s_name, signal_arrays[s_name])[i]
+            if not np.isnan(val):
+                vals.append(val)
+                ws.append(weights.get(s_name, 0.25))
+        if vals and sum(ws) > 0:
+            alpha[code] = sum(v * w for v, w in zip(vals, ws)) / sum(ws)
+
+    logger.info(f"Alpha IR weights: {weights}")
     return alpha
+
+
+def update_ir(factor_values: dict[str, np.ndarray], forward_returns: np.ndarray):
+    """Record monthly IC for next period weight calculation."""
+    global _ir_manager
+    _ir_manager.update(factor_values, forward_returns)
+
+
+def get_current_weights() -> dict[str, float]:
+    """Get current factor weights (for logging)."""
+    return _ir_manager.get_weights()
