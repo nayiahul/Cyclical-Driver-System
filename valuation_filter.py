@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
+from config.params import PEG_MAX
+
 
 def _load_price_data(code: str) -> pd.DataFrame:
     """加载个股日线缓存"""
@@ -31,7 +33,7 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
     1. PE负且近两季ROE未改善 → 剔除
     2. 非经常性损益依赖(ROE波动>50%) → 剔除
     3. 乖离率>120% → 剔除
-    4. PEG>2.5 → 剔除
+    4. PEG>PEG_MAX → 剔除
     5. 流动性后20% → 剔除
     """
     removed = {"neg_pe": 0, "nonrecurring": 0, "deviation": 0, "peg": 0, "liquidity": 0}
@@ -74,7 +76,7 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
                 removed["deviation"] += 1
                 continue
 
-        # 规则4: PEG > 2.5 (仅当ROE改善时判断)
+        # 规则4: PEG > PEG_MAX (仅当ROE改善时判断)
         if len(roe) >= 8:
             roe_recent = roe.tail(4).mean()
             roe_past = roe.tail(8).head(4).mean()
@@ -83,7 +85,7 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
                 if growth > 0:
                     pe_approx = 100.0 / roe_recent
                     peg = pe_approx / (growth * 100)
-                    if peg > 2.5:
+                    if peg > PEG_MAX:
                         removed["peg"] += 1
                         continue
 

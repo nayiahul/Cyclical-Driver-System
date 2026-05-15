@@ -68,6 +68,9 @@ SECTOR_NEWHIGH_LOOKBACK = 5 # 行业新高占比对比年限
 # Alpha 合成
 TOP_N_STOCKS = 100           # 入选股票数
 
+# 估值排雷
+PEG_MAX = 2.5                # PEG上限(越小越严格)
+
 # 财务数据
 FIN_START_YEAR = 2012        # 财务数据起始年份(2015-3=2012)
 ROE_MIN_QUARTERS = 8         # ROE最少季度数
