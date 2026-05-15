@@ -13,11 +13,14 @@ from config.params import (
     INITIAL_CAPITAL,
     MAX_SINGLE_WEIGHT,
     MIN_HOLDINGS,
+    POSITION_CAP,
     START_DATE,
     TOTAL_COST_RATE,
 )
 from trade_calendar import get_rebalance_dates, get_t_date, get_trade_calendar
 from universe import get_universe
+
+from regime.detector import detect_regime
 
 
 _PRICE_CACHE: dict[str, pd.Series] = {}
@@ -186,6 +189,15 @@ def run_backtest(
             t_date = get_t_date(day)
             universe_df = get_universe(t_date)
             target_codes = universe_df["code"].tolist()
+
+            # Regime判定与仓位调节
+            regime_result = detect_regime(t_date)
+            position_cap = POSITION_CAP.get(regime_result.regime, 1.0)
+            logger.info(
+                f"{day}: regime={regime_result.regime} "
+                f"score={regime_result.score:.2f} cap={position_cap:.0%}"
+            )
+
             n = len(target_codes)
 
             if n == 0:
@@ -202,6 +214,9 @@ def run_backtest(
                     code: min(1.0 / n, MAX_SINGLE_WEIGHT)
                     for code in target_codes
                 }
+
+                # 应用仓位上限缩放（熊市降至60%）
+                target_weights = {c: w * position_cap for c, w in target_weights.items()}
 
                 # Step 1: Sell holdings not in the new target universe
                 for code in list(holdings.keys()):
