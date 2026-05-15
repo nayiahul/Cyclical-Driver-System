@@ -1,6 +1,7 @@
 """Alpha信号计算：S3(动量) S4(行业共振) S5(盈利稳定性) S7(现金流质量)"""
 import os
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import akshare as ak
 import numpy as np
@@ -202,9 +203,30 @@ def compute_S4(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
     return pd.Series(result)
 
 
+def _fetch_one_stock_fin(code: str) -> list[dict]:
+    """Download financial indicators for a single stock. Returns list of row dicts."""
+    try:
+        df = ak.stock_financial_analysis_indicator(
+            symbol=code, start_year=str(FIN_START_YEAR)
+        )
+        rows = []
+        for _, row in df.iterrows():
+            roe = row.get("加权净资产收益率(%)")
+            ocf = row.get("经营现金净流量对销售收入比率(%)")
+            rows.append({
+                "code": code,
+                "date": str(row["日期"])[:10],
+                "roe_weighted": float(roe) if roe is not None and str(roe) != "nan" else np.nan,
+                "ocf_to_revenue": float(ocf) if ocf is not None and str(ocf) != "nan" else np.nan,
+            })
+        return rows
+    except Exception:
+        return []
+
+
 def _load_financial_data() -> pd.DataFrame:
     """
-    Load financial data from cache or download via AKShare.
+    Load financial data from cache or download via AKShare in parallel.
     Columns: code, date, roe_weighted, ocf_to_revenue
     """
     if os.path.exists(FIN_CACHE):
@@ -215,24 +237,21 @@ def _load_financial_data() -> pd.DataFrame:
     codes = stocks["code"].tolist()
 
     records = []
-    for i, code in enumerate(codes):
-        try:
-            df = ak.stock_financial_analysis_indicator(
-                symbol=code, start_year=str(FIN_START_YEAR)
-            )
-            for _, row in df.iterrows():
-                roe = row.get("加权净资产收益率(%)")
-                ocf = row.get("经营现金净流量对销售收入比率(%)")
-                records.append({
-                    "code": code,
-                    "date": str(row["日期"])[:10],
-                    "roe_weighted": float(roe) if roe is not None and str(roe) != "nan" else np.nan,
-                    "ocf_to_revenue": float(ocf) if ocf is not None and str(ocf) != "nan" else np.nan,
-                })
-        except Exception:
-            continue
-        if (i + 1) % 500 == 0:
-            logger.info(f"财务数据进度: {i+1}/{len(codes)}")
+    workers = 5
+    completed = 0
+
+    logger.info(f"开始下载 {len(codes)} 只股票财务数据 ({workers}线程并行)...")
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_fetch_one_stock_fin, code): code for code in codes}
+        for fut in as_completed(futures):
+            completed += 1
+            try:
+                rows = fut.result()
+                records.extend(rows)
+            except Exception:
+                pass
+            if completed % 500 == 0:
+                logger.info(f"财务数据进度: {completed}/{len(codes)}")
 
     df = pd.DataFrame(records)
     os.makedirs(os.path.dirname(FIN_CACHE), exist_ok=True)
