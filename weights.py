@@ -66,3 +66,47 @@ class IRWeightManager:
         }
         cold_start = self.months_elapsed < self.window
         return compute_factor_weights(recent_ic, cold_start=cold_start)
+
+
+class CycleIRWeightManager:
+    """周期分层IR权重管理器。按BULL/STRUCT/BEAR分层存储IC历史。"""
+
+    def __init__(self, factor_names: list[str], window: int = 36):
+        self.factor_names = factor_names
+        self.window = window
+        self.months_elapsed = 0
+        self.ic_history = {"BULL": {}, "STRUCT": {}, "BEAR": {}}
+        for regime in self.ic_history:
+            self.ic_history[regime] = {n: [] for n in factor_names}
+        self.regime_history: list[str] = []
+
+    def update(self, factor_values: dict[str, np.ndarray], forward_returns: np.ndarray, regime: str):
+        """记录一个月IC，按Regime分层"""
+        from weights import compute_rank_ic
+        for name in self.factor_names:
+            if name in factor_values:
+                ic = compute_rank_ic(factor_values[name], forward_returns)
+                self.ic_history[regime][name].append(ic)
+        self.regime_history.append(regime)
+        self.months_elapsed += 1
+
+    def get_weights(self, regime: str) -> dict[str, float]:
+        """当前Regime对应的IR权重，样本不足回退全周期"""
+        from weights import compute_factor_weights
+
+        if self.months_elapsed < self.window:
+            n = len(self.factor_names)
+            return {name: 1.0 / n for name in self.factor_names}
+
+        regime_ic = self.ic_history.get(regime, {})
+        if all(len(ics) >= 12 for ics in regime_ic.values()):
+            return compute_factor_weights(regime_ic, cold_start=False)
+
+        # 回退全周期
+        all_ic = {}
+        for name in self.factor_names:
+            combined = []
+            for r_ics in self.ic_history.values():
+                combined.extend(r_ics.get(name, []))
+            all_ic[name] = combined[-self.window:]
+        return compute_factor_weights(all_ic, cold_start=False)
