@@ -20,6 +20,7 @@ from config.params import (
 from trade_calendar import get_rebalance_dates, get_t_date, get_trade_calendar
 from universe import get_universe
 from signals import compute_alpha
+from valuation_filter import apply_valuation_filter
 
 
 _PRICE_CACHE: dict[str, pd.Series] = {}
@@ -199,6 +200,9 @@ def run_backtest(
                         f"{day}: universe 仅 {n} 只股票, "
                         f"低于 MIN_HOLDINGS={MIN_HOLDINGS}"
                     )
+
+                # 估值排雷
+                target_codes = apply_valuation_filter(t_date, target_codes)
 
                 # Alpha选股: Top N
                 alpha_scores = compute_alpha(t_date, target_codes)
