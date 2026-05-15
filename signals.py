@@ -362,6 +362,8 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     # 风险中性化
     try:
         risk_df = compute_risk_factors(t_date, codes)
+        # Align risk factors to full code list (missing stocks → 0)
+        risk_df = risk_df.reindex(codes).fillna(0.0)
         neutralized = neutralize(signal_arrays, risk_df)
     except Exception:
         logger.warning("风险中性化失败，使用原始信号")
