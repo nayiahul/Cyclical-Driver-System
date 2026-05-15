@@ -9,7 +9,10 @@ import pandas as pd
 from loguru import logger
 
 from orthogonalizer import symmetric_orthogonalize
-from weights import IRWeightManager
+from risk_factors import compute_risk_factors
+from neutralizer import neutralize
+from regime.detector import detect_regime
+from weights import CycleIRWeightManager
 
 from config.params import (
     FIN_START_YEAR, MOMENTUM_DAYS_ABOVE_MA, ROE_MIN_QUARTERS,
@@ -19,7 +22,7 @@ from industry import get_sw_industry
 from trade_calendar import get_trade_calendar
 
 FIN_CACHE = "data/cache/financial_data.csv"
-_ir_manager = IRWeightManager(["S3", "S4", "S5", "S7"], window=36)
+_ir_manager = CycleIRWeightManager(["S3", "S4", "S5", "S7"], window=36)
 _PRICE_MEM_CACHE: dict[str, pd.DataFrame] = {}
 
 
@@ -356,12 +359,22 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
                 arr[i] = s_series[code]
         signal_arrays[s_name] = arr
 
+    # 风险中性化
+    try:
+        risk_df = compute_risk_factors(t_date, codes)
+        neutralized = neutralize(signal_arrays, risk_df)
+    except Exception:
+        logger.warning("风险中性化失败，使用原始信号")
+        neutralized = signal_arrays
+
     # Block symmetric orthogonalization
     blocks = [["S3", "S4"], ["S5", "S7"]]
-    orthogonal = symmetric_orthogonalize(signal_arrays, blocks)
+    orthogonal = symmetric_orthogonalize(neutralized, blocks)
 
-    # IR weights
-    weights = _ir_manager.get_weights()
+    # IR weights with regime awareness
+    regime_result = detect_regime(t_date)
+    weights = _ir_manager.get_weights(regime_result.regime)
+    logger.info(f"Regime={regime_result.regime} IR weights: {weights}")
 
     # Composite Alpha
     alpha = {}
@@ -376,7 +389,6 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
         if vals and sum(ws) > 0:
             alpha[code] = sum(v * w for v, w in zip(vals, ws)) / sum(ws)
 
-    logger.info(f"Alpha IR weights: {weights}")
     return alpha
 
 
