@@ -22,7 +22,7 @@ from industry import get_sw_industry
 from trade_calendar import get_trade_calendar
 
 FIN_CACHE = "data/cache/financial_data.csv"
-_ir_manager = CycleIRWeightManager(["S1", "S2", "S3", "S4", "S5", "S7"], window=36)
+_ir_manager = CycleIRWeightManager(["S2", "S3", "S4", "S5", "S7"], window=36)
 _PRICE_MEM_CACHE: dict[str, pd.DataFrame] = {}
 
 
@@ -498,7 +498,6 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     industry_map = get_sw_industry()
 
     # Original signals
-    s1 = compute_S1(t_date, codes, industry_map)
     s2 = compute_S2(t_date, codes, industry_map)
     s3 = compute_S3(t_date, codes, industry_map)
     s4 = compute_S4(t_date, codes, industry_map)
@@ -506,7 +505,6 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     s7 = compute_S7(t_date, codes, industry_map)
 
     logger.info(
-        f"S1:{s1.notna().sum()}/{len(codes)} "
         f"S2:{s2.notna().sum()}/{len(codes)} "
         f"S3:{s3.notna().sum()}/{len(codes)} "
         f"S4:{s4.notna().sum()}/{len(codes)} "
@@ -516,7 +514,7 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
 
     # Build signal arrays (N x 1, NaN preserved)
     signal_arrays = {}
-    for s_name, s_series in [("S1", s1), ("S2", s2), ("S3", s3), ("S4", s4), ("S5", s5), ("S7", s7)]:
+    for s_name, s_series in [("S2", s2), ("S3", s3), ("S4", s4), ("S5", s5), ("S7", s7)]:
         arr = np.full(len(codes), np.nan)
         for i, code in enumerate(codes):
             if code in s_series.index and not pd.isna(s_series[code]):
@@ -543,7 +541,7 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
         neutralized = signal_arrays
 
     # Block symmetric orthogonalization
-    blocks = [["S1", "S2"], ["S3", "S4"], ["S5", "S7"]]
+    blocks = [["S2"], ["S3", "S4"], ["S5", "S7"]]
     orthogonal = symmetric_orthogonalize(neutralized, blocks)
 
     # IR weights with regime awareness
@@ -556,7 +554,7 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     for i, code in enumerate(codes):
         vals = []
         ws = []
-        for s_name in ["S1", "S2", "S3", "S4", "S5", "S7"]:
+        for s_name in ["S2", "S3", "S4", "S5", "S7"]:
             val = orthogonal.get(s_name, signal_arrays[s_name])[i]
             if not np.isnan(val):
                 vals.append(val)
