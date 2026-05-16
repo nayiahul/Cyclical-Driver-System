@@ -437,6 +437,15 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
                 arr[i] = s_series[code]
         signal_arrays[s_name] = arr
 
+    # S1→S3 残差化: 只保留S3未解释的增量利润信号
+    if "S1" in signal_arrays and "S3" in signal_arrays:
+        s1_arr = signal_arrays["S1"]
+        s3_arr = signal_arrays["S3"]
+        mask = ~np.isnan(s1_arr) & ~np.isnan(s3_arr)
+        if mask.sum() > 30:
+            beta = np.polyfit(s3_arr[mask], s1_arr[mask], 1)[0]
+            signal_arrays["S1"] = s1_arr - beta * s3_arr
+
     # 风险中性化
     try:
         risk_df = compute_risk_factors(t_date, codes)
