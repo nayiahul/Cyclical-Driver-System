@@ -74,35 +74,31 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         s5_val = s5.get(code, np.nan) if code in s5.index else np.nan
         s7_val = s7.get(code, np.nan) if code in s7.index else np.nan
 
-        # 景气度 = S3 + S4（价格验证层）
+        # 景气度 = S3 + S4（价格验证层），NaN→0（中性）
         momentum_vals = [v for v in [s3_val, s4_val] if not np.isnan(v)]
-        momentum = np.mean(momentum_vals) if momentum_vals else np.nan
+        momentum = np.mean(momentum_vals) if momentum_vals else 0.0
 
-        # 壁垒 = S5 + S7（质量层）
+        # 壁垒 = S5 + S7（质量层），NaN→0
         moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]
-        moat = np.mean(moat_vals) if moat_vals else np.nan
+        moat = np.mean(moat_vals) if moat_vals else 0.0
 
-        # 估值评分（排雷已过滤极端泡沫，这里用信号代理）
-        # S5高+S7高+通过排雷 = 估值合理偏便宜
-        if not np.isnan(moat):
-            valuation = moat  # 质量越高 → 估值越合理
-        else:
-            valuation = np.nan
+        # 估值评分（排雷已过滤极端泡沫，质量代理）
+        valuation = moat
 
         # 综合：景气度(0.4) + 壁垒(0.35) + 估值(0.25)
-        parts = []
-        if not np.isnan(momentum): parts.append(momentum * 0.4)
-        if not np.isnan(moat): parts.append(moat * 0.35)
-        if not np.isnan(valuation): parts.append(valuation * 0.25)
-        composite = sum(parts) / sum([0.4, 0.35, 0.25][:len(parts)]) if parts else np.nan
+        composite = momentum * 0.4 + moat * 0.35 + valuation * 0.25
 
         results.append({
             "code": code,
             "name": name,
             "industry": industry_map.get(code, ""),
-            "momentum": round(momentum, 3) if not np.isnan(momentum) else np.nan,
-            "moat": round(moat, 3) if not np.isnan(moat) else np.nan,
-            "valuation": round(valuation, 3) if not np.isnan(valuation) else np.nan,
+            "S3": round(s3_val, 3) if not np.isnan(s3_val) else 0.0,
+            "S4": round(s4_val, 3) if not np.isnan(s4_val) else 0.0,
+            "S5": round(s5_val, 3) if not np.isnan(s5_val) else 0.0,
+            "S7": round(s7_val, 3) if not np.isnan(s7_val) else 0.0,
+            "momentum": round(momentum, 3),
+            "moat": round(moat, 3),
+            "valuation": round(valuation, 3),
             "composite": round(composite, 4) if not np.isnan(composite) else np.nan,
         })
 
