@@ -9,10 +9,7 @@ import pandas as pd
 from loguru import logger
 
 from orthogonalizer import symmetric_orthogonalize
-from risk_factors import compute_risk_factors
-from neutralizer import neutralize
-from regime.detector import detect_regime
-from weights import CycleIRWeightManager
+from weights import IRWeightManager
 
 from config.params import (
     FIN_START_YEAR, MOMENTUM_DAYS_ABOVE_MA, ROE_MIN_QUARTERS,
@@ -22,7 +19,7 @@ from industry import get_sw_industry
 from trade_calendar import get_trade_calendar
 
 FIN_CACHE = "data/cache/financial_data.csv"
-_ir_manager = CycleIRWeightManager(["S2", "S3", "S4", "S5", "S7"], window=36)
+_ir_manager = IRWeightManager(["S3", "S4", "S5", "S7"], window=36)
 _PRICE_MEM_CACHE: dict[str, pd.DataFrame] = {}
 
 
@@ -327,166 +324,6 @@ def compute_S7(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
     return zscored
 
 
-def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str]) -> pd.Series:
-    """
-    S1 利润加速度（简化版）。
-
-    数据源: TDX 财务缓存 (deducted_profit_yoy, 扣非净利润同比)
-    算法: 对过去3个单季度同比增速做线性回归，斜率>0且R²>0.6判定加速。
-    质量防护: 经营现金流不逆利润、低基数过滤、洗大澡检测。
-    """
-    import os as _os
-    tdx_path = "data/cache/tdx_financials.csv"
-    if not _os.path.exists(tdx_path):
-        return pd.Series(dtype=float)
-
-    fin = pd.read_csv(tdx_path, dtype={"code": str, "report_date_str": str})
-    fin = fin.dropna(subset=["report_date_str"])
-    fin = fin[fin["report_date_str"] <= t_date]
-    fin = fin[["code", "report_date_str", "deducted_profit_yoy",
-               "deducted_profit_q", "operating_cash_flow"]].copy()
-    fin = fin.dropna(subset=["deducted_profit_yoy"])
-
-    scores = {}
-    for code in codes:
-        code_fin = fin[fin["code"] == code].sort_values("report_date_str")
-        if len(code_fin) < 4:
-            continue
-        yoy = code_fin["deducted_profit_yoy"].values[-3:].astype(float)
-
-        # Low base filter: last year same quarter profit < 10M → skip
-        profits = code_fin["deducted_profit_q"].values[-4:].astype(float)
-        if len(profits) >= 4 and abs(profits[-4]) < 1e7:
-            continue
-
-        # Trend acceleration: linear regression slope > 0, R² > 0.6
-        if len(yoy) < 3:
-            continue
-        x = np.arange(3, dtype=float)
-        y_valid = ~np.isnan(yoy)
-        if y_valid.sum() < 3:
-            continue
-        slope, intercept = np.polyfit(x, yoy, 1)
-        y_pred = slope * x + intercept
-        ss_res = np.sum((yoy - y_pred) ** 2)
-        ss_tot = np.sum((yoy - np.mean(yoy)) ** 2)
-        r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 0
-        if slope <= 0 or r2 < 0.6:
-            continue
-
-        # Bath check: operating profit not diverging from deducted profit
-        # (Simplified: skip if yoy volatility > 150pp in 10 quarters)
-        yoy_all = code_fin["deducted_profit_yoy"].values[-10:].astype(float)
-        if len(yoy_all) >= 8:
-            if np.nanstd(yoy_all) > 150:
-                continue
-
-        # OCF quality: if last 2 quarters OCF sum < 0 and profit accelerated, flag
-        ocf = code_fin["operating_cash_flow"].values[-2:].astype(float)
-        if len(ocf) == 2 and np.nansum(ocf) < 0:
-            # Downgrade but don't fully exclude — S1 *= 0.5 via lower score
-            scores[code] = yoy[-1] * 0.5
-        else:
-            scores[code] = yoy[-1]
-
-    if not scores:
-        return pd.Series(dtype=float)
-
-    result = pd.Series(scores)
-    groups = {c: industry_map.get(c, "未知") for c in result.index}
-    result.index = pd.MultiIndex.from_tuples(
-        [(c, groups.get(c, "未知")) for c in result.index],
-        names=["code", "industry"],
-    )
-    zscored = result.groupby("industry").transform(_zscore)
-    zscored.index = zscored.index.get_level_values("code")
-    return zscored
-
-
-def compute_S2(t_date: str, codes: list[str], industry_map: dict[str, str]) -> pd.Series:
-    """
-    S2 产能扩张（简化版）。
-
-    数据源: TDX 财务缓存 (contract_liabilities, advance_receipts, fixed_assets, capex_cash)
-    算法: TTM合同负债yoy(订单) + TTM CAPEX yoy(硬扩张)，合成打分。
-    排除: 银行/非银金融/房地产(一级行业)。
-    """
-    import os as _os
-    tdx_path = "data/cache/tdx_financials.csv"
-    if not _os.path.exists(tdx_path):
-        return pd.Series(dtype=float)
-
-    # 排除行业
-    exclude = {"银行", "非银金融", "房地产"}
-
-    fin = pd.read_csv(tdx_path, dtype={"code": str, "report_date_str": str})
-    fin = fin.dropna(subset=["report_date_str"])
-    fin = fin[fin["report_date_str"] <= t_date]
-    fin = fin[["code", "report_date_str", "contract_liabilities",
-               "advance_receipts", "fixed_assets", "capex_cash"]].copy()
-
-    scores = {}
-    for code in codes:
-        ind = industry_map.get(code, "未知")
-        if ind in exclude:
-            continue
-
-        code_fin = fin[fin["code"] == code].sort_values("report_date_str")
-        if len(code_fin) < 8:  # need at least 8 quarters for TTM
-            continue
-
-        # TTM values (last 4 quarters sum)
-        cl = code_fin["contract_liabilities"].values.astype(float)
-        ar = code_fin["advance_receipts"].values.astype(float)
-        capex = code_fin["capex_cash"].values.astype(float)
-        fa = code_fin["fixed_assets"].values.astype(float)
-
-        cl_ttm = np.nansum(cl[-4:])  # current TTM
-        cl_ttm_prev = np.nansum(cl[-8:-4])  # prior year TTM
-        ar_ttm = np.nansum(ar[-4:])
-        ar_ttm_prev = np.nansum(ar[-8:-4])
-        capex_ttm = np.nansum(capex[-4:])
-        capex_ttm_prev = np.nansum(capex[-8:-4])
-
-        # Order signal: contract liabilities TTM yoy > 30% or advance receipts TTM yoy > 30%
-        cl_yoy = (cl_ttm / cl_ttm_prev - 1) if cl_ttm_prev > 0 else 0
-        ar_yoy = (ar_ttm / ar_ttm_prev - 1) if ar_ttm_prev > 0 else 0
-        has_order = (cl_yoy > 0.3) or (ar_yoy > 0.3)
-
-        # Hard expansion: capex TTM yoy > 20% or fixed_assets QoQ > 5%
-        capex_yoy = (capex_ttm / capex_ttm_prev - 1) if capex_ttm_prev > 0 else 0
-        fa_qoq = (fa[-1] / fa[-5] - 1) if len(fa) >= 5 and fa[-5] > 0 else 0
-        is_expanding = (capex_yoy > 0.2) or (fa_qoq > 0.05)
-
-        if not has_order and not is_expanding:
-            continue
-
-        if has_order:
-            order_score = max(cl_yoy, ar_yoy)
-            s2_raw = 0.6 * min(order_score, 3.0) + 0.4 * min(capex_yoy, 2.0)
-        else:
-            # No order, only capex — higher threshold
-            if capex_yoy > 0.30:
-                s2_raw = min(capex_yoy, 2.0)
-            else:
-                continue
-
-        scores[code] = s2_raw
-
-    if not scores:
-        return pd.Series(dtype=float)
-
-    result = pd.Series(scores)
-    groups = {c: industry_map.get(c, "未知") for c in result.index}
-    result.index = pd.MultiIndex.from_tuples(
-        [(c, groups.get(c, "未知")) for c in result.index],
-        names=["code", "industry"],
-    )
-    zscored = result.groupby("industry").transform(_zscore)
-    zscored.index = zscored.index.get_level_values("code")
-    return zscored
-
-
 def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     """
     Alpha = Sigma w_j * F_j
@@ -498,14 +335,12 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     industry_map = get_sw_industry()
 
     # Original signals
-    s2 = compute_S2(t_date, codes, industry_map)
     s3 = compute_S3(t_date, codes, industry_map)
     s4 = compute_S4(t_date, codes, industry_map)
     s5 = compute_S5(t_date, codes, industry_map)
     s7 = compute_S7(t_date, codes, industry_map)
 
     logger.info(
-        f"S2:{s2.notna().sum()}/{len(codes)} "
         f"S3:{s3.notna().sum()}/{len(codes)} "
         f"S4:{s4.notna().sum()}/{len(codes)} "
         f"S5:{s5.notna().sum()}/{len(codes)} "
@@ -514,47 +349,26 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
 
     # Build signal arrays (N x 1, NaN preserved)
     signal_arrays = {}
-    for s_name, s_series in [("S2", s2), ("S3", s3), ("S4", s4), ("S5", s5), ("S7", s7)]:
+    for s_name, s_series in [("S3", s3), ("S4", s4), ("S5", s5), ("S7", s7)]:
         arr = np.full(len(codes), np.nan)
         for i, code in enumerate(codes):
             if code in s_series.index and not pd.isna(s_series[code]):
                 arr[i] = s_series[code]
         signal_arrays[s_name] = arr
 
-    # S1→S3 残差化: 只保留S3未解释的增量利润信号
-    if "S1" in signal_arrays and "S3" in signal_arrays:
-        s1_arr = signal_arrays["S1"]
-        s3_arr = signal_arrays["S3"]
-        mask = ~np.isnan(s1_arr) & ~np.isnan(s3_arr)
-        if mask.sum() > 30:
-            beta = np.polyfit(s3_arr[mask], s1_arr[mask], 1)[0]
-            signal_arrays["S1"] = s1_arr - beta * s3_arr
-
-    # 风险中性化
-    try:
-        risk_df = compute_risk_factors(t_date, codes)
-        # Align risk factors to full code list (missing stocks → 0)
-        risk_df = risk_df.reindex(codes).fillna(0.0)
-        neutralized = neutralize(signal_arrays, risk_df)
-    except Exception:
-        logger.warning("风险中性化失败，使用原始信号")
-        neutralized = signal_arrays
-
     # Block symmetric orthogonalization
-    blocks = [["S2"], ["S3", "S4"], ["S5", "S7"]]
-    orthogonal = symmetric_orthogonalize(neutralized, blocks)
+    blocks = [["S3", "S4"], ["S5", "S7"]]
+    orthogonal = symmetric_orthogonalize(signal_arrays, blocks)
 
-    # IR weights with regime awareness
-    regime_result = detect_regime(t_date)
-    weights = _ir_manager.get_weights(regime_result.regime)
-    logger.info(f"Regime={regime_result.regime} IR weights: {weights}")
+    # IR weights
+    weights = _ir_manager.get_weights()
 
     # Composite Alpha
     alpha = {}
     for i, code in enumerate(codes):
         vals = []
         ws = []
-        for s_name in ["S2", "S3", "S4", "S5", "S7"]:
+        for s_name in ["S3", "S4", "S5", "S7"]:
             val = orthogonal.get(s_name, signal_arrays[s_name])[i]
             if not np.isnan(val):
                 vals.append(val)
@@ -562,6 +376,7 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
         if vals and sum(ws) > 0:
             alpha[code] = sum(v * w for v, w in zip(vals, ws)) / sum(ws)
 
+    logger.info(f"Alpha IR weights: {weights}")
     return alpha
 
 
