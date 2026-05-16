@@ -22,7 +22,7 @@ from industry import get_sw_industry
 from trade_calendar import get_trade_calendar
 
 FIN_CACHE = "data/cache/financial_data.csv"
-_ir_manager = CycleIRWeightManager(["S3", "S4", "S5", "S7"], window=36)
+_ir_manager = CycleIRWeightManager(["S1", "S3", "S4", "S5", "S7"], window=36)
 _PRICE_MEM_CACHE: dict[str, pd.DataFrame] = {}
 
 
@@ -327,6 +327,82 @@ def compute_S7(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
     return zscored
 
 
+def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str]) -> pd.Series:
+    """
+    S1 利润加速度（简化版）。
+
+    数据源: TDX 财务缓存 (deducted_profit_yoy, 扣非净利润同比)
+    算法: 对过去3个单季度同比增速做线性回归，斜率>0且R²>0.6判定加速。
+    质量防护: 经营现金流不逆利润、低基数过滤、洗大澡检测。
+    """
+    import os as _os
+    tdx_path = "data/cache/tdx_financials.csv"
+    if not _os.path.exists(tdx_path):
+        return pd.Series(dtype=float)
+
+    fin = pd.read_csv(tdx_path, dtype={"code": str, "report_date_str": str})
+    fin = fin.dropna(subset=["report_date_str"])
+    fin = fin[fin["report_date_str"] <= t_date]
+    fin = fin[["code", "report_date_str", "deducted_profit_yoy",
+               "deducted_profit_q", "operating_cash_flow"]].copy()
+    fin = fin.dropna(subset=["deducted_profit_yoy"])
+
+    scores = {}
+    for code in codes:
+        code_fin = fin[fin["code"] == code].sort_values("report_date_str")
+        if len(code_fin) < 4:
+            continue
+        yoy = code_fin["deducted_profit_yoy"].values[-3:].astype(float)
+
+        # Low base filter: last year same quarter profit < 10M → skip
+        profits = code_fin["deducted_profit_q"].values[-4:].astype(float)
+        if len(profits) >= 4 and abs(profits[-4]) < 1e7:
+            continue
+
+        # Trend acceleration: linear regression slope > 0, R² > 0.6
+        if len(yoy) < 3:
+            continue
+        x = np.arange(3, dtype=float)
+        y_valid = ~np.isnan(yoy)
+        if y_valid.sum() < 3:
+            continue
+        slope, intercept = np.polyfit(x, yoy, 1)
+        y_pred = slope * x + intercept
+        ss_res = np.sum((yoy - y_pred) ** 2)
+        ss_tot = np.sum((yoy - np.mean(yoy)) ** 2)
+        r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 0
+        if slope <= 0 or r2 < 0.6:
+            continue
+
+        # Bath check: operating profit not diverging from deducted profit
+        # (Simplified: skip if yoy volatility > 150pp in 10 quarters)
+        yoy_all = code_fin["deducted_profit_yoy"].values[-10:].astype(float)
+        if len(yoy_all) >= 8:
+            if np.nanstd(yoy_all) > 150:
+                continue
+
+        # OCF quality: if last 2 quarters OCF sum < 0 and profit accelerated, flag
+        ocf = code_fin["operating_cash_flow"].values[-2:].astype(float)
+        if len(ocf) == 2 and np.nansum(ocf) < 0:
+            # Downgrade but don't fully exclude — S1 *= 0.5 via lower score
+            scores[code] = yoy[-1] * 0.5
+        else:
+            scores[code] = yoy[-1]
+
+    if not scores:
+        return pd.Series(dtype=float)
+
+    result = pd.Series(scores)
+    groups = {c: industry_map.get(c, "未知") for c in result.index}
+    result.index = pd.MultiIndex.from_tuples(
+        [(c, groups.get(c, "未知")) for c in result.index],
+        names=["code", "industry"],
+    )
+    zscored = result.groupby("industry").transform(_zscore)
+    zscored.index = zscored.index.get_level_values("code")
+    return zscored
+
+
 def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     """
     Alpha = Sigma w_j * F_j
@@ -338,12 +414,14 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     industry_map = get_sw_industry()
 
     # Original signals
+    s1 = compute_S1(t_date, codes, industry_map)
     s3 = compute_S3(t_date, codes, industry_map)
     s4 = compute_S4(t_date, codes, industry_map)
     s5 = compute_S5(t_date, codes, industry_map)
     s7 = compute_S7(t_date, codes, industry_map)
 
     logger.info(
+        f"S1:{s1.notna().sum()}/{len(codes)} "
         f"S3:{s3.notna().sum()}/{len(codes)} "
         f"S4:{s4.notna().sum()}/{len(codes)} "
         f"S5:{s5.notna().sum()}/{len(codes)} "
@@ -352,7 +430,7 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
 
     # Build signal arrays (N x 1, NaN preserved)
     signal_arrays = {}
-    for s_name, s_series in [("S3", s3), ("S4", s4), ("S5", s5), ("S7", s7)]:
+    for s_name, s_series in [("S1", s1), ("S3", s3), ("S4", s4), ("S5", s5), ("S7", s7)]:
         arr = np.full(len(codes), np.nan)
         for i, code in enumerate(codes):
             if code in s_series.index and not pd.isna(s_series[code]):
@@ -369,8 +447,8 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
         logger.warning("风险中性化失败，使用原始信号")
         neutralized = signal_arrays
 
-    # Block symmetric orthogonalization
-    blocks = [["S3", "S4"], ["S5", "S7"]]
+    # Block symmetric orthogonalization (S1 solo until S2 added)
+    blocks = [["S1"], ["S3", "S4"], ["S5", "S7"]]
     orthogonal = symmetric_orthogonalize(neutralized, blocks)
 
     # IR weights with regime awareness
@@ -383,7 +461,7 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     for i, code in enumerate(codes):
         vals = []
         ws = []
-        for s_name in ["S3", "S4", "S5", "S7"]:
+        for s_name in ["S1", "S3", "S4", "S5", "S7"]:
             val = orthogonal.get(s_name, signal_arrays[s_name])[i]
             if not np.isnan(val):
                 vals.append(val)
