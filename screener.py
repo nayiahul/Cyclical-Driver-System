@@ -166,11 +166,15 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]
         moat = np.mean(moat_vals) if moat_vals else 0.0
 
-        # 估值 = 排雷通过 + 质量代理
-        valuation = moat
-
-        # 综合：景气度(0.4) + 壁垒(0.35) + 估值(0.25)
-        composite = momentum * 0.4 + moat * 0.35 + valuation * 0.25
+        # 估值 = 距200日均线距离的逆向指标（离均线越近越便宜，越远越贵）
+        df = _load_price_data(code)
+        valuation = 0.0
+        if len(df) >= 200:
+            close = df["close"]
+            ma200 = close.rolling(200).mean().iloc[-1]
+            if ma200 > 0:
+                dev = abs(close.iloc[-1] - ma200) / ma200
+                valuation = min(2.0, (1.0 - dev / 0.8))  # 距MA200<80%=正面，>80%=负面
 
         results.append({
             "code": code,
@@ -183,23 +187,34 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
             "momentum": round(momentum, 3),
             "moat": round(moat, 3),
             "valuation": round(valuation, 3),
-            "composite": round(composite, 4) if not np.isnan(composite) else np.nan,
         })
 
-    df = pd.DataFrame(results).sort_values("composite", ascending=False).head(top_n)
+    df = pd.DataFrame(results)
 
-    # 5. Regime 判定
+    # 5. Regime 判定 + 动态权重
     regime_result = detect_regime(t_date)
-    logger.info(f"当前市场状态: {regime_result.regime} (score={regime_result.score:.2f})")
+    r = regime_result.regime
+    if r == "BULL":
+        w_m, w_b, w_v = 0.50, 0.30, 0.20  # 景气度>壁垒>估值
+    elif r == "BEAR":
+        w_m, w_b, w_v = 0.20, 0.30, 0.50  # 估值>壁垒>景气度
+    else:  # STRUCT
+        w_m, w_b, w_v = 0.35, 0.35, 0.30  # 均衡
+
+    df["composite"] = (
+        df["momentum"] * w_m + df["moat"] * w_b + df["valuation"] * w_v
+    )
+    df = df.sort_values("composite", ascending=False).head(top_n)
+
+    logger.info(f"当前市场状态: {r} → 权重: 景气度={w_m} 壁垒={w_b} 估值={w_v}")
+    logger.info(f"筛选完成: {len(df)} 只")
+    logger.info(f"按框架: 牛市→景气度优先, 熊市→估值优先, 结构市→均衡")
 
     # 6. 添加定性标签
     df["momentum_level"] = pd.cut(df["momentum"],
         bins=[-99, -0.3, 0.3, 99], labels=["弱", "中", "强"])
     df["moat_level"] = pd.cut(df["moat"],
         bins=[-99, -0.3, 0.3, 99], labels=["低", "中", "高"])
-
-    logger.info(f"筛选完成: {len(df)} 只 (Regime={regime_result.regime})")
-    logger.info(f"按框架: 牛市→景气度优先, 熊市→估值优先, 结构市→均衡")
 
     return df
 
