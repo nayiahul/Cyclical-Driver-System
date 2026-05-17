@@ -267,48 +267,59 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
 
 def screen_growth(date_str: str = None, top_n: int = 50) -> pd.DataFrame:
     """
-    景气成长模式：筛选具备中线爆发潜力的标的。
+    拐点爆发模式：找基本面正在改善但价格尚未充分反应的标的。
 
-    条件: RPS60≥80, PE<60, 壁垒不差(moat>-0.5)
-    权重: 景气度60% + S1/S2(基本面催化)30% + 壁垒10%
+    逻辑: S1或S2>0(基本面改善), RPS60 60-95(有动量但没透支),
+          PE<50(估值安全), moat>-0.5(质量不差)
+    权重: 基本面催化40% + 动量空间30% + 壁垒20% + 估值10%
     """
-    df_all = screen(date_str, top_n=500)  # 先跑全景
-    # 过滤条件
+    df_all = screen(date_str, top_n=800)
+
+    # 过滤条件：有基本面改善 + 动量合理 + 估值正常
     df = df_all[
-        (df_all["RPS60"] >= 80) &
-        (df_all["PE"] < 60) &
-        (df_all["moat"] > -0.5) &
-        (df_all["PE"] > 0)
+        ((df_all["S1"] > 0) | (df_all["S2"] > 0)) &  # 至少一个基本面信号为正
+        (df_all["RPS60"] >= 60) & (df_all["RPS60"] <= 95) &  # 有动量但未透支
+        (df_all["PE"] > 0) & (df_all["PE"] < 50) &  # 有盈利且估值合理
+        (df_all["moat"] > -0.5)  # 质量不差
     ].copy()
 
-    if len(df) == 0:
-        logger.warning("无符合成长筛选条件的标的，放宽条件...")
-        df = df_all[(df_all["RPS60"] >= 70) & (df_all["moat"] > -1.0)].copy()
+    if len(df) < 20:
+        logger.warning(f"仅 {len(df)} 只符合严格条件，放宽RPS至50-98")
+        df = df_all[
+            ((df_all["S1"] > 0) | (df_all["S2"] > 0)) &
+            (df_all["RPS60"] >= 50) &
+            (df_all["PE"] > 0) & (df_all["PE"] < 60) &
+            (df_all["moat"] > -1.0)
+        ].copy()
 
-    # S1/S2 催化得分
-    df["catalyst"] = df[["S1", "S2"]].max(axis=1)  # 取最强的那个
-    df["catalyst"] = df["catalyst"].clip(-2, 3)
+    # 基本面催化剂得分（S1/S2 取最强，正值才有催化）
+    df["catalyst"] = df[["S1", "S2"]].max(axis=1).clip(0, 3)
 
-    # 景气成长综合得分
-    df["growth_score"] = (
-        df["momentum"] * 0.4 +
-        df["catalyst"] * 0.3 +
-        (df["RPS60"] / 100) * 0.2 +
-        df["moat"] * 0.1
+    # 动量空间：RPS 60-80 区间是最佳（已启动但还有空间）
+    df["room_to_run"] = 1 - abs(df["RPS60"] - 70) / 40  # RPS≈70时最高
+    df["room_to_run"] = df["room_to_run"].clip(0, 1)
+
+    # 拐点得分
+    df["inflection_score"] = (
+        df["catalyst"] * 0.40 +          # 基本面改善强度
+        df["room_to_run"] * 0.30 +       # 价格还有空间
+        df["moat"] * 0.20 +              # 壁垒保护
+        df["valuation"] * 0.10           # 估值合理
     )
-    df = df.sort_values("growth_score", ascending=False).head(top_n)
+    df = df.sort_values("inflection_score", ascending=False).head(top_n)
 
-    # 添加催化剂标签
+    # 催化剂标签
     def _tag(row):
         tags = []
-        if row["S1"] > 0.5: tags.append("利润加速↑")
-        if row["S2"] > 0.5: tags.append("产能扩张↑")
-        if row["RPS60"] >= 95: tags.append("动量极强")
-        if row["PE"] < 20: tags.append("低估值")
+        if row["S1"] > 0.3: tags.append("利润拐点")
+        if row["S2"] > 0.3: tags.append("产能扩张")
+        if 60 <= row["RPS60"] <= 75: tags.append("刚启动")
+        if 75 < row["RPS60"] <= 90: tags.append("趋势中")
+        if row["S1"] > 0 and row["S2"] > 0: tags.append("★双击")
         return " | ".join(tags) if tags else "—"
 
-    df["catalyst_tags"] = df.apply(_tag, axis=1)
-    df["growth_score"] = df["growth_score"].round(4)
+    df["inflection_tags"] = df.apply(_tag, axis=1)
+    df["inflection_score"] = df["inflection_score"].round(4)
 
     return df
 
@@ -325,7 +336,7 @@ def main():
         print(f"\n已保存: {out_path}")
         print(f"\nTop 20 (景气成长):")
         print(df.head(20)[["code", "name", "industry", "RPS60", "PE",
-              "catalyst_tags", "growth_score"]].to_string(index=False))
+              "S1", "S2", "inflection_tags", "inflection_score"]].to_string(index=False))
         return
 
     df = screen()
