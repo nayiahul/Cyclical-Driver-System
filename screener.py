@@ -15,7 +15,7 @@ from industry import get_sw_industry
 from trade_calendar import get_t_date, get_trade_calendar
 from universe import get_universe
 from valuation_filter import apply_valuation_filter
-from signals import compute_S5, compute_S7, _load_price_data
+from signals import compute_S1, compute_S2, compute_S5, compute_S7, _load_price_data
 from regime.detector import detect_regime
 
 
@@ -139,8 +139,19 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     logger.info("计算信号...")
     rps_scores = compute_rps60(filtered, t_date, industry_map)
     ind_scores = compute_industry_momentum(filtered, t_date, industry_map)
+    s1 = compute_S1(t_date, filtered, industry_map)
+    s2 = compute_S2(t_date, filtered, industry_map)
     s5 = compute_S5(t_date, filtered, industry_map)
     s7 = compute_S7(t_date, filtered, industry_map)
+
+    # PE估值: 收盘价 / 最新年报EPS, 行业内排名
+    fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
+    fin_annual = fin[fin["report_date_str"].str[4:6] == "12"].copy()
+    fin_annual = fin_annual.sort_values("report_date_str").groupby("code").last()
+    fin_annual["pe_proxy"] = np.where(
+        fin_annual["eps"] > 0.01,
+        fin_annual["eps"].clip(lower=0.01), np.nan
+    )
 
     # 4. 构建评分
     results = []
@@ -148,36 +159,64 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         name = universe_df[universe_df["code"] == code]["name"].values
         name = name[0] if len(name) > 0 else ""
 
-        # 简化版景气度：RPS60(0-100) + 行业动量(连续值)
-        rps = rps_scores.get(code, 50)      # 50 = 中位
+        # --- 景气度(4子因子) ---
+        rps = rps_scores.get(code, 50)
         ind_mom = ind_scores.get(code, 0)
+        s1_val = s1.get(code, np.nan) if code in s1.index else np.nan
+        s2_val = s2.get(code, np.nan) if code in s2.index else np.nan
 
-        # 将 RPS 标准化到 ~Z-score 范围
         rps_z = (rps - 50) / 20
-        ind_z = ind_mom / 0.15  # 约 15% 标准差
+        ind_z = ind_mom / 0.15
+        s1_z = s1_val if not np.isnan(s1_val) else 0.0
+        s2_z = s2_val if not np.isnan(s2_val) else 0.0
+        s1_z = max(-3.0, min(3.0, s1_z))
+        s2_z = max(-3.0, min(3.0, s2_z))
 
+        # S1/S2均有效时→4子因子等权；否则→RPS+行业动量
+        if not np.isnan(s1_val) and not np.isnan(s2_val):
+            momentum = rps_z * 0.25 + ind_z * 0.15 + s1_z * 0.30 + s2_z * 0.30
+        else:
+            momentum = rps_z * 0.6 + ind_z * 0.4
+
+        # --- 壁垒 ---
         s5_val = s5.get(code, np.nan) if code in s5.index else np.nan
         s7_val = s7.get(code, np.nan) if code in s7.index else np.nan
-        # 防极端值（行业分类缺失时 Z-Score 可能异常）
         if not np.isnan(s5_val): s5_val = max(-3.0, min(3.0, s5_val))
         if not np.isnan(s7_val): s7_val = max(-3.0, min(3.0, s7_val))
-
-        # 景气度 = RPS + 行业动量
-        momentum = rps_z * 0.6 + ind_z * 0.4
-
-        # 壁垒 = S5 + S7，NaN→0
         moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]
         moat = np.mean(moat_vals) if moat_vals else 0.0
 
-        # 估值 = 距200日均线距离的逆向指标（离均线越近越便宜，越远越贵）
-        df = _load_price_data(code)
-        valuation = 0.0
-        if len(df) >= 200:
-            close = df["close"]
+        # --- 估值: PE行业内分位 ---
+        eps_val = fin_annual.loc[code, "eps"] if code in fin_annual.index else np.nan
+        df_price = _load_price_data(code)
+        close_price = float(df_price["close"].iloc[-1]) if len(df_price) > 0 else np.nan
+        pe_val = close_price / eps_val if (not np.isnan(eps_val) and eps_val > 0.01) else np.nan
+        pe_val = min(200, max(1, pe_val)) if not np.isnan(pe_val) else np.nan
+
+        # 行业内PE排名 (lower PE = cheaper = higher score)
+        ind_codes = [c for c in filtered if industry_map.get(c) == industry_map.get(code)]
+        ind_pes = []
+        for c in ind_codes:
+            e = fin_annual.loc[c, "eps"] if c in fin_annual.index else np.nan
+            cp_df = _load_price_data(c)
+            cp = float(cp_df["close"].iloc[-1]) if len(cp_df) > 0 else np.nan
+            if not np.isnan(e) and e > 0.01 and not np.isnan(cp):
+                p = min(200, max(1, cp / e))
+                ind_pes.append(p)
+        if not np.isnan(pe_val) and len(ind_pes) >= 5:
+            pct = sum(1 for p in ind_pes if p >= pe_val) / len(ind_pes)
+            valuation = (pct - 0.5) * 4  # centile → Z-score range
+        else:
+            valuation = 0.0
+
+        # --- 技术温度(仅观察) ---
+        tech_temp = 0.0
+        if len(df_price) >= 200:
+            close = df_price["close"]
             ma200 = close.rolling(200).mean().iloc[-1]
             if ma200 > 0:
-                dev = abs(close.iloc[-1] - ma200) / ma200
-                valuation = min(2.0, (1.0 - dev / 0.8))  # 距MA200<80%=正面，>80%=负面
+                dev = (close.iloc[-1] - ma200) / ma200
+                tech_temp = round(dev * 100, 1)
 
         results.append({
             "code": code,
@@ -185,11 +224,15 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
             "industry": industry_map.get(code, ""),
             "RPS60": round(rps, 1),
             "ind_momentum": round(ind_mom * 100, 1),
+            "S1": round(s1_z, 3),
+            "S2": round(s2_z, 3),
             "S5": round(s5_val, 3) if not np.isnan(s5_val) else 0.0,
             "S7": round(s7_val, 3) if not np.isnan(s7_val) else 0.0,
+            "PE": round(pe_val, 1) if not np.isnan(pe_val) else 0.0,
             "momentum": round(momentum, 3),
             "moat": round(moat, 3),
             "valuation": round(valuation, 3),
+            "tech_temp": tech_temp,
         })
 
     df = pd.DataFrame(results)
