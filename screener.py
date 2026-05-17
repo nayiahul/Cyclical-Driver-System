@@ -158,6 +158,9 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
 
         s5_val = s5.get(code, np.nan) if code in s5.index else np.nan
         s7_val = s7.get(code, np.nan) if code in s7.index else np.nan
+        # 防极端值（行业分类缺失时 Z-Score 可能异常）
+        if not np.isnan(s5_val): s5_val = max(-3.0, min(3.0, s5_val))
+        if not np.isnan(s7_val): s7_val = max(-3.0, min(3.0, s7_val))
 
         # 景气度 = RPS + 行业动量
         momentum = rps_z * 0.6 + ind_z * 0.4
