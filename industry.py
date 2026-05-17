@@ -1,54 +1,47 @@
-"""申万2024一级行业映射"""
+"""申万行业映射 — Sina源，覆盖L1/L2/L3全部行业"""
 import os
 
-import akshare as ak
 import pandas as pd
 from loguru import logger
 
-SW_INDUSTRY_CACHE = "data/cache/sw_industry_map.csv"
+_STOCK_MAP_CACHE = "data/cache/sw_stock_industry.csv"
+_HIERARCHY_CACHE = "data/cache/sw_hierarchy.csv"
 
-# 申万2021版 31个一级行业指数代码
-SW_CODES = {
-    "801010": "农林牧渔", "801020": "煤炭", "801030": "化工",
-    "801040": "钢铁", "801050": "有色金属", "801080": "电子",
-    "801110": "家用电器", "801120": "食品饮料", "801130": "纺织服饰",
-    "801140": "轻工制造", "801150": "医药生物", "801160": "公用事业",
-    "801170": "交通运输", "801180": "房地产", "801200": "商贸零售",
-    "801210": "社会服务", "801230": "综合", "801710": "建筑材料",
-    "801720": "建筑装饰", "801730": "电力设备", "801740": "国防军工",
-    "801750": "计算机", "801760": "传媒", "801770": "通信",
-    "801780": "银行", "801790": "非银金融", "801880": "汽车",
-    "801890": "机械设备", "801960": "石油石化", "801970": "环保",
-    "801980": "美容护理",
-}
+# 内存缓存
+_map_l1: dict[str, str] | None = None
+_map_l2: dict[str, str] | None = None
+_map_l3: dict[str, str] | None = None
+
+
+def _load_maps():
+    """加载三级映射到内存"""
+    global _map_l1, _map_l2, _map_l3
+    if _map_l1 is not None:
+        return
+    if not os.path.exists(_STOCK_MAP_CACHE):
+        logger.warning(f"{_STOCK_MAP_CACHE} 不存在，请先运行 sw_classify.py 生成")
+        _map_l1 = _map_l2 = _map_l3 = {}
+        return
+    df = pd.read_csv(_STOCK_MAP_CACHE, dtype={"code": str})
+    _map_l1 = dict(zip(df["code"], df["sw1"]))
+    _map_l2 = dict(zip(df["code"], df["sw2"]))
+    _map_l3 = dict(zip(df["code"], df["sw3"]))
+    logger.info(f"申万行业映射已加载: {len(_map_l1)} 只股票 (L1/L2/L3)")
 
 
 def get_sw_industry() -> dict[str, str]:
-    """
-    返回 {stock_code: sw_industry_name} 映射。
+    """返回 {code: sw_level1_name} 映射"""
+    _load_maps()
+    return _map_l1 or {}
 
-    缓存优先。首次调用遍历31个申万行业指数获取成分股。
-    """
-    if os.path.exists(SW_INDUSTRY_CACHE):
-        df = pd.read_csv(SW_INDUSTRY_CACHE, dtype={"code": str, "industry": str})
-        return dict(zip(df["code"], df["industry"]))
 
-    mapping: dict[str, str] = {}
-    for sw_code, industry_name in SW_CODES.items():
-        try:
-            df = ak.index_stock_cons(symbol=sw_code)
-            for _, row in df.iterrows():
-                code = str(row["品种代码"]).zfill(6)
-                if code not in mapping:
-                    mapping[code] = industry_name
-            logger.debug(f"{industry_name}({sw_code}): {len(df)} stocks")
-        except Exception as e:
-            logger.warning(f"获取 {industry_name}({sw_code}) 成分股失败: {e}")
+def get_sw_industry_l2() -> dict[str, str]:
+    """返回 {code: sw_level2_name} 映射"""
+    _load_maps()
+    return _map_l2 or {}
 
-    cache_df = pd.DataFrame(
-        [{"code": k, "industry": v} for k, v in mapping.items()]
-    )
-    os.makedirs(os.path.dirname(SW_INDUSTRY_CACHE), exist_ok=True)
-    cache_df.to_csv(SW_INDUSTRY_CACHE, index=False)
-    logger.info(f"申万行业映射已缓存: {len(mapping)} 只股票, {len(SW_CODES)} 个行业")
-    return mapping
+
+def get_sw_industry_l3() -> dict[str, str]:
+    """返回 {code: sw_level3_name} 映射"""
+    _load_maps()
+    return _map_l3 or {}
