@@ -17,6 +17,8 @@ from universe import get_universe
 from valuation_filter import apply_valuation_filter
 from signals import compute_S1, compute_S2, compute_S5, compute_S7, _load_price_data
 from regime.detector import detect_regime
+from config.strategic_industries import get_strategic_tags, get_strategic_bonus
+from industry import get_sw_industry_l3
 
 
 def compute_rps60(codes: list[str], t_date: str, industry_map: dict) -> dict[str, float]:
@@ -134,6 +136,7 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
 
     # 2. 行业映射
     industry_map = get_sw_industry()
+    l3_map = get_sw_industry_l3()  # SW三级 → 用于战略标签匹配
 
     # 3. 信号计算
     logger.info("计算信号...")
@@ -222,6 +225,8 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
             "code": code,
             "name": name,
             "industry": industry_map.get(code, ""),
+            "sw3_name": l3_map.get(code, ""),
+            "strategic_tags": "|".join(get_strategic_tags(l3_map.get(code, ""))),
             "RPS60": round(rps, 1),
             "ind_momentum": round(ind_mom * 100, 1),
             "S1": round(s1_z, 3),
@@ -312,12 +317,16 @@ def screen_growth(date_str: str = None, top_n: int = 50) -> pd.DataFrame:
     df["room_to_run"] = 1 - abs(df["RPS60"] - 70) / 40
     df["room_to_run"] = df["room_to_run"].clip(0, 1)
 
-    # 拐点得分：催化35 + 动量空间25 + 估值吸引力25 + 壁垒15
+    # 国情加成：战略行业额外得分
+    df["strategic_bonus"] = df["sw3_name"].apply(lambda x: get_strategic_bonus(x) if isinstance(x, str) else 0)
+
+    # 拐点得分：催化30 + 动量空间20 + 估值吸引力20 + 壁垒15 + 战略加成15
     df["inflection_score"] = (
-        df["catalyst"] * 0.35 +
-        df["room_to_run"] * 0.25 +
-        df["val_attract"] * 0.25 +
-        df["moat"] * 0.15
+        df["catalyst"] * 0.30 +
+        df["room_to_run"] * 0.20 +
+        df["val_attract"] * 0.20 +
+        df["moat"] * 0.15 +
+        df["strategic_bonus"] * 0.15
     )
     df = df.sort_values("inflection_score", ascending=False).head(top_n)
 
@@ -350,7 +359,7 @@ def main():
         print(f"\n已保存: {out_path}")
         print(f"\nTop 20 (景气成长):")
         print(df.head(20)[["code", "name", "industry", "RPS60", "PE",
-              "S1", "S2", "inflection_tags", "inflection_score"]].to_string(index=False))
+              "strategic_tags", "inflection_tags", "inflection_score"]].to_string(index=False))
         return
 
     df = screen()
