@@ -36,8 +36,10 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
     3. 乖离率>120% → 剔除
     4. PEG>PEG_MAX → 剔除
     5. 流动性后20% → 剔除
+    6. 连续3期经营现金流为负 (R035) → 剔除
     """
-    removed = {"neg_pe": 0, "nonrecurring": 0, "deviation": 0, "peg": 0, "liquidity": 0}
+    removed = {"neg_pe": 0, "nonrecurring": 0, "deviation": 0, "peg": 0,
+               "liquidity": 0, "cash_burn": 0}
     fin = _load_fin_data()
     if not fin.empty:
         fin = filter_available_reports_dash(fin, "date", t_date)
@@ -45,6 +47,14 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
         fin_cutoff = fin
     else:
         fin_cutoff = fin
+
+    # R035: 预加载 TDX 经营现金流数据
+    tdx_path = "data/cache/tdx_financials.csv"
+    tdx = None
+    if os.path.exists(tdx_path):
+        tdx = pd.read_csv(tdx_path, dtype={"code": str, "report_date_str": str})
+        from data_governance import filter_available_reports
+        tdx = filter_available_reports(tdx, t_date)
 
     passed = []
     for code in codes:
@@ -93,6 +103,15 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
                     removed["peg"] += 1
                     continue
 
+        # 规则6: R035 — 连续3期经营现金流为负 (TDX col 107)
+        if tdx is not None:
+            ctdx = tdx[tdx["code"] == code].sort_values("report_date_str")
+            ocf = ctdx["operating_cash_flow"].dropna().values.astype(float)
+            if len(ocf) >= 3:
+                if ocf[-1] < 0 and ocf[-2] < 0 and ocf[-3] < 0:
+                    removed["cash_burn"] += 1
+                    continue
+
         passed.append(code)
 
     # 规则5: 流动性后20%
@@ -116,4 +135,6 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
         f"估值排雷 @ {t_date}: {len(codes)}→{len(passed)} "
         f"(剔除: {removed})"
     )
+    if removed.get("cash_burn", 0) > 0:
+        logger.info(f"  R035 失血剔除: {removed['cash_burn']} 只")
     return passed
