@@ -23,6 +23,7 @@ from signals import compute_alpha  # 保留: 内部 alpha 分解参考路径
 from valuation_filter import apply_valuation_filter
 from screener import compute_composite
 from industry import get_sw_industry
+from diagnostics.attribution import BrinsonAttributor
 
 
 _PRICE_CACHE: dict[str, pd.Series] = {}
@@ -30,10 +31,11 @@ _PRICE_CACHE: dict[str, pd.Series] = {}
 
 @dataclass
 class BacktestResult:
-    nav_series: pd.Series  # daily NAV, index=date
-    daily_returns: pd.Series  # daily returns
-    trades: pd.DataFrame  # trade records
-    stats: dict  # summary statistics
+    nav_series: pd.Series
+    daily_returns: pd.Series
+    trades: pd.DataFrame
+    stats: dict
+    attribution: dict = None  # Brinson 归因汇总
 
 
 def _to_tx_symbol(code: str) -> str:
@@ -187,6 +189,10 @@ def run_backtest(
     trade_records: list[dict] = []
     prev_regime: str = "STRUCT"
     bull_streak: int = 0
+    attributor = BrinsonAttributor()
+    prev_prices: dict[str, float] = {}  # 上期调仓日价格，用于归因
+    prev_universe: list[str] = []       # 上期股票池
+    prev_industry_map: dict = {}        # 上期行业映射
 
     for i, day in enumerate(trading_days):
         if day in rebalance_dates:
@@ -349,6 +355,28 @@ def run_backtest(
                 if holdings[code] <= 0:
                     del holdings[code]
 
+            # --- Brinson 归因 ---
+            # 获取当前价格快照（用于本期归因的期末价和下期的期初价）
+            curr_prices = {}
+            for code in set(list(holdings) + prev_universe):
+                p = _get_close_price(code, day)
+                if p is not None and p > 0:
+                    curr_prices[code] = p
+
+            if prev_prices and prev_universe:
+                attributor.record(
+                    date=day,
+                    holdings=holdings,
+                    prices=curr_prices,
+                    prices_prev=prev_prices,
+                    industry_map=industry_map,
+                    universe_codes=prev_universe,
+                )
+
+            prev_prices = curr_prices
+            prev_universe = target_codes
+            prev_industry_map = industry_map
+
         # --- Daily NAV ---
         equity = cash
         for code, shares in holdings.items():
@@ -373,6 +401,7 @@ def run_backtest(
         pd.DataFrame(trade_records) if trade_records else pd.DataFrame()
     )
     stats = _compute_stats(nav_series, daily_returns)
+    attr_summary = attributor.summary()
 
     logger.info(
         f"回测完成: {len(trading_days)} 天, {len(trade_records)} 笔交易"
@@ -383,10 +412,18 @@ def run_backtest(
         f"夏普: {stats['sharpe_ratio']:.2f}, "
         f"最大回撤: {stats['max_drawdown']:.2%}"
     )
+    if attr_summary:
+        logger.info(
+            f"Brinson归因: 配置={attr_summary.get('alloc_pct',0):.0f}% "
+            f"选择={attr_summary.get('select_pct',0):.0f}% "
+            f"交互={attr_summary.get('interact_pct',0):.0f}% "
+            f"({attr_summary['n_periods']}期)"
+        )
 
     return BacktestResult(
         nav_series=nav_series,
         daily_returns=daily_returns,
         trades=trades_df,
         stats=stats,
+        attribution=attr_summary,
     )
