@@ -1,0 +1,21 @@
+col,variable,name,category,unit,valid_range
+191,deducted_profit_yoy,扣非净利润同比(%),发展能力分析,%,"-500,500"
+233,deducted_profit_q,扣除非经常性损益后的净利润,单季度财务指标,元,
+183,revenue_yoy,营业收入增长率(%),发展能力分析,%,"-500,500"
+86,operating_profit,三、营业利润,利润表,元,
+107,operating_cash_flow,经营活动产生的现金流量净额,现金流量表,元,
+74,revenue,其中：营业收入,利润表,元,
+92,total_profit,四、利润总额,利润表,元,
+434,contract_liabilities,合同负债(万元),资产负债表新增指标,万元,
+45,advance_receipts,预收款项,资产负债表,元,
+27,fixed_assets,固定资产,资产负债表,元,
+28,construction_in_progress,在建工程,资产负债表,元,
+114,capex_cash,购建固定资产、无形资产和其他长期资产支付的现金,现金流量表,元,
+40,total_assets,资产总计,资产负债表,元,
+17,inventory,存货,资产负债表,元,
+435,contract_assets,合同资产(万元),资产负债表新增指标,万元,
+1,eps,基本每股收益,每股指标,元/股,
+238,total_shares,总股本,股本股东,股,
+6,roe,净资产收益率,每股指标,%,"-500,500"
+202,gross_margin,销售毛利率(%) (非金融类指标),获利能力分析,%,
+304,rd_expense,研发费用(利润表),新增指标,元,

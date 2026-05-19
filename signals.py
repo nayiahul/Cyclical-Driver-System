@@ -10,6 +10,7 @@ from loguru import logger
 
 from orthogonalizer import symmetric_orthogonalize
 from weights import IRWeightManager
+from data_governance import filter_available_reports, filter_available_reports_dash
 
 from config.params import (
     FIN_START_YEAR, MOMENTUM_DAYS_ABOVE_MA, ROE_MIN_QUARTERS,
@@ -276,9 +277,8 @@ def compute_S5(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
     Lower std = higher score.
     """
     fin = _load_financial_data()
+    fin = filter_available_reports_dash(fin, "date", t_date)
     fin["date"] = pd.to_datetime(fin["date"])
-    cutoff = pd.to_datetime(t_date, format="%Y%m%d")
-    fin = fin[fin["date"] <= cutoff]
 
     roe_std = {}
     for code in codes:
@@ -302,9 +302,8 @@ def compute_S7(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
     Negative values -> NaN.
     """
     fin = _load_financial_data()
+    fin = filter_available_reports_dash(fin, "date", t_date)
     fin["date"] = pd.to_datetime(fin["date"])
-    cutoff = pd.to_datetime(t_date, format="%Y%m%d")
-    fin = fin[fin["date"] <= cutoff]
 
     ocf_ratio = {}
     for code in codes:
@@ -325,13 +324,22 @@ def compute_S7(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
 
 
 
-def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str]) -> pd.Series:
+def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str],
+               return_raw: bool = False):
     """
     S1 利润加速度（简化版）。
 
     数据源: TDX 财务缓存 (deducted_profit_yoy, 扣非净利润同比)
     算法: 对过去3个单季度同比增速做线性回归，斜率>0且R²>0.6判定加速。
     质量防护: 经营现金流不逆利润、低基数过滤、洗大澡检测。
+
+    字段验证状态 (2026-05-18):
+    - deducted_profit_yoy (col 191): AKShare交叉验证确认为单季度同比 ✓
+    - deducted_profit_q (col 233): 修复CSV缓存winsorize后数据正常 ✓
+
+    Args:
+        return_raw: 若为 True，返回 (zscored_series, raw_yoy_series) 元组。
+                    用于 PEG 标准计算等需要原始增速的场景。
     """
     import os as _os
     tdx_path = "data/cache/tdx_financials.csv"
@@ -340,7 +348,7 @@ def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
 
     fin = pd.read_csv(tdx_path, dtype={"code": str, "report_date_str": str})
     fin = fin.dropna(subset=["report_date_str"])
-    fin = fin[fin["report_date_str"] <= t_date]
+    fin = filter_available_reports(fin, t_date)
     fin = fin[["code", "report_date_str", "deducted_profit_yoy",
                "deducted_profit_q", "operating_cash_flow"]].copy()
     fin = fin.dropna(subset=["deducted_profit_yoy"])
@@ -388,9 +396,14 @@ def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
             scores[code] = yoy[-1]
 
     if not scores:
+        if return_raw:
+            return pd.Series(dtype=float), pd.Series(dtype=float)
         return pd.Series(dtype=float)
 
     result = pd.Series(scores)
+    # 保存原始值供 PEG 等下游使用（Z-Score 化前）
+    raw = result.copy() if return_raw else None
+
     groups = {c: industry_map.get(c, "未知") for c in result.index}
     result.index = pd.MultiIndex.from_tuples(
         [(c, groups.get(c, "未知")) for c in result.index],
@@ -398,6 +411,9 @@ def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
     )
     zscored = result.groupby("industry").transform(_zscore)
     zscored.index = zscored.index.get_level_values("code")
+
+    if return_raw:
+        return zscored, raw
     return zscored
 
 
@@ -419,9 +435,9 @@ def compute_S2(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
 
     fin = pd.read_csv(tdx_path, dtype={"code": str, "report_date_str": str})
     fin = fin.dropna(subset=["report_date_str"])
-    fin = fin[fin["report_date_str"] <= t_date]
+    fin = filter_available_reports(fin, t_date)
     fin = fin[["code", "report_date_str", "contract_liabilities",
-               "advance_receipts", "fixed_assets", "capex_cash"]].copy()
+               "advance_receipts", "fixed_assets", "capex_cash", "roe"]].copy()
 
     scores = {}
     for code in codes:
@@ -438,36 +454,55 @@ def compute_S2(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
         ar = code_fin["advance_receipts"].values.astype(float)
         capex = code_fin["capex_cash"].values.astype(float)
         fa = code_fin["fixed_assets"].values.astype(float)
+        roe = code_fin["roe"].dropna().values.astype(float)
 
-        cl_ttm = np.nansum(cl[-4:])  # current TTM
-        cl_ttm_prev = np.nansum(cl[-8:-4])  # prior year TTM
+        cl_ttm = np.nansum(cl[-4:])
+        cl_ttm_prev = np.nansum(cl[-8:-4])
         ar_ttm = np.nansum(ar[-4:])
         ar_ttm_prev = np.nansum(ar[-8:-4])
         capex_ttm = np.nansum(capex[-4:])
         capex_ttm_prev = np.nansum(capex[-8:-4])
 
-        # Order signal: contract liabilities TTM yoy > 30% or advance receipts TTM yoy > 30%
+        # Order signal
         cl_yoy = (cl_ttm / cl_ttm_prev - 1) if cl_ttm_prev > 0 else 0
         ar_yoy = (ar_ttm / ar_ttm_prev - 1) if ar_ttm_prev > 0 else 0
         has_order = (cl_yoy > 0.3) or (ar_yoy > 0.3)
 
-        # Hard expansion: capex TTM yoy > 20% or fixed_assets QoQ > 5%
+        # Expansion signal
         capex_yoy = (capex_ttm / capex_ttm_prev - 1) if capex_ttm_prev > 0 else 0
         fa_qoq = (fa[-1] / fa[-5] - 1) if len(fa) >= 5 and fa[-5] > 0 else 0
         is_expanding = (capex_yoy > 0.2) or (fa_qoq > 0.05)
 
+        # ROE trend: 扩产效率参考
+        roe_declining = False
+        if len(roe) >= 8:
+            roe_recent = np.nanmean(roe[-4:])
+            roe_past = np.nanmean(roe[-8:-4])
+            if roe_past > 0 and roe_recent < roe_past * 0.9:
+                roe_declining = True
+
         if not has_order and not is_expanding:
             continue
 
-        if has_order:
-            order_score = max(cl_yoy, ar_yoy)
+        order_score = max(cl_yoy, ar_yoy) if has_order else 0
+
+        # --- 得分合成 (v1.1 修复) ---
+        if has_order and is_expanding:
+            # 订单+扩产双确认 → 标准权重
             s2_raw = 0.6 * min(order_score, 3.0) + 0.4 * min(capex_yoy, 2.0)
-        else:
-            # No order, only capex — higher threshold
+        elif has_order and not is_expanding:
+            # F: 订单先行，产能尚未跟上 → 保留信号，订单权重提高
+            s2_raw = 0.8 * min(order_score, 3.0) + 0.2 * min(max(capex_yoy, 0), 2.0)
+        elif not has_order and is_expanding:
+            # G: 纯扩产无订单 → 更高门槛 + 效率惩罚
             if capex_yoy > 0.30:
                 s2_raw = min(capex_yoy, 2.0)
+                if roe_declining:
+                    s2_raw *= 0.5  # ROE↓+CAPEX↑ = 无效扩张
             else:
                 continue
+        else:
+            continue
 
         scores[code] = s2_raw
 

@@ -5,6 +5,7 @@ import pandas as pd
 from loguru import logger
 
 from config.params import PEG_MAX
+from data_governance import filter_available_reports_dash
 
 
 def _load_price_data(code: str) -> pd.DataFrame:
@@ -39,9 +40,9 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
     removed = {"neg_pe": 0, "nonrecurring": 0, "deviation": 0, "peg": 0, "liquidity": 0}
     fin = _load_fin_data()
     if not fin.empty:
+        fin = filter_available_reports_dash(fin, "date", t_date)
         fin["date"] = pd.to_datetime(fin["date"])
-        cutoff = pd.to_datetime(t_date, format="%Y%m%d")
-        fin_cutoff = fin[fin["date"] <= cutoff]
+        fin_cutoff = fin
     else:
         fin_cutoff = fin
 
@@ -76,18 +77,21 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
                 removed["deviation"] += 1
                 continue
 
-        # 规则4: PEG > PEG_MAX (仅当ROE改善时判断)
+        # 规则4: PEG > PEG_MAX
+        # v1.1: 仅当 ROE 改善时判断 (roe_recent > roe_past)
+        # PEG = PE / growth, growth = ROE_TTM增长率 (%), cap [5, 50]
+        # PE_approx = 100 / ROE_recent (排雷层运行在 S1 计算之前)
         if len(roe) >= 8:
             roe_recent = roe.tail(4).mean()
             roe_past = roe.tail(8).head(4).mean()
-            if roe_past > 0 and roe_recent > 0:
-                growth = (roe_recent - roe_past) / roe_past
-                if growth > 0:
-                    pe_approx = 100.0 / roe_recent
-                    peg = pe_approx / (growth * 100)
-                    if peg > PEG_MAX:
-                        removed["peg"] += 1
-                        continue
+            if roe_past > 0 and roe_recent > 0 and roe_recent > roe_past:
+                growth = (roe_recent / roe_past - 1) * 100
+                growth = max(5, min(50, growth))  # cap 防爆炸
+                pe_approx = 100.0 / roe_recent
+                peg = pe_approx / growth
+                if peg > PEG_MAX:
+                    removed["peg"] += 1
+                    continue
 
         passed.append(code)
 

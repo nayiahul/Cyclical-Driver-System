@@ -19,8 +19,10 @@ from config.params import (
 )
 from trade_calendar import get_rebalance_dates, get_t_date, get_trade_calendar
 from universe import get_universe
-from signals import compute_alpha
+from signals import compute_alpha  # 保留: 内部 alpha 分解参考路径
 from valuation_filter import apply_valuation_filter
+from screener import compute_composite
+from industry import get_sw_industry
 
 
 _PRICE_CACHE: dict[str, pd.Series] = {}
@@ -183,6 +185,8 @@ def run_backtest(
     cash = initial_capital
     nav_records: list[tuple[str, float]] = []
     trade_records: list[dict] = []
+    prev_regime: str = "STRUCT"
+    bull_streak: int = 0
 
     for i, day in enumerate(trading_days):
         if day in rebalance_dates:
@@ -204,10 +208,15 @@ def run_backtest(
                 # 估值排雷
                 target_codes = apply_valuation_filter(t_date, target_codes)
 
-                # Alpha选股: Top N
-                alpha_scores = compute_alpha(t_date, target_codes)
+                # 主筛选路径选股: Top N (与 screen() 使用同一因子集)
+                industry_map = get_sw_industry()
+                composite, regime, bull_streak = compute_composite(
+                    t_date, target_codes, industry_map,
+                    prev_regime=prev_regime, bull_streak=bull_streak,
+                    top_n=TOP_N_STOCKS)
+                prev_regime = regime
                 ranked = sorted(
-                    alpha_scores.items(), key=lambda x: x[1], reverse=True
+                    composite.items(), key=lambda x: x[1], reverse=True
                 )
                 selected = [c for c, _ in ranked[:TOP_N_STOCKS]]
                 n_selected = len(selected)

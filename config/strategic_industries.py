@@ -89,6 +89,8 @@ def get_strategic_tags(sw3_name: str) -> list[str]:
 
 
 def get_strategic_bonus(sw3_name: str) -> float:
-    """计算战略标签的总加成"""
+    """计算战略标签加成（取最高标签，非累加）"""
     tags = get_strategic_tags(sw3_name)
-    return sum(TAG_BONUS.get(t, 0) for t in tags)
+    if not tags:
+        return 0.0
+    return max(TAG_BONUS.get(t, 0) for t in tags)

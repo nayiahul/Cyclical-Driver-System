@@ -18,6 +18,7 @@ from valuation_filter import apply_valuation_filter
 from signals import compute_S1, compute_S2, compute_S5, compute_S7, _load_price_data
 from regime.detector import detect_regime
 from config.strategic_industries import get_strategic_tags, get_strategic_bonus
+from data_governance import filter_available_reports
 from industry import get_sw_industry_l3
 
 
@@ -100,6 +101,164 @@ def compute_industry_momentum(codes: list[str], t_date: str, industry_map: dict)
     return scores
 
 
+def _apply_industry_constraint(scores: dict[str, float],
+                                industry_map: dict, regime: str,
+                                top_n: int) -> dict[str, float]:
+    """
+    Regime 自适应行业暴露约束。
+
+    BULL≤25%, STRUCT≤15%, BEAR≤10%。
+    软约束: 超过上限后线性扣分。拥挤度惩罚: >20%→×0.85。
+    """
+    limits = {"BULL": 0.25, "STRUCT": 0.15, "BEAR": 0.10}
+    cap = limits.get(regime, 0.15)
+
+    # 初次排序取 top_n，检测行业分布
+    ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    top_codes = [c for c, _ in ranked[:top_n]]
+    ind_counts = {}
+    for c in top_codes:
+        ind = industry_map.get(c, "未知")
+        ind_counts[ind] = ind_counts.get(ind, 0) + 1
+
+    # 对超标行业施加惩罚
+    adjusted = {}
+    for code, score in scores.items():
+        ind = industry_map.get(code, "未知")
+        weight = ind_counts.get(ind, 0) / top_n
+        penalty = 1.0
+        if weight > cap:
+            penalty = max(0.60, 1.0 - (weight - cap) * 3.0)  # 线性衰减，下限 0.6
+        if weight > 0.20:
+            penalty = min(penalty, 0.85)  # 拥挤度惩罚
+        adjusted[code] = score * penalty
+
+    return adjusted
+
+
+def compute_composite(t_date: str, codes: list[str],
+                      industry_map: dict, l3_map: dict = None,
+                      prev_regime: str = None,
+                      bull_streak: int = 0,
+                      top_n: int = 200) -> tuple[dict[str, float], str, int]:
+    """
+    计算主筛选路径的 composite 得分。
+
+    因子集: RPS60 + 行业动量 + S1 + S2 + S5 + S7 + PE
+    合成: Regime 动态权重 (BULL/STRUCT/BEAR) + 滞回
+
+    回测引擎和 screen() 共用此函数，确保验证路径与使用路径一致。
+
+    Returns:
+        ({code: composite_score}, regime, bull_streak)
+    """
+    # 信号计算
+    rps_scores = compute_rps60(codes, t_date, industry_map)
+    ind_scores = compute_industry_momentum(codes, t_date, industry_map)
+    s1, s1_raw = compute_S1(t_date, codes, industry_map, return_raw=True)
+    s2 = compute_S2(t_date, codes, industry_map)
+    s5 = compute_S5(t_date, codes, industry_map)
+    s7 = compute_S7(t_date, codes, industry_map)
+
+    # PE TTM: 近4季单季度EPS之和 (deducted_profit_q / total_shares)
+    fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
+    fin = filter_available_reports(fin, t_date)
+
+    # 预计算每个 code 的 TTM EPS
+    ttm_eps_map = {}
+    for code in codes:
+        cfin = fin[fin["code"] == code].sort_values("report_date_str")
+        if len(cfin) < 4:
+            continue
+        last4 = cfin.tail(4)
+        dq_sum = last4["deducted_profit_q"].sum()
+        shares = last4["total_shares"].iloc[-1]  # 最新股本
+        if shares > 0 and not np.isnan(dq_sum):
+            ttm_eps = dq_sum / shares
+            if ttm_eps > 0.01:
+                ttm_eps_map[code] = ttm_eps
+
+    # 预计算行业内PE列表
+    ind_pe_map = {}
+    for code in codes:
+        ind = industry_map.get(code, "未知")
+        if ind not in ind_pe_map:
+            ind_codes = [c for c in codes if industry_map.get(c) == ind]
+            ind_pes = []
+            for c in ind_codes:
+                e = ttm_eps_map.get(c, np.nan)
+                cp_df = _load_price_data(c)
+                cp = float(cp_df["close"].iloc[-1]) if len(cp_df) > 0 else np.nan
+                if not np.isnan(e) and e > 0.01 and not np.isnan(cp):
+                    p = min(200, max(1, cp / e))
+                    ind_pes.append(p)
+            ind_pe_map[ind] = ind_pes
+
+    # 逐股评分
+    scores = {}
+    for code in codes:
+        # 景气度
+        rps = rps_scores.get(code, 50)
+        ind_mom = ind_scores.get(code, 0)
+        s1_val = s1.get(code, np.nan) if code in s1.index else np.nan
+        s2_val = s2.get(code, np.nan) if code in s2.index else np.nan
+
+        rps_z = (rps - 50) / 20
+        ind_z = ind_mom / 0.15
+        s1_z = max(-3.0, min(3.0, s1_val if not np.isnan(s1_val) else 0.0))
+        s2_z = max(-3.0, min(3.0, s2_val if not np.isnan(s2_val) else 0.0))
+
+        if not np.isnan(s1_val) and not np.isnan(s2_val):
+            momentum = rps_z * 0.25 + ind_z * 0.15 + s1_z * 0.30 + s2_z * 0.30
+        else:
+            momentum = rps_z * 0.6 + ind_z * 0.4
+
+        # 壁垒
+        s5_val = s5.get(code, np.nan) if code in s5.index else np.nan
+        s7_val = s7.get(code, np.nan) if code in s7.index else np.nan
+        if not np.isnan(s5_val): s5_val = max(-3.0, min(3.0, s5_val))
+        if not np.isnan(s7_val): s7_val = max(-3.0, min(3.0, s7_val))
+        moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]
+        moat = np.mean(moat_vals) if moat_vals else 0.0
+
+        # 估值: PE行业内分位 (TTM EPS)
+        eps_val = ttm_eps_map.get(code, np.nan)
+        df_price = _load_price_data(code)
+        close_price = float(df_price["close"].iloc[-1]) if len(df_price) > 0 else np.nan
+        pe_val = close_price / eps_val if (not np.isnan(eps_val) and eps_val > 0.01) else np.nan
+        pe_val = min(200, max(1, pe_val)) if not np.isnan(pe_val) else np.nan
+
+        ind_pes = ind_pe_map.get(industry_map.get(code, ""), [])
+        if not np.isnan(pe_val) and len(ind_pes) >= 5:
+            pct = sum(1 for p in ind_pes if p >= pe_val) / len(ind_pes)
+            valuation = (pct - 0.5) * 4
+        else:
+            valuation = 0.0
+
+        scores[code] = (momentum, moat, valuation)
+
+    # Regime 动态权重 + 滞回
+    regime_result = detect_regime(t_date, prev_regime=prev_regime,
+                                  bull_streak=bull_streak)
+    r = regime_result.regime
+    new_streak = regime_result.bull_streak
+    if r == "BULL":
+        w_m, w_b, w_v = 0.50, 0.30, 0.20
+    elif r == "BEAR":
+        w_m, w_b, w_v = 0.20, 0.30, 0.50
+    else:
+        w_m, w_b, w_v = 0.35, 0.35, 0.30
+
+    composite = {}
+    for code, (m, b, v) in scores.items():
+        composite[code] = m * w_m + b * w_b + v * w_v
+
+    # 行业暴露约束
+    composite = _apply_industry_constraint(composite, industry_map, r, top_n)
+
+    return composite, r, new_streak
+
+
 def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     """
     主筛选函数。
@@ -142,19 +301,27 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     logger.info("计算信号...")
     rps_scores = compute_rps60(filtered, t_date, industry_map)
     ind_scores = compute_industry_momentum(filtered, t_date, industry_map)
-    s1 = compute_S1(t_date, filtered, industry_map)
+    s1, s1_raw = compute_S1(t_date, filtered, industry_map, return_raw=True)
     s2 = compute_S2(t_date, filtered, industry_map)
     s5 = compute_S5(t_date, filtered, industry_map)
     s7 = compute_S7(t_date, filtered, industry_map)
 
-    # PE估值: 收盘价 / 最新年报EPS, 行业内排名
+    # PE TTM: 近4季单季度EPS之和 (deducted_profit_q / total_shares)
     fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
-    fin_annual = fin[fin["report_date_str"].str[4:6] == "12"].copy()
-    fin_annual = fin_annual.sort_values("report_date_str").groupby("code").last()
-    fin_annual["pe_proxy"] = np.where(
-        fin_annual["eps"] > 0.01,
-        fin_annual["eps"].clip(lower=0.01), np.nan
-    )
+    fin = filter_available_reports(fin, t_date)
+    # 预计算每个 code 的 TTM EPS
+    ttm_eps_map = {}
+    for code in filtered:
+        cfin = fin[fin["code"] == code].sort_values("report_date_str")
+        if len(cfin) < 4:
+            continue
+        last4 = cfin.tail(4)
+        dq_sum = last4["deducted_profit_q"].sum()
+        shares = last4["total_shares"].iloc[-1]
+        if shares > 0 and not np.isnan(dq_sum):
+            ttm = dq_sum / shares
+            if ttm > 0.01:
+                ttm_eps_map[code] = ttm
 
     # 4. 构建评分
     results = []
@@ -171,6 +338,7 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         rps_z = (rps - 50) / 20
         ind_z = ind_mom / 0.15
         s1_z = s1_val if not np.isnan(s1_val) else 0.0
+        s1_raw_val = s1_raw.get(code, np.nan) if code in s1_raw.index else np.nan
         s2_z = s2_val if not np.isnan(s2_val) else 0.0
         s1_z = max(-3.0, min(3.0, s1_z))
         s2_z = max(-3.0, min(3.0, s2_z))
@@ -189,8 +357,8 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]
         moat = np.mean(moat_vals) if moat_vals else 0.0
 
-        # --- 估值: PE行业内分位 ---
-        eps_val = fin_annual.loc[code, "eps"] if code in fin_annual.index else np.nan
+        # --- 估值: PE行业内分位 (TTM EPS) ---
+        eps_val = ttm_eps_map.get(code, np.nan)
         df_price = _load_price_data(code)
         close_price = float(df_price["close"].iloc[-1]) if len(df_price) > 0 else np.nan
         pe_val = close_price / eps_val if (not np.isnan(eps_val) and eps_val > 0.01) else np.nan
@@ -200,7 +368,7 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         ind_codes = [c for c in filtered if industry_map.get(c) == industry_map.get(code)]
         ind_pes = []
         for c in ind_codes:
-            e = fin_annual.loc[c, "eps"] if c in fin_annual.index else np.nan
+            e = ttm_eps_map.get(c, np.nan)
             cp_df = _load_price_data(c)
             cp = float(cp_df["close"].iloc[-1]) if len(cp_df) > 0 else np.nan
             if not np.isnan(e) and e > 0.01 and not np.isnan(cp):
@@ -230,6 +398,7 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
             "RPS60": round(rps, 1),
             "ind_momentum": round(ind_mom * 100, 1),
             "S1": round(s1_z, 3),
+            "S1_raw": round(s1_raw_val, 1) if not np.isnan(s1_raw_val) else 0.0,
             "S2": round(s2_z, 3),
             "S5": round(s5_val, 3) if not np.isnan(s5_val) else 0.0,
             "S7": round(s7_val, 3) if not np.isnan(s7_val) else 0.0,
@@ -242,7 +411,7 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
 
     df = pd.DataFrame(results)
 
-    # 5. Regime 判定 + 动态权重
+    # 5. Regime 判定 + 动态权重 (单次调用，不跟踪状态)
     regime_result = detect_regime(t_date)
     r = regime_result.regime
     if r == "BULL":
@@ -255,6 +424,12 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     df["composite"] = (
         df["momentum"] * w_m + df["moat"] * w_b + df["valuation"] * w_v
     )
+
+    # 行业暴露约束: 先取 top_n 检测分布，再对超标行业施加惩罚
+    scores = dict(zip(df["code"], df["composite"]))
+    constrained = _apply_industry_constraint(scores, industry_map, r, top_n)
+    df["composite"] = df["code"].map(constrained)
+
     df = df.sort_values("composite", ascending=False).head(top_n)
 
     logger.info(f"当前市场状态: {r} → 权重: 景气度={w_m} 壁垒={w_b} 估值={w_v}")
@@ -278,10 +453,12 @@ def screen_growth(date_str: str = None, top_n: int = 50) -> pd.DataFrame:
     """
     df_all = screen(date_str, top_n=800)
 
-    # PEG代理：PE/ROE(增速代理)，ROE>0时计算
+    # PEG = PE / S1原始yoy增速 (标准公式)
+    # growth cap: 50% 上限防止极端值，5% 下限防止 PEG 爆炸
+    df_all["growth"] = df_all["S1_raw"].clip(5, 50)
     df_all["PEG"] = np.where(
-        (df_all["PE"] > 0) & (df_all["PE"] < 200),
-        df_all["PE"] / 20,  # 假设行业平均增速20%为基准
+        (df_all["PE"] > 0) & (df_all["PE"] < 200) & (df_all["S1_raw"] > 0),
+        df_all["PE"] / df_all["growth"],
         np.nan
     )
     # 行业内估值合理 = valuation>0（PE在行业后半段→偏便宜）

@@ -15,6 +15,7 @@ from pytdx.reader import HistoryFinancialReader
 from config.tdx_fieldmap import (
     MIN_BASE_PROFIT, TDX_FIELDS, WINSORIZE_MAX, WINSORIZE_MIN,
 )
+from data_governance import filter_available_reports
 
 TDX_ROOT = Path("/Users/nayiahlu/Downloads/tdxfin")
 CACHE_PATH = "data/cache/tdx_financials.csv"
@@ -147,10 +148,11 @@ def load_tdx_financials(force_rebuild: bool = False) -> pd.DataFrame:
             lo, hi = spec["valid_range"]
             result[name] = result[name].clip(lo, hi)
 
-    # Winsorize absolute value columns
-    for name in ["deducted_profit_q", "operating_profit", "revenue"]:
-        if name in result.columns:
-            result[name] = _winsorize(result[name])
+    # 不再对绝对金额字段做跨截面 winsorize
+    # 原因: 1%/99% 分位截断会把茅台(200亿/季)截到全市场99分位(~28亿)
+    # 导致各季度值被截成完全相同的上限值，破坏单季度数据
+    # 绝对金额的极端值在 A 股是真实存在的（大蓝筹），不应被抹平
+    # 增长率字段已有 valid_range clip 保护，足够防御异常值
 
     result["report_date_str"] = result["report_date"].dt.strftime("%Y%m%d")
 
@@ -179,11 +181,10 @@ def get_quarterly_data(t_date: str) -> pd.DataFrame:
     """
     获取截至 t_date 的最新财务数据快照。
 
-    Returns DataFrame with point-in-time data (只取 <= t_date 的报告期)。
+    仅返回已过法定披露截止日的报告期数据，消除前视偏差。
     """
     df = load_tdx_financials()
-    df = df[df["report_date_str"] <= t_date]
-    # 取每只股票的最新报告期
+    df = filter_available_reports(df, t_date)
     latest = df.sort_values("report_date").groupby("code").last().reset_index()
     return latest
 

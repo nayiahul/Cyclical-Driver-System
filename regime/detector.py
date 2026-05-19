@@ -24,16 +24,23 @@ class RegimeResult:
     regime: str        # "BULL" | "STRUCT" | "BEAR"
     score: float       # 0.0 - 1.0
     details: dict      # 各维度布尔判定
+    bull_streak: int = 0  # 连续牛市信号月数 (滞回用)
 
 
-def detect_regime(t_date: str) -> RegimeResult:
+def detect_regime(t_date: str, prev_regime: str = None,
+                  bull_streak: int = 0) -> RegimeResult:
     """
     给定月末确认日，返回下月生效的 Regime。
 
     判定规则：
     1. 先检查极端快速通道（指数急跌、流动性枯竭）
     2. 再计算5维度布尔判定
-    3. 根据命中项数判定状态
+    3. 滞回机制: STRUCT→BULL 需连续 STRUCT_TO_BULL_CONFIRM 月确认
+       BULL→STRUCT 立即退回，BEAR 由极端通道强制触发
+
+    Args:
+        prev_regime: 上月 Regime，用于滞回判定
+        bull_streak: 连续牛市信号月数
     """
     cal = get_trade_calendar("20140101", t_date)
     trade_dates = cal["trade_date"].tolist()
@@ -99,20 +106,30 @@ def detect_regime(t_date: str) -> RegimeResult:
     if bear_count >= 3:
         score = min(score, 0.35)
 
-    # 状态判定
+    # 状态判定 + 滞回
     if bear_count >= 4:
         regime = "BEAR"
+        bull_streak = 0
     elif bull_count >= BULL_VOTE:
-        regime = "BULL"
+        bull_streak += 1
+        # STRUCT→BULL: 需连续 STRUCT_TO_BULL_CONFIRM 月确认
+        if prev_regime == "STRUCT" and bull_streak < STRUCT_TO_BULL_CONFIRM:
+            regime = "STRUCT"  # 待确认，暂不切换
+        else:
+            regime = "BULL"
     else:
+        # BULL→STRUCT: 不满足牛市条件时立即退回
+        bull_streak = 0
         regime = "STRUCT"
 
-    return RegimeResult(regime=regime, score=score, details={
-        "bull": bull_details,
-        "bear": bear_details,
-        "bull_count": bull_count,
-        "bear_count": bear_count,
-    })
+    return RegimeResult(regime=regime, score=score,
+        details={
+            "bull": bull_details,
+            "bear": bear_details,
+            "bull_count": bull_count,
+            "bear_count": bear_count,
+        },
+        bull_streak=bull_streak)
 
 
 def _extreme_bear(t_date: str) -> RegimeResult:
