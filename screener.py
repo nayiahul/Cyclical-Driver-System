@@ -442,6 +442,42 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     df["moat_level"] = pd.cut(df["moat"],
         bins=[-99, -0.3, 0.3, 99], labels=["低", "中", "高"])
 
+    # 7. 因子相关性诊断
+    from diagnostics.factor_corr import compute_factor_correlation, save_correlation, highlight_concentration
+    factor_scores = {
+        "RPS60": pd.Series(rps_scores),
+        "ind_mom": pd.Series(ind_scores),
+        "S1": s1,
+        "S2": s2,
+        "S5": s5,
+        "S7": s7,
+        "valuation": pd.Series({c: df[df["code"]==c]["valuation"].values[0]
+                                for c in df["code"] if c in df["code"].values}),
+    }
+    corr = compute_factor_correlation(factor_scores)
+    if not corr.empty:
+        save_correlation(corr, date_str)
+        warnings = highlight_concentration(corr)
+        if warnings:
+            logger.warning(f"因子高相关: {'; '.join(warnings)}")
+
+    # 8. 诊断列: 行业暴露 + 流动性 + 数据新鲜度 + 风格标记
+    ind_counts = df["industry"].value_counts()
+    df["ind_weight_pct"] = df["industry"].map(ind_counts / len(df) * 100).round(1)
+
+    # 流动性分档 (基于PE列间接推断 — 小PE通常是大盘股)
+    df["liquidity_flag"] = "mid"
+    df.loc[df["PE"] < 15, "liquidity_flag"] = "large"
+    df.loc[df["PE"] > 60, "liquidity_flag"] = "small"
+
+    # 数据新鲜度: 用 t_date 估算 (日线日期即 t_date)
+    df["data_date"] = t_date
+
+    # 风格标记: 用PE和动量的大致分类
+    df["style_hint"] = "blend"
+    df.loc[(df["momentum"] > 0.5) & (df["PE"] > 30), "style_hint"] = "growth"
+    df.loc[(df["valuation"] > 1.0) & (df["PE"] < 20), "style_hint"] = "value"
+
     return df
 
 
