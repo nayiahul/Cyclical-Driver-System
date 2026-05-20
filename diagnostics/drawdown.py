@@ -81,7 +81,10 @@ def analyze_drawdowns(nav: pd.Series,
                 in_dd = False
 
     # 月度回撤
-    monthly = drawdown.resample("ME").min()
+    dd_ts = drawdown.copy()
+    if not isinstance(dd_ts.index, pd.DatetimeIndex):
+        dd_ts.index = pd.to_datetime(dd_ts.index)
+    monthly = dd_ts.resample("ME").min()
 
     result = {
         "max_dd": round(float(max_dd), 4),
