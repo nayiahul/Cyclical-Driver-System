@@ -412,6 +412,13 @@ def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str],
     zscored = result.groupby("industry").transform(_zscore)
     zscored.index = zscored.index.get_level_values("code")
 
+    # v2.0: 周期行业 S1 降权 — 低基数效应导致 yoy 信号失真
+    cyclical = {"煤炭", "钢铁", "有色金属", "基础化工", "石油石化"}
+    for code in zscored.index:
+        ind = industry_map.get(code, "未知")
+        if ind in cyclical:
+            zscored.loc[code] *= 0.7
+
     if return_raw:
         return zscored, raw
     return zscored
@@ -437,7 +444,8 @@ def compute_S2(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
     fin = fin.dropna(subset=["report_date_str"])
     fin = filter_available_reports(fin, t_date)
     fin = fin[["code", "report_date_str", "contract_liabilities",
-               "advance_receipts", "fixed_assets", "capex_cash", "roe"]].copy()
+               "advance_receipts", "fixed_assets", "capex_cash", "roe",
+               "revenue_yoy"]].copy()
 
     scores = {}
     for code in codes:
@@ -468,6 +476,17 @@ def compute_S2(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
         ar_yoy = (ar_ttm / ar_ttm_prev - 1) if ar_ttm_prev > 0 else 0
         has_order = (cl_yoy > 0.3) or (ar_yoy > 0.3)
 
+        # v2.0: 科技行业补充营收增速作为订单信号
+        tech_inds = {"电子", "计算机", "通信", "传媒"}
+        tech_order = False
+        rev_avg = 0.0
+        if ind in tech_inds and not has_order:
+            rev_vals = code_fin["revenue_yoy"].values[-4:].astype(float)
+            rev_avg = np.nanmean(rev_vals) if len(rev_vals) > 0 else 0
+            if rev_avg > 20:
+                has_order = True
+                tech_order = True
+
         # Expansion signal
         capex_yoy = (capex_ttm / capex_ttm_prev - 1) if capex_ttm_prev > 0 else 0
         fa_qoq = (fa[-1] / fa[-5] - 1) if len(fa) >= 5 and fa[-5] > 0 else 0
@@ -484,7 +503,10 @@ def compute_S2(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
         if not has_order and not is_expanding:
             continue
 
-        order_score = max(cl_yoy, ar_yoy) if has_order else 0
+        if tech_order:
+            order_score = min(rev_avg / 100, 2.0)
+        else:
+            order_score = max(cl_yoy, ar_yoy)
 
         # --- 得分合成 (v1.1 修复) ---
         if has_order and is_expanding:
