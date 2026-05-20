@@ -190,6 +190,7 @@ def run_backtest(
     prev_regime: str = "STRUCT"
     bull_streak: int = 0
     attributor = BrinsonAttributor()
+    turnover_rates: list[float] = []  # 每期换手率
     prev_prices: dict[str, float] = {}  # 上期调仓日价格，用于归因
     prev_universe: list[str] = []       # 上期股票池
     prev_industry_map: dict = {}        # 上期行业映射
@@ -235,6 +236,13 @@ def run_backtest(
                 # 等权分配，单票上限8%
                 weight = min(1.0 / max(n_selected, 1), MAX_SINGLE_WEIGHT)
                 target_weights = {c: weight for c in selected}
+
+                # 换手率: 记录调仓前持仓市值
+                old_holdings_value = {}
+                for code, shares in holdings.items():
+                    price = _get_close_price(code, day)
+                    if price is not None and price > 0:
+                        old_holdings_value[code] = shares * price
 
                 # Step 1: Sell holdings not in the new target universe
                 for code in list(holdings.keys()):
@@ -355,6 +363,23 @@ def run_backtest(
                 if holdings[code] <= 0:
                     del holdings[code]
 
+            # --- 换手率 ---
+            new_holdings_value = {}
+            for code, shares in holdings.items():
+                price = _get_close_price(code, day)
+                if price is not None and price > 0:
+                    new_holdings_value[code] = shares * price
+
+            turnover = 0.0
+            all_codes = set(list(old_holdings_value) + list(new_holdings_value))
+            for code in all_codes:
+                old_val = old_holdings_value.get(code, 0)
+                new_val = new_holdings_value.get(code, 0)
+                turnover += abs(new_val - old_val)
+            if total_capital > 0:
+                turnover = turnover / (2 * total_capital)
+            turnover_rates.append(turnover)
+
             # --- Brinson 归因 ---
             # 获取当前价格快照（用于本期归因的期末价和下期的期初价）
             curr_prices = {}
@@ -401,6 +426,14 @@ def run_backtest(
         pd.DataFrame(trade_records) if trade_records else pd.DataFrame()
     )
     stats = _compute_stats(nav_series, daily_returns)
+    if turnover_rates:
+        avg_turnover = sum(turnover_rates) / len(turnover_rates)
+        annual_turnover = avg_turnover * 12  # 月度调仓 → 年化
+        stats["avg_turnover"] = round(avg_turnover, 4)
+        stats["annual_turnover"] = round(annual_turnover, 2)
+        # 估算交易成本: 单边0.15% × 2 × 年化换手
+        annual_cost_est = annual_turnover * 2 * (TOTAL_COST_RATE)
+        stats["annual_cost_est"] = round(annual_cost_est, 4)
     attr_summary = attributor.summary()
 
     logger.info(
@@ -412,6 +445,12 @@ def run_backtest(
         f"夏普: {stats['sharpe_ratio']:.2f}, "
         f"最大回撤: {stats['max_drawdown']:.2%}"
     )
+    if stats.get("annual_turnover"):
+        logger.info(
+            f"月均换手: {stats['avg_turnover']:.1%}, "
+            f"年化换手: {stats['annual_turnover']:.1f}x, "
+            f"估算年化交易成本: {stats['annual_cost_est']:.2%}"
+        )
     if attr_summary:
         logger.info(
             f"Brinson归因: 配置={attr_summary.get('alloc_pct',0):.0f}% "
