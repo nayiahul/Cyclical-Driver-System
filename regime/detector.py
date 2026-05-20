@@ -128,6 +128,7 @@ def detect_regime(t_date: str, prev_regime: str = None,
             "bear": bear_details,
             "bull_count": bull_count,
             "bear_count": bear_count,
+            "pe_60d_change": pe_change,
         },
         bull_streak=bull_streak)
 

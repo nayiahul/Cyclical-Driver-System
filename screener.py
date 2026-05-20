@@ -228,6 +228,12 @@ def compute_composite(t_date: str, codes: list[str],
     else:
         w_m, w_b, w_v = 0.35, 0.35, 0.30
 
+    # 风格 Regime 叠加 (基于 PE 趋势)
+    pe_change = float(regime_result.details.get("pe_60d_change", 0) or 0)
+    from regime.style import detect_style, apply_style_overlay
+    style = detect_style(pe_change)
+    w_m, w_b, w_v = apply_style_overlay(w_m, w_b, w_v, style)
+
     composite = {}
     for code, (m, b, v) in scores.items():
         composite[code] = m * w_m + b * w_b + v * w_v
@@ -400,6 +406,12 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     else:  # STRUCT
         w_m, w_b, w_v = 0.35, 0.35, 0.30  # 均衡
 
+    # 风格 Regime 叠加
+    pe_change = float(regime_result.details.get("pe_60d_change", 0) or 0)
+    from regime.style import detect_style, apply_style_overlay
+    style = detect_style(pe_change)
+    w_m, w_b, w_v = apply_style_overlay(w_m, w_b, w_v, style)
+
     df["composite"] = (
         df["momentum"] * w_m + df["moat"] * w_b + df["valuation"] * w_v
     )
@@ -411,7 +423,7 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
 
     df = df.sort_values("composite", ascending=False).head(top_n)
 
-    logger.info(f"当前市场状态: {r} → 权重: 景气度={w_m} 壁垒={w_b} 估值={w_v}")
+    logger.info(f"当前市场状态: {r}+{style} → 权重: 景气度={w_m:.2f} 壁垒={w_b:.2f} 估值={w_v:.2f}")
     logger.info(f"筛选完成: {len(df)} 只")
     logger.info(f"按框架: 牛市→景气度优先, 熊市→估值优先, 结构市→均衡")
 
