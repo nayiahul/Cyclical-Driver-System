@@ -160,39 +160,24 @@ def compute_composite(t_date: str, codes: list[str],
     s5 = compute_S5(t_date, codes, industry_map)
     s7 = compute_S7(t_date, codes, industry_map)
 
-    # PE TTM: 近4季单季度EPS之和 (deducted_profit_q / total_shares)
+    # 估值: 多估值体系 (PE/PB/EV_EBITDA/PS) + 行业内分位
+    # 先算 TTM EPS 供 PE 法使用
     fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
     fin = filter_available_reports(fin, t_date)
-
-    # 预计算每个 code 的 TTM EPS
     ttm_eps_map = {}
     for code in codes:
         cfin = fin[fin["code"] == code].sort_values("report_date_str")
-        if len(cfin) < 4:
-            continue
-        last4 = cfin.tail(4)
-        dq_sum = last4["deducted_profit_q"].sum()
-        shares = last4["total_shares"].iloc[-1]  # 最新股本
-        if shares > 0 and not np.isnan(dq_sum):
-            ttm_eps = dq_sum / shares
-            if ttm_eps > 0.01:
-                ttm_eps_map[code] = ttm_eps
+        if len(cfin) >= 4:
+            last4 = cfin.tail(4)
+            dq_sum = last4["deducted_profit_q"].sum()
+            shares = last4["total_shares"].iloc[-1]
+            if shares > 0 and not np.isnan(dq_sum):
+                ttm = dq_sum / shares
+                if ttm > 0.01:
+                    ttm_eps_map[code] = ttm
 
-    # 预计算行业内PE列表
-    ind_pe_map = {}
-    for code in codes:
-        ind = industry_map.get(code, "未知")
-        if ind not in ind_pe_map:
-            ind_codes = [c for c in codes if industry_map.get(c) == ind]
-            ind_pes = []
-            for c in ind_codes:
-                e = ttm_eps_map.get(c, np.nan)
-                cp_df = _load_price_data(c)
-                cp = float(cp_df["close"].iloc[-1]) if len(cp_df) > 0 else np.nan
-                if not np.isnan(e) and e > 0.01 and not np.isnan(cp):
-                    p = min(200, max(1, cp / e))
-                    ind_pes.append(p)
-            ind_pe_map[ind] = ind_pes
+    from diagnostics.valuation import compute_valuation_scores
+    val_scores = compute_valuation_scores(codes, industry_map, ttm_eps_map, t_date)
 
     # 逐股评分
     scores = {}
@@ -221,19 +206,13 @@ def compute_composite(t_date: str, codes: list[str],
         moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]
         moat = np.mean(moat_vals) if moat_vals else 0.0
 
-        # 估值: PE行业内分位 (TTM EPS)
-        eps_val = ttm_eps_map.get(code, np.nan)
+        # 估值: 多估值体系 行业内分位
         df_price = _load_price_data(code)
-        close_price = float(df_price["close"].iloc[-1]) if len(df_price) > 0 else np.nan
-        pe_val = close_price / eps_val if (not np.isnan(eps_val) and eps_val > 0.01) else np.nan
-        pe_val = min(200, max(1, pe_val)) if not np.isnan(pe_val) else np.nan
-
-        ind_pes = ind_pe_map.get(industry_map.get(code, ""), [])
-        if not np.isnan(pe_val) and len(ind_pes) >= 5:
-            pct = sum(1 for p in ind_pes if p >= pe_val) / len(ind_pes)
-            valuation = (pct - 0.5) * 4
+        vs = val_scores.get(code)
+        if vs is not None:
+            val_ratio, valuation = vs
         else:
-            valuation = 0.0
+            val_ratio, valuation = np.nan, 0.0
 
         scores[code] = (momentum, moat, valuation)
 
@@ -321,22 +300,22 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     s5 = compute_S5(t_date, filtered, industry_map)
     s7 = compute_S7(t_date, filtered, industry_map)
 
-    # PE TTM: 近4季单季度EPS之和 (deducted_profit_q / total_shares)
+    # PE TTM + 多估值体系
     fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
     fin = filter_available_reports(fin, t_date)
-    # 预计算每个 code 的 TTM EPS
     ttm_eps_map = {}
     for code in filtered:
         cfin = fin[fin["code"] == code].sort_values("report_date_str")
-        if len(cfin) < 4:
-            continue
-        last4 = cfin.tail(4)
-        dq_sum = last4["deducted_profit_q"].sum()
-        shares = last4["total_shares"].iloc[-1]
-        if shares > 0 and not np.isnan(dq_sum):
-            ttm = dq_sum / shares
-            if ttm > 0.01:
-                ttm_eps_map[code] = ttm
+        if len(cfin) >= 4:
+            last4 = cfin.tail(4)
+            dq_sum = last4["deducted_profit_q"].sum()
+            shares = last4["total_shares"].iloc[-1]
+            if shares > 0 and not np.isnan(dq_sum):
+                ttm = dq_sum / shares
+                if ttm > 0.01:
+                    ttm_eps_map[code] = ttm
+    from diagnostics.valuation import compute_valuation_scores
+    val_scores = compute_valuation_scores(filtered, industry_map, ttm_eps_map, t_date)
 
     # 4. 构建评分
     results = []
@@ -372,28 +351,13 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]
         moat = np.mean(moat_vals) if moat_vals else 0.0
 
-        # --- 估值: PE行业内分位 (TTM EPS) ---
-        eps_val = ttm_eps_map.get(code, np.nan)
+        # --- 估值: 多估值体系 行业内分位 ---
         df_price = _load_price_data(code)
-        close_price = float(df_price["close"].iloc[-1]) if len(df_price) > 0 else np.nan
-        pe_val = close_price / eps_val if (not np.isnan(eps_val) and eps_val > 0.01) else np.nan
-        pe_val = min(200, max(1, pe_val)) if not np.isnan(pe_val) else np.nan
-
-        # 行业内PE排名 (lower PE = cheaper = higher score)
-        ind_codes = [c for c in filtered if industry_map.get(c) == industry_map.get(code)]
-        ind_pes = []
-        for c in ind_codes:
-            e = ttm_eps_map.get(c, np.nan)
-            cp_df = _load_price_data(c)
-            cp = float(cp_df["close"].iloc[-1]) if len(cp_df) > 0 else np.nan
-            if not np.isnan(e) and e > 0.01 and not np.isnan(cp):
-                p = min(200, max(1, cp / e))
-                ind_pes.append(p)
-        if not np.isnan(pe_val) and len(ind_pes) >= 5:
-            pct = sum(1 for p in ind_pes if p >= pe_val) / len(ind_pes)
-            valuation = (pct - 0.5) * 4  # centile → Z-score range
+        vs = val_scores.get(code)
+        if vs is not None:
+            val_ratio, valuation = vs
         else:
-            valuation = 0.0
+            val_ratio, valuation = np.nan, 0.0
 
         # --- 技术温度(仅观察) ---
         tech_temp = 0.0
@@ -417,7 +381,7 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
             "S2": round(s2_z, 3),
             "S5": round(s5_val, 3) if not np.isnan(s5_val) else 0.0,
             "S7": round(s7_val, 3) if not np.isnan(s7_val) else 0.0,
-            "PE": round(pe_val, 1) if not np.isnan(pe_val) else 0.0,
+            "val_ratio": round(val_ratio, 1) if not np.isnan(val_ratio) else 0.0,
             "momentum": round(momentum, 3),
             "moat": round(moat, 3),
             "valuation": round(valuation, 3),
@@ -484,18 +448,18 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     ind_counts = df["industry"].value_counts()
     df["ind_weight_pct"] = df["industry"].map(ind_counts / len(df) * 100).round(1)
 
-    # 流动性分档 (基于PE列间接推断 — 小PE通常是大盘股)
+    # 流动性分档
     df["liquidity_flag"] = "mid"
-    df.loc[df["PE"] < 15, "liquidity_flag"] = "large"
-    df.loc[df["PE"] > 60, "liquidity_flag"] = "small"
+    df.loc[df["val_ratio"] < 1.0, "liquidity_flag"] = "large"
+    df.loc[df["val_ratio"] > 50, "liquidity_flag"] = "small"
 
     # 数据新鲜度: 用 t_date 估算 (日线日期即 t_date)
     df["data_date"] = t_date
 
-    # 风格标记: 用PE和动量的大致分类
+    # 风格标记
     df["style_hint"] = "blend"
-    df.loc[(df["momentum"] > 0.5) & (df["PE"] > 30), "style_hint"] = "growth"
-    df.loc[(df["valuation"] > 1.0) & (df["PE"] < 20), "style_hint"] = "value"
+    df.loc[(df["momentum"] > 0.5) & (df["valuation"] < 0), "style_hint"] = "growth"
+    df.loc[(df["valuation"] > 1.0), "style_hint"] = "value"
 
     return df
 
@@ -512,8 +476,8 @@ def screen_growth(date_str: str = None, top_n: int = 50) -> pd.DataFrame:
     # growth cap: 50% 上限防止极端值，5% 下限防止 PEG 爆炸
     df_all["growth"] = df_all["S1_raw"].clip(5, 50)
     df_all["PEG"] = np.where(
-        (df_all["PE"] > 0) & (df_all["PE"] < 200) & (df_all["S1_raw"] > 0),
-        df_all["PE"] / df_all["growth"],
+        (df_all["val_ratio"] > 0) & (df_all["val_ratio"] < 200) & (df_all["S1_raw"] > 0),
+        df_all["val_ratio"] / df_all["growth"],
         np.nan
     )
     # 行业内估值合理 = valuation>0（PE在行业后半段→偏便宜）
@@ -524,7 +488,7 @@ def screen_growth(date_str: str = None, top_n: int = 50) -> pd.DataFrame:
     df = df_all[
         ((df_all["S1"] > 0) | (df_all["S2"] > 0)) &
         (df_all["RPS60"] >= 55) &
-        (df_all["PE"] > 0) &
+        (df_all["val_ratio"] > 0) &
         df_all["val_ok"] &
         (df_all["moat"] > -0.5)
     ].copy()
@@ -590,7 +554,7 @@ def main():
         df.to_csv(out_path, index=False, encoding="utf-8-sig")
         print(f"\n已保存: {out_path}")
         print(f"\nTop 20 (景气成长):")
-        print(df.head(20)[["code", "name", "industry", "RPS60", "PE",
+        print(df.head(20)[["code", "name", "industry", "RPS60", "val_ratio",
               "strategic_tags", "inflection_tags", "inflection_score"]].to_string(index=False))
         return
 
