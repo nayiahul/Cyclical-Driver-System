@@ -26,7 +26,8 @@ def _load_fin_data() -> pd.DataFrame:
     return pd.DataFrame()
 
 
-def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
+def apply_valuation_filter(t_date: str, codes: list[str],
+                          industry_map: dict = None) -> list[str]:
     """
     估值排雷硬约束。返回通过过滤的股票列表。
 
@@ -132,16 +133,20 @@ def apply_valuation_filter(t_date: str, codes: list[str]) -> list[str]:
                         removed["goodwill"] += 1
                         continue
 
-        # 规则8: R010 — 存贷双高 (货币资金>5亿 + 有息负债>1亿 + 现金/负债<2)
+        # 规则8: R010 — 存贷双高 (货币资金>5亿 + 有息负债>1亿 + 现金/负债<1.0)
+        # 排除 银行/非银/公用事业(行业性高杠杆)
         if quality is not None:
-            qrow2 = quality[quality["code"] == code]
-            if len(qrow2) > 0:
-                cash = qrow2.iloc[0]["cash_equivalents"]
-                debt = qrow2.iloc[0]["interest_bear_debt"]
-                if (cash is not None and debt is not None and not pd.isna(cash) and not pd.isna(debt)):
-                    if cash > 5e8 and debt > 1e8 and cash / debt < 2.0:
-                        removed["double_high"] += 1
-                        continue
+            ind = industry_map.get(code, "")
+            skip_ind = {"银行", "非银金融", "公用事业"}
+            if ind not in skip_ind:
+                qrow2 = quality[quality["code"] == code]
+                if len(qrow2) > 0:
+                    cash = qrow2.iloc[0]["cash_equivalents"]
+                    debt = qrow2.iloc[0]["interest_bear_debt"]
+                    if (cash is not None and debt is not None and not pd.isna(cash) and not pd.isna(debt)):
+                        if cash > 5e8 and debt > 1e8 and cash / debt < 1.0:
+                            removed["double_high"] += 1
+                            continue
 
         passed.append(code)
 

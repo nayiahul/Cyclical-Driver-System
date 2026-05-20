@@ -212,10 +212,10 @@ def run_backtest(
                     )
 
                 # 估值排雷
-                target_codes = apply_valuation_filter(t_date, target_codes)
+                industry_map = get_sw_industry()
+                target_codes = apply_valuation_filter(t_date, target_codes, industry_map)
 
                 # 主筛选路径选股: Top N (与 screen() 使用同一因子集)
-                industry_map = get_sw_industry()
                 composite, regime, bull_streak = compute_composite(
                     t_date, target_codes, industry_map,
                     prev_regime=prev_regime, bull_streak=bull_streak,

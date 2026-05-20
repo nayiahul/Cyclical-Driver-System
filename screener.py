@@ -290,12 +290,10 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     codes_all = universe_df["code"].tolist()
     logger.info(f"全市场: {len(codes_all)} 只")
 
-    filtered = apply_valuation_filter(t_date, codes_all)
-    logger.info(f"估值排雷后: {len(filtered)} 只")
-
-    # 2. 行业映射
     industry_map = get_sw_industry()
-    l3_map = get_sw_industry_l3()  # SW三级 → 用于战略标签匹配
+    l3_map = get_sw_industry_l3()
+    filtered = apply_valuation_filter(t_date, codes_all, industry_map)
+    logger.info(f"估值排雷后: {len(filtered)} 只")
 
     # 3. 信号计算
     logger.info("计算信号...")
