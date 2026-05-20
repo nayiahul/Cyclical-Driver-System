@@ -150,7 +150,7 @@ def compute_composite(t_date: str, codes: list[str],
     回测引擎和 screen() 共用此函数，确保验证路径与使用路径一致。
 
     Returns:
-        ({code: composite_score}, regime, bull_streak)
+        ({code: composite_score}, {code: pure_alpha}, regime, bull_streak)
     """
     # 信号计算
     rps_scores = compute_rps60(codes, t_date, industry_map)
@@ -253,10 +253,27 @@ def compute_composite(t_date: str, codes: list[str],
     for code, (m, b, v) in scores.items():
         composite[code] = m * w_m + b * w_b + v * w_v
 
-    # 行业暴露约束
-    composite = _apply_industry_constraint(composite, industry_map, r, top_n)
+    # 纯 alpha: 剥除行业均值
+    ind_avg = {}
+    ind_scores = defaultdict(list)
+    for code, score in composite.items():
+        ind = industry_map.get(code, "未知")
+        ind_scores[ind].append(score)
+    for ind, scores_list in ind_scores.items():
+        avg = sum(scores_list) / len(scores_list)
+        ind_avg[ind] = avg
 
-    return composite, r, new_streak
+    pure_alpha = {
+        code: score - ind_avg.get(industry_map.get(code, "未知"), 0)
+        for code, score in composite.items()
+    }
+
+    # 行业暴露约束 (对 composite 施加)
+    composite = _apply_industry_constraint(composite, industry_map, r, top_n)
+    # pure_alpha 也同步约束
+    pure_alpha = _apply_industry_constraint(pure_alpha, industry_map, r, top_n)
+
+    return composite, pure_alpha, r, new_streak
 
 
 def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
@@ -459,7 +476,11 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         if warnings:
             logger.warning(f"因子高相关: {'; '.join(warnings)}")
 
-    # 8. 诊断列: 行业暴露 + 流动性 + 数据新鲜度 + 风格标记
+    # 8. 纯 alpha: 剥除行业均值后的残差
+    ind_avg = df.groupby("industry")["composite"].transform("mean")
+    df["pure_alpha"] = (df["composite"] - ind_avg).round(4)
+
+    # 9. 诊断列: 行业暴露 + 流动性 + 数据新鲜度 + 风格标记
     ind_counts = df["industry"].value_counts()
     df["ind_weight_pct"] = df["industry"].map(ind_counts / len(df) * 100).round(1)
 

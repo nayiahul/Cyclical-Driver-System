@@ -219,7 +219,7 @@ def run_backtest(
                 target_codes = apply_valuation_filter(t_date, target_codes, industry_map)
 
                 # 主筛选路径选股: Top N (与 screen() 使用同一因子集)
-                composite, regime, bull_streak = compute_composite(
+                composite, pure_alpha, regime, bull_streak = compute_composite(
                     t_date, target_codes, industry_map,
                     prev_regime=prev_regime, bull_streak=bull_streak,
                     top_n=TOP_N_STOCKS)
