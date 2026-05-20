@@ -35,11 +35,24 @@ def compute_valuation_scores(codes: list[str],
     quality = _load_quality()
     tdx = _load_tdx_snapshot(t_date)
 
+    # v2.0: 行业内统一估值方法 — 质量缓存覆盖>80%才启用特化方法
+    ind_has_quality = {}
+    for code in codes:
+        ind = industry_map.get(code, "未知")
+        if ind not in ind_has_quality:
+            ind_codes = [c for c in codes if industry_map.get(c, "") == ind]
+            q_codes = set(quality["code"].unique()) if quality is not None else set()
+            q_count = sum(1 for c in ind_codes if c in q_codes)
+            ind_has_quality[ind] = q_count / len(ind_codes) > 0.5 if ind_codes else False
+
     # 逐股计算估值指标
     ratios = {}
     for code in codes:
         ind = industry_map.get(code, "未知")
         method = _pick_method(ind, code, ttm_eps_map)
+        # 行业内质量覆盖率不足 → 全行业 fallback PE
+        if method != "PE" and not ind_has_quality.get(ind, False):
+            method = "PE"
         ratio = _compute_ratio(code, method, ttm_eps_map, quality, tdx)
         if ratio is not None:
             ratios[code] = (method, ratio)

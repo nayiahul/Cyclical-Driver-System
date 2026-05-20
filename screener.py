@@ -160,37 +160,23 @@ def compute_composite(t_date: str, codes: list[str],
     s5 = compute_S5(t_date, codes, industry_map)
     s7 = compute_S7(t_date, codes, industry_map)
 
-    # PE TTM: 近4季单季度EPS之和
+    # 多估值体系 (行业内统一方法: 50%+质量覆盖→PB/EV_EBITDA, 否则PE)
     fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
     fin = filter_available_reports(fin, t_date)
     ttm_eps_map = {}
     for code in codes:
         cfin = fin[fin["code"] == code].sort_values("report_date_str")
-        if len(cfin) < 4:
-            continue
-        last4 = cfin.tail(4)
-        dq_sum = last4["deducted_profit_q"].sum()
-        shares = last4["total_shares"].iloc[-1]
-        if shares > 0 and not np.isnan(dq_sum):
-            ttm_eps = dq_sum / shares
-            if ttm_eps > 0.01:
-                ttm_eps_map[code] = ttm_eps
+        if len(cfin) >= 4:
+            last4 = cfin.tail(4)
+            dq_sum = last4["deducted_profit_q"].sum()
+            shares = last4["total_shares"].iloc[-1]
+            if shares > 0 and not np.isnan(dq_sum):
+                ttm = dq_sum / shares
+                if ttm > 0.01:
+                    ttm_eps_map[code] = ttm
 
-    # 行业内PE列表 (v2.0: 多估值体系待质量缓存100%后启用)
-    ind_pe_map = {}
-    for code in codes:
-        ind = industry_map.get(code, "未知")
-        if ind not in ind_pe_map:
-            ind_codes = [c for c in codes if industry_map.get(c) == ind]
-            ind_pes = []
-            for c in ind_codes:
-                e = ttm_eps_map.get(c, np.nan)
-                cp_df = _load_price_data(c)
-                cp = float(cp_df["close"].iloc[-1]) if len(cp_df) > 0 else np.nan
-                if not np.isnan(e) and e > 0.01 and not np.isnan(cp):
-                    p = min(200, max(1, cp / e))
-                    ind_pes.append(p)
-            ind_pe_map[ind] = ind_pes
+    from diagnostics.valuation import compute_valuation_scores
+    val_scores = compute_valuation_scores(codes, industry_map, ttm_eps_map, t_date)
 
     # 逐股评分
     scores = {}
@@ -219,20 +205,12 @@ def compute_composite(t_date: str, codes: list[str],
         moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]
         moat = np.mean(moat_vals) if moat_vals else 0.0
 
-        # 估值: PE行业内分位 (TTM EPS)
-        eps_val = ttm_eps_map.get(code, np.nan)
-        df_price = _load_price_data(code)
-        close_price = float(df_price["close"].iloc[-1]) if len(df_price) > 0 else np.nan
-        pe_val = close_price / eps_val if (not np.isnan(eps_val) and eps_val > 0.01) else np.nan
-        pe_val = min(200, max(1, pe_val)) if not np.isnan(pe_val) else np.nan
-
-        ind_pes = ind_pe_map.get(industry_map.get(code, ""), [])
-        if not np.isnan(pe_val) and len(ind_pes) >= 5:
-            pct = sum(1 for p in ind_pes if p >= pe_val) / len(ind_pes)
-            valuation = (pct - 0.5) * 4
+        # 估值: 多估值体系 行业内分位
+        vs = val_scores.get(code)
+        if vs is not None:
+            val_ratio, valuation = vs
         else:
-            valuation = 0.0
-        val_ratio = pe_val
+            val_ratio, valuation = np.nan, 0.0
 
         scores[code] = (momentum, moat, valuation)
 
@@ -326,21 +304,22 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     s5 = compute_S5(t_date, filtered, industry_map)
     s7 = compute_S7(t_date, filtered, industry_map)
 
-    # PE TTM: 近4季单季度EPS之和
+    # 多估值体系 (行业内统一方法)
     fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
     fin = filter_available_reports(fin, t_date)
     ttm_eps_map = {}
     for code in filtered:
         cfin = fin[fin["code"] == code].sort_values("report_date_str")
-        if len(cfin) < 4:
-            continue
-        last4 = cfin.tail(4)
-        dq_sum = last4["deducted_profit_q"].sum()
-        shares = last4["total_shares"].iloc[-1]
-        if shares > 0 and not np.isnan(dq_sum):
-            ttm = dq_sum / shares
-            if ttm > 0.01:
-                ttm_eps_map[code] = ttm
+        if len(cfin) >= 4:
+            last4 = cfin.tail(4)
+            dq_sum = last4["deducted_profit_q"].sum()
+            shares = last4["total_shares"].iloc[-1]
+            if shares > 0 and not np.isnan(dq_sum):
+                ttm = dq_sum / shares
+                if ttm > 0.01:
+                    ttm_eps_map[code] = ttm
+    from diagnostics.valuation import compute_valuation_scores
+    val_scores = compute_valuation_scores(filtered, industry_map, ttm_eps_map, t_date)
 
     # 4. 构建评分
     results = []
@@ -376,29 +355,12 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]
         moat = np.mean(moat_vals) if moat_vals else 0.0
 
-        # --- 估值: PE行业内分位 (TTM EPS) ---
-        eps_val = ttm_eps_map.get(code, np.nan)
-        df_price = _load_price_data(code)
-        close_price = float(df_price["close"].iloc[-1]) if len(df_price) > 0 else np.nan
-        pe_val = close_price / eps_val if (not np.isnan(eps_val) and eps_val > 0.01) else np.nan
-        pe_val = min(200, max(1, pe_val)) if not np.isnan(pe_val) else np.nan
-
-        # 行业内PE排名
-        ind_codes = [c for c in filtered if industry_map.get(c) == industry_map.get(code)]
-        ind_pes = []
-        for c in ind_codes:
-            e = ttm_eps_map.get(c, np.nan)
-            cp_df = _load_price_data(c)
-            cp = float(cp_df["close"].iloc[-1]) if len(cp_df) > 0 else np.nan
-            if not np.isnan(e) and e > 0.01 and not np.isnan(cp):
-                p = min(200, max(1, cp / e))
-                ind_pes.append(p)
-        if not np.isnan(pe_val) and len(ind_pes) >= 5:
-            pct = sum(1 for p in ind_pes if p >= pe_val) / len(ind_pes)
-            valuation = (pct - 0.5) * 4
+        # --- 估值: 多估值体系 行业内分位 ---
+        vs = val_scores.get(code)
+        if vs is not None:
+            val_ratio, valuation = vs
         else:
-            valuation = 0.0
-        val_ratio = pe_val
+            val_ratio, valuation = np.nan, 0.0
 
         # --- 技术温度(仅观察) ---
         tech_temp = 0.0
