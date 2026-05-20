@@ -24,6 +24,7 @@ from valuation_filter import apply_valuation_filter
 from screener import compute_composite
 from industry import get_sw_industry
 from diagnostics.attribution import BrinsonAttributor
+from diagnostics.drawdown import analyze_drawdowns, summary_report
 
 
 _PRICE_CACHE: dict[str, pd.Series] = {}
@@ -35,7 +36,8 @@ class BacktestResult:
     daily_returns: pd.Series
     trades: pd.DataFrame
     stats: dict
-    attribution: dict = None  # Brinson 归因汇总
+    attribution: dict = None   # Brinson 归因
+    drawdown: dict = None      # 回撤归因
 
 
 def _to_tx_symbol(code: str) -> str:
@@ -459,10 +461,16 @@ def run_backtest(
             f"({attr_summary['n_periods']}期)"
         )
 
+    # 回撤归因
+    dd_result = analyze_drawdowns(nav_series, daily_returns)
+    if dd_result:
+        logger.info(f"\n{summary_report(dd_result)}")
+
     return BacktestResult(
         nav_series=nav_series,
         daily_returns=daily_returns,
         trades=trades_df,
         stats=stats,
         attribution=attr_summary,
+        drawdown=dd_result,
     )
