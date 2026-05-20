@@ -109,6 +109,23 @@ def _attribute_dd_by_industry(nav, drawdown, holdings, dd_end, dd_start):
     return {"note": "需要逐期持仓行业权重数据做精确分解"}
 
 
+DD_BUDGET = {
+    "normal":   {"max_dd": 0.15, "action": "正常运作"},
+    "warning":  {"max_dd": 0.25, "action": "收紧行业上限5pp, 降低单票上限至5%"},
+    "critical": {"max_dd": 0.35, "action": "行业上限再收紧5pp, BEAR权重强化"},
+}
+
+
+def check_dd_budget(current_dd: float) -> dict:
+    """根据当前回撤水平返回预算响应等级。"""
+    if current_dd > -DD_BUDGET["normal"]["max_dd"]:
+        return {"tier": "normal", **DD_BUDGET["normal"]}
+    elif current_dd > -DD_BUDGET["warning"]["max_dd"]:
+        return {"tier": "warning", **DD_BUDGET["warning"]}
+    else:
+        return {"tier": "critical", **DD_BUDGET["critical"]}
+
+
 def summary_report(result: dict) -> str:
     """生成可读的回撤归因摘要。"""
     lines = []

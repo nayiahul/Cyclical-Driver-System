@@ -24,7 +24,7 @@ from valuation_filter import apply_valuation_filter
 from screener import compute_composite
 from industry import get_sw_industry
 from diagnostics.attribution import BrinsonAttributor
-from diagnostics.drawdown import analyze_drawdowns, summary_report
+from diagnostics.drawdown import analyze_drawdowns, summary_report, check_dd_budget
 
 
 _PRICE_CACHE: dict[str, pd.Series] = {}
@@ -465,6 +465,19 @@ def run_backtest(
     dd_result = analyze_drawdowns(nav_series, daily_returns)
     if dd_result:
         logger.info(f"\n{summary_report(dd_result)}")
+        budget = check_dd_budget(dd_result["max_dd"])
+        logger.info(f"回撤预算: {budget['tier']} → {budget['action']}")
+
+    # L10: 数据归档 — 保存本次运行的财务数据快照
+    from datetime import datetime as dt
+    archive_dir = "data/archive"
+    os.makedirs(archive_dir, exist_ok=True)
+    tag = dt.now().strftime("%Y%m%d_%H%M")
+    for src in ["data/cache/tdx_financials.csv", "data/cache/financial_data.csv"]:
+        if os.path.exists(src):
+            dst = f"{archive_dir}/{os.path.basename(src).replace('.csv', '')}_{tag}.csv"
+            os.system(f"cp {src} {dst}")
+    logger.info(f"数据快照已归档: data/archive/*_{tag}.csv")
 
     return BacktestResult(
         nav_series=nav_series,
