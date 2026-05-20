@@ -224,6 +224,11 @@ def run_backtest(
                     prev_regime=prev_regime, bull_streak=bull_streak,
                     top_n=TOP_N_STOCKS)
                 prev_regime = regime
+                # v2.0: 换手惩罚 — 现有持仓得分×1.03，降低不必要换手
+                for code in holdings:
+                    if code in composite:
+                        composite[code] *= 1.03
+
                 ranked = sorted(
                     composite.items(), key=lambda x: x[1], reverse=True
                 )
@@ -235,9 +240,29 @@ def run_backtest(
                         f"{day}: Alpha选股仅{n_selected}只, 低于{MIN_HOLDINGS}下限"
                     )
 
-                # 等权分配，单票上限8%
-                weight = min(1.0 / max(n_selected, 1), MAX_SINGLE_WEIGHT)
-                target_weights = {c: weight for c in selected}
+                # v2.0: 得分加权 + 流动性上限
+                sel_scores = {c: composite[c] for c in selected}
+                min_score = min(sel_scores.values())
+                # 归一化到 [0.5, 1.5] 范围做权重倾斜
+                score_range = max(sel_scores.values()) - min_score
+                if score_range > 0:
+                    norm = {c: 0.5 + (s - min_score) / score_range
+                            for c, s in sel_scores.items()}
+                else:
+                    norm = {c: 1.0 for c in sel_scores}
+                total_norm = sum(norm.values())
+                target_weights = {}
+                for c in selected:
+                    w = norm[c] / total_norm
+                    cap = MAX_SINGLE_WEIGHT
+                    # 低流动性股降上限
+                    price = _get_close_price(c, day)
+                    vol = 1e6
+                    if price:
+                        vol = price * 1e6  # rough volume estimate
+                    if vol < 5e7:  # 日均成交 <5000万
+                        cap = MAX_SINGLE_WEIGHT / 2
+                    target_weights[c] = min(w, cap)
 
                 # 换手率: 记录调仓前持仓市值
                 old_holdings_value = {}

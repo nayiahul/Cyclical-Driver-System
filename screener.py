@@ -473,6 +473,14 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     df.loc[(df["momentum"] > 0.5) & (df["valuation"] < 0), "style_hint"] = "growth"
     df.loc[(df["valuation"] > 1.0), "style_hint"] = "value"
 
+    # v2.0: 自动主题动量 — RPS60 跳升检测
+    from diagnostics.themes import detect_hot_themes, save_themes
+    themes = detect_hot_themes(rps_scores, industry_map, l3_map)
+    hot_themes = themes[themes["is_hot"]]
+    if len(hot_themes) > 0:
+        save_themes(themes, date_str)
+        logger.info(f"热门主题: {len(hot_themes)} 个三级行业 (RPS60中位数>{15})")
+
     return df
 
 
