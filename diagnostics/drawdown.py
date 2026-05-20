@@ -53,7 +53,7 @@ def analyze_drawdowns(nav: pd.Series,
     recovery_date = None
     for idx in drawdown.index[drawdown.index > max_dd_end_idx]:
         if nav[idx] >= cummax[max_dd_end_idx]:
-            recovery = (idx - max_dd_end_idx).days
+            recovery = (pd.Timestamp(idx) - end_ts).days
             recovery_date = str(idx)[:10]
             break
 
@@ -63,19 +63,20 @@ def analyze_drawdowns(nav: pd.Series,
     dd_start = None
     dd_peak = 0
     for idx, val in drawdown.items():
+        idx_ts = pd.Timestamp(idx)
         if not in_dd and val < -0.05:
             in_dd = True
-            dd_start = idx
+            dd_start = idx_ts
             dd_peak = 0
         if in_dd:
             if val < dd_peak:
                 dd_peak = val
-            if val > -0.02:  # 恢复到2%以内视为结束
+            if val > -0.02:
                 episodes.append({
                     "start": str(dd_start)[:10],
-                    "end": str(idx)[:10],
+                    "end": str(idx_ts)[:10],
                     "depth": round(float(dd_peak), 4),
-                    "duration": (idx - dd_start).days,
+                    "duration": (idx_ts - dd_start).days,
                 })
                 in_dd = False
 
