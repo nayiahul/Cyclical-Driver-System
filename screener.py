@@ -540,7 +540,7 @@ def screen_growth(date_str: str = None, top_n: int = 50) -> pd.DataFrame:
         logger.warning(f"仅 {len(df)} 只，放宽val_ok")
         df = df_all[
             ((df_all["S1"] > 0) | (df_all["S2"] > 0)) &
-            (df_all["RPS60"] >= 50) & (df_all["PE"] > 0) &
+            (df_all["RPS60"] >= 50) & (df_all["val_ratio"] > 0) &
             (df_all["moat"] > -1.0)
         ].copy()
 
