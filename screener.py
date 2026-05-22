@@ -272,6 +272,13 @@ def compute_composite(t_date: str, codes: list[str],
     # pure_alpha 也同步约束
     pure_alpha = _apply_industry_constraint(pure_alpha, industry_map, r, top_n)
 
+    # v2.1: 波动率降权 — 高波动股 composite×0.9
+    from diagnostics.volatility import compute_volatility_penalty
+    vol_penalty = compute_volatility_penalty(codes, industry_map, _load_price_data)
+    for code in composite:
+        if vol_penalty.get(code, 1.0) < 1.0:
+            composite[code] *= 0.9
+
     return composite, pure_alpha, r, new_streak
 
 
@@ -443,6 +450,15 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     scores = dict(zip(df["code"], df["composite"]))
     constrained = _apply_industry_constraint(scores, industry_map, r, top_n)
     df["composite"] = df["code"].map(constrained)
+
+    # v2.1: 波动率降权 — 高波动股 composite×0.9
+    from diagnostics.volatility import compute_volatility_penalty
+    vol_penalty = compute_volatility_penalty(
+        df["code"].tolist(), industry_map, _load_price_data)
+    df["composite"] = df.apply(
+        lambda row: row["composite"] * 0.9
+        if vol_penalty.get(row["code"], 1.0) < 1.0 else row["composite"],
+        axis=1)
 
     df = df.sort_values("composite", ascending=False).head(top_n)
 

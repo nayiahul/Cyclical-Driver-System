@@ -350,8 +350,16 @@ def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str],
     fin = fin.dropna(subset=["report_date_str"])
     fin = filter_available_reports(fin, t_date)
     fin = fin[["code", "report_date_str", "deducted_profit_yoy",
-               "deducted_profit_q", "operating_cash_flow"]].copy()
+               "deducted_profit_q", "operating_cash_flow", "revenue_yoy"]].copy()
     fin = fin.dropna(subset=["deducted_profit_yoy"])
+
+    # 营收验证: 记录每只股票的近四季营收增速中位数，供后续降权
+    rev_check = {}
+    for code in codes:
+        cfin = fin[fin["code"] == code].sort_values("report_date_str")
+        rev_yoy = cfin["revenue_yoy"].dropna().values[-4:].astype(float)
+        if len(rev_yoy) >= 4:
+            rev_check[code] = np.nanmedian(rev_yoy)
 
     scores = {}
     for code in codes:
@@ -411,6 +419,12 @@ def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str],
     )
     zscored = result.groupby("industry").transform(_zscore)
     zscored.index = zscored.index.get_level_values("code")
+
+    # v2.1: 营收交叉验证 — 利润加速但营收疲软 → 降本增效伪拐点，降权
+    for code in zscored.index:
+        rev_med = rev_check.get(code)
+        if rev_med is not None and rev_med < 5.0:
+            zscored.loc[code] *= 0.6
 
     if return_raw:
         return zscored, raw
