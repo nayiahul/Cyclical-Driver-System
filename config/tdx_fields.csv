@@ -1,21 +1,94 @@
 col,variable,name,category,unit,valid_range
-191,deducted_profit_yoy,扣非净利润同比(%),发展能力分析,%,"-500,500"
-233,deducted_profit_q,扣除非经常性损益后的净利润,单季度财务指标,元,
-183,revenue_yoy,营业收入增长率(%),发展能力分析,%,"-500,500"
-86,operating_profit,三、营业利润,利润表,元,
-107,operating_cash_flow,经营活动产生的现金流量净额,现金流量表,元,
-74,revenue,其中：营业收入,利润表,元,
-92,total_profit,四、利润总额,利润表,元,
-434,contract_liabilities,合同负债(万元),资产负债表新增指标,万元,
-45,advance_receipts,预收款项,资产负债表,元,
+# ===== 每股指标 =====
+1,eps,基本每股收益,每股指标,元/股,
+6,roe,净资产收益率,每股指标,%,"-500,500"
+# ===== 资产负债表 (核心) =====
+8,cash_equivalents,货币资金,资产负债表,元,
+10,notes_receivable,应收票据,资产负债表,元,
+11,accounts_receivable,应收账款,资产负债表,元,
+17,inventory,存货,资产负债表,元,
 27,fixed_assets,固定资产,资产负债表,元,
 28,construction_in_progress,在建工程,资产负债表,元,
-114,capex_cash,购建固定资产、无形资产和其他长期资产支付的现金,现金流量表,元,
+35,goodwill,商誉,资产负债表,元,
 40,total_assets,资产总计,资产负债表,元,
-17,inventory,存货,资产负债表,元,
+41,short_term_loan,短期借款,资产负债表,元,
+45,advance_receipts,预收款项,资产负债表,元,
+52,noncurrent_liab_due_1y,一年内到期的非流动负债,资产负债表,元,
+55,long_term_loan,长期借款,资产负债表,元,
+56,bonds_payable,应付债券,资产负债表,元,
+433,other_equity_instruments,其他权益工具投资,资产负债表新增指标,万元,
+434,contract_liabilities,合同负债(万元),资产负债表新增指标,万元,
 435,contract_assets,合同资产(万元),资产负债表新增指标,万元,
-1,eps,基本每股收益,每股指标,元/股,
-238,total_shares,总股本,股本股东,股,
-6,roe,净资产收益率,每股指标,%,"-500,500"
-202,gross_margin,销售毛利率(%) (非金融类指标),获利能力分析,%,
+436,other_assets,其他资产,资产负债表新增指标,万元,
+438,right_of_use_asset,使用权资产,资产负债表新增指标,万元,
+439,lease_liability,租赁负债,资产负债表新增指标,万元,
+271,equity_parent,归属于母公司股东权益,新增指标(资产负债表),元,
+295,notes_and_acct_payable,应付票据及应付账款,新增指标(资产负债表),元,
+296,notes_and_acct_receivable,应收票据及应收账款,新增指标(资产负债表),元,
+297,deferred_income_noncurrent,递延收益(非流动负债),新增指标(资产负债表),元,
+# ===== 利润表 (核心) =====
+74,revenue,其中：营业收入,利润表,元,
+75,operating_cost,营业成本,利润表,元,
+77,selling_expense,销售费用,利润表,元,
+78,admin_expense,管理费用,利润表,元,
+80,finance_expense,财务费用,利润表,元,
+86,operating_profit,三、营业利润,利润表,元,
+87,subsidy_income,加：补贴收入,利润表,元,
+92,total_profit,四、利润总额,利润表,元,
 304,rd_expense,研发费用(利润表),新增指标,元,
+305,interest_expense,其中:利息费用(利润表),新增指标,元,
+306,interest_income,其中:利息收入(利润表),新增指标,元,
+517,credit_impairment_loss,信用减值损失,新增指标(利润表),万元,
+# ===== 现金流量表 =====
+107,operating_cash_flow,经营活动产生的现金流量净额,现金流量表,元,
+114,capex_cash,购建固定资产、无形资产和其他长期资产支付的现金,现金流量表,元,
+# ===== 单季度财务指标 =====
+230,revenue_q,营业收入(单季度),单季度财务指标,元,
+233,deducted_profit_q,扣除非经常性损益后的净利润,单季度财务指标,元,
+312,revenue_q_wan,营业总收入(单季度)(万元),新增指标,万元,
+328,cost_q,营业成本(单季度)(万元),新增指标,万元,
+# ===== 获利能力分析 =====
+193,cost_profit_ratio,成本费用利润率(%),获利能力分析,%,
+194,operating_profit_margin,营业利润率,获利能力分析,%,
+199,sales_net_margin,销售净利率(%),获利能力分析,%,
+200,roa,总资产净利率,获利能力分析,%,
+201,net_margin,净利润率,获利能力分析,%,
+202,gross_margin,销售毛利率(%) (非金融类指标),获利能力分析,%,
+204,admin_expense_ratio,管理费用率,获利能力分析,%,
+205,finance_expense_ratio,财务费用率,获利能力分析,%,
+207,ebit,息税前利润(EBIT),获利能力分析,元,
+208,ebitda,息税折旧摊销前利润(EBITDA),获利能力分析,元,
+329,roic,投入资本回报率(ROIC),获利能力分析,%,
+# ===== 偿债能力分析 =====
+159,current_ratio,流动比率,偿债能力分析,,
+160,quick_ratio,速动比率,偿债能力分析,,
+162,interest_coverage,利息保障倍数,偿债能力分析,,
+167,equity_multiplier,权益乘数,偿债能力分析,,
+# ===== 资本结构分析 =====
+210,debt_to_assets,资产负债率(%),资本结构分析,%,
+327,interest_bearing_debt_ratio,有息负债率,新增指标,%,
+# ===== 经营效率分析 =====
+172,receivable_turnover,应收账款周转率,经营效率分析,,
+173,inventory_turnover,存货周转率,经营效率分析,,
+175,total_asset_turnover,总资产周转率,经营效率分析,,
+177,receivable_days,应收账款周转天数,经营效率分析,,
+178,inventory_days,存货周转天数,经营效率分析,,
+# ===== 发展能力分析 =====
+183,revenue_yoy,营业收入增长率(%),发展能力分析,%,"-500,500"
+184,net_profit_yoy,净利润增长率(%),发展能力分析,%,"-500,500"
+189,operating_profit_yoy,营业利润增长率(%),发展能力分析,%,"-500,500"
+191,deducted_profit_yoy,扣非净利润同比(%),发展能力分析,%,"-500,500"
+# ===== 现金流量分析 =====
+220,revenue_cash_ratio,营业收入现金含量(%),现金流量分析,%,
+223,ocf_to_revenue,OCF/营业收入,现金流量分析,,
+228,ocf_to_profit,OCF/净利润比率,现金流量分析,,
+321,fcff_per_share,每股企业自由现金流,新增指标,元,
+322,fcfe_per_share,每股股东自由现金流,新增指标,元,
+# ===== 股本股东 =====
+238,total_shares,总股本,股本股东,股,
+242,shareholder_count,股东人数,新增指标,户,
+# ===== 新增指标 (其他) =====
+319,revenue_ttm,营业总收入TTM,新增指标,万元,
+320,employee_count,员工总数,新增指标,人,
+336,audit_opinion,审计意见,新增指标,,
+337,payout_ratio,股利支付率(%),新增指标,%,

@@ -10,7 +10,7 @@ import pandas as pd
 _CSV_PATH = os.path.join(os.path.dirname(__file__), "tdx_fields.csv")
 
 # 从 CSV 加载字段映射
-_fields_df = pd.read_csv(_CSV_PATH)
+_fields_df = pd.read_csv(_CSV_PATH, comment="#")
 
 # {变量名: {col, name, category, unit, valid_range}}
 TDX_FIELDS = {}

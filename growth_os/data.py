@@ -1,0 +1,384 @@
+"""数据加载层 — 统一读取 TDX 财务缓存 + 日线行情 + 申万行业。
+
+Growth OS 的数据唯一入口。所有模块通过此层获取数据，
+隔离底层文件格式和路径细节。
+"""
+import os
+import pandas as pd
+import numpy as np
+from pathlib import Path
+from typing import Optional
+from loguru import logger
+import akshare as ak
+
+from growth_os.config import DATA_PATHS, WACC_CONFIG
+
+# 缓存
+_tdx_cache: Optional[pd.DataFrame] = None
+_industry_map: Optional[dict] = None
+_price_cache: dict = {}
+_risk_free_rate: Optional[float] = None
+_csi300_pe: Optional[float] = None
+
+
+# ============================================================
+# 1. TDX 财务数据
+# ============================================================
+
+def load_tdx_financials(force_reload: bool = False) -> pd.DataFrame:
+    """加载 TDX 财务缓存 DataFrame。"""
+    global _tdx_cache
+    if _tdx_cache is not None and not force_reload:
+        return _tdx_cache
+    path = DATA_PATHS["tdx_cache"]
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"TDX 缓存不存在: {path}，请先运行 tdx_financials.py")
+    _tdx_cache = pd.read_csv(path)
+    _tdx_cache["code"] = _tdx_cache["code"].astype(str).str.zfill(6)
+    _tdx_cache["report_date_str"] = _tdx_cache["report_date_str"].astype(str)
+    logger.info(f"TDX 缓存加载: {len(_tdx_cache)} 行, {_tdx_cache.code.nunique()} 只股票")
+    return _tdx_cache
+
+
+_snapshot_cache: dict = {}
+
+def get_financial_snapshot(t_date: str) -> pd.DataFrame:
+    """获取截至 t_date 的最新财务数据快照（带缓存）。"""
+    if t_date in _snapshot_cache:
+        return _snapshot_cache[t_date]
+
+    df = load_tdx_financials()
+    df = df[df["report_date_str"] <= t_date]
+    snapshot = df.sort_values("report_date_str").groupby("code").tail(1).copy()
+    _snapshot_cache[t_date] = snapshot
+    logger.info(f"财务快照 {t_date}: {len(snapshot)} 只股票")
+    return snapshot
+
+
+_quarterly_cache: dict = {}
+
+def get_quarterly_series(code: str, field: str, n_quarters: int = 12,
+                         t_date: Optional[str] = None) -> pd.Series:
+    """获取单只股票某字段的季度时间序列（最近 n_quarters 期）。
+
+    Returns:
+        Series index=report_date_str, values=field
+    """
+    cache_key = (code, field, t_date)
+    if cache_key in _quarterly_cache:
+        return _quarterly_cache[cache_key].tail(n_quarters)
+
+    df = load_tdx_financials()
+    mask = df["code"] == code
+    if t_date:
+        mask &= df["report_date_str"] <= t_date
+    series = df[mask].sort_values("report_date_str").set_index("report_date_str")[field]
+    _quarterly_cache[cache_key] = series
+    return series.tail(n_quarters)
+
+
+def get_yoy_growth(code: str, field: str, t_date: str) -> float | None:
+    """计算某字段的同比增速。
+
+    同比 = (最近4季合计 / 去年同期4季合计 - 1) * 100
+    """
+    series = get_quarterly_series(code, field, n_quarters=8, t_date=t_date)
+    if len(series) < 8:
+        return None
+    current_4q = series.iloc[-4:].sum()
+    prev_4q = series.iloc[:4].sum()
+    if prev_4q <= 0:
+        return None
+    return (current_4q / prev_4q - 1) * 100
+
+
+def compute_revenue_cagr_3y(code: str, t_date: str) -> float | None:
+    """用绝对营收(TTM)计算3年CAGR。
+
+    从 cumulative revenue 反推单季度营收 →
+    TTM = sum(最近4季单季营收) →
+    CAGR = (TTM_now / TTM_3y_ago)^(1/3) - 1
+    """
+    rev_cum_series = get_quarterly_series(
+        code, "revenue", n_quarters=20, t_date=t_date
+    ).dropna()
+    if len(rev_cum_series) < 12:
+        return None
+
+    # cumulative revenue → 单季度 revenue
+    q_rev = []
+    rev_vals = rev_cum_series.values
+    dates = [str(d) for d in rev_cum_series.index.tolist()]
+    prev = 0.0
+    for d, v in zip(dates, rev_vals):
+        if "0331" in d:
+            q = v          # Q1 单季 = 当期累计值
+            prev = v
+        elif "0630" in d:
+            q = v - prev   # Q2 = H1 - Q1
+            prev = v
+        elif "0930" in d:
+            q = v - prev   # Q3 = 9M - H1
+            prev = v
+        elif "1231" in d:
+            q = v - prev   # Q4 = FY - 9M
+            prev = 0.0     # reset for new fiscal year
+        else:
+            continue
+        if q > 0:
+            q_rev.append(q)
+
+    if len(q_rev) < 12:
+        return None
+
+    ttm_now = sum(q_rev[-4:])
+    ttm_3y = sum(q_rev[-16:-12]) if len(q_rev) >= 16 else None
+
+    if ttm_3y and ttm_3y > 0:
+        return ((ttm_now / ttm_3y) ** (1 / 3) - 1) * 100
+    return None
+
+
+# ============================================================
+# 2. 申万行业
+# ============================================================
+
+def load_industry_map(force_reload: bool = False) -> dict:
+    """加载申万三级行业映射 {code: industry_l3_name}。"""
+    global _industry_map
+    if _industry_map is not None and not force_reload:
+        return _industry_map
+    path = DATA_PATHS["sw_industry_map"]
+    df = pd.read_csv(path, dtype={"证券代码": str})
+    # 去除行业名称中的罗马数字后缀 (如 "白酒Ⅲ" → "白酒")
+    def _clean_l3(name):
+        if isinstance(name, str):
+            for suffix in ["Ⅲ", "Ⅱ", "Ⅰ", "IV", "V"]:
+                if name.endswith(suffix):
+                    return name[:-len(suffix)]
+        return name
+    _industry_map = {}
+    for code, name in zip(df["证券代码"], df["申万3级行业名称"]):
+        _industry_map[code] = _clean_l3(name)
+    logger.info(f"行业映射: {len(_industry_map)} 只")
+    return _industry_map
+
+
+def get_industry(code: str) -> str:
+    """获取股票申万三级行业名。"""
+    m = load_industry_map()
+    return m.get(code, "未知")
+
+
+# ============================================================
+# 3. 日线行情
+# ============================================================
+
+def _code_to_filename(code: str) -> str:
+    """将纯数字代码转为 /Desktop/stocks/ 文件名格式。"""
+    if code.startswith("6") or code.startswith("5"):
+        return f"sh.{code}.csv"
+    elif code.startswith("0") or code.startswith("1") or code.startswith("3") or code.startswith("8"):
+        return f"sz.{code}.csv"
+    return f"bj.{code}.csv"
+
+
+def get_price_data(code: str) -> pd.DataFrame | None:
+    """获取单只股票的日线行情 DataFrame。
+
+    Columns: date, open, high, low, close, preclose, volume, amount,
+             adjustflag, turn, tradestatus, pctChg, peTTM, pbMRQ, psTTM, pcfNcfTTM, isST
+    """
+    global _price_cache
+    if code in _price_cache:
+        return _price_cache[code]
+
+    fname = _code_to_filename(code)
+    fpath = os.path.join(DATA_PATHS["stock_price_dir"], fname)
+    if not os.path.exists(fpath):
+        return None
+
+    try:
+        df = pd.read_csv(fpath, parse_dates=["date"])
+        _price_cache[code] = df
+        return df
+    except Exception:
+        return None
+
+
+def get_market_cap(code: str, t_date: str) -> float | None:
+    """估算市值 = 收盘价 × 总股本（从TDX）。"""
+    price_df = get_price_data(code)
+    if price_df is None:
+        return None
+    fin_df = get_financial_snapshot(t_date)
+    row = fin_df[fin_df["code"] == code]
+    if row.empty or pd.isna(row["total_shares"].iloc[0]):
+        return None
+
+    t_date_dt = pd.Timestamp(t_date)
+    price_df = price_df[price_df["date"] <= t_date_dt]
+    if price_df.empty:
+        return None
+
+    close = price_df.iloc[-1]["close"]
+    shares = row["total_shares"].iloc[0]
+    return close * shares
+
+
+def get_pe_ttm(code: str, t_date: str) -> float | None:
+    """获取 PE TTM（来自日线行情文件）。"""
+    df = get_price_data(code)
+    if df is None:
+        return None
+    t_dt = pd.Timestamp(t_date)
+    df = df[df["date"] <= t_dt]
+    if df.empty or pd.isna(df.iloc[-1]["peTTM"]) or df.iloc[-1]["peTTM"] <= 0:
+        return None
+    return df.iloc[-1]["peTTM"]
+
+
+# ============================================================
+# 4. 无风险利率 & 市场数据
+# ============================================================
+
+def get_risk_free_rate() -> float:
+    """获取10年期国债收益率作为无风险利率。
+
+    Returns:
+        年化收益率（例如 1.46 = 1.46%）
+    """
+    global _risk_free_rate
+    if _risk_free_rate is not None:
+        return _risk_free_rate
+    try:
+        df = ak.bond_zh_us_rate()
+        col_10y = "中国国债收益率10年"
+        if col_10y in df.columns:
+            _risk_free_rate = float(df[col_10y].iloc[-1])
+            logger.info(f"无风险利率(10Y国债): {_risk_free_rate:.2f}%")
+        else:
+            _risk_free_rate = 1.5
+            logger.warning(f"bond_zh_us_rate 缺少10年期列，使用默认值1.5%")
+    except Exception as e:
+        logger.warning(f"AKShare 获取国债收益率失败: {e}，使用默认值1.5%")
+        _risk_free_rate = 1.5
+    return _risk_free_rate
+
+
+def get_csi300_pe_ttm() -> float:
+    """获取沪深300 PE TTM（近似值）。
+
+    优先从 AKShare 上证A股PE校准，回退到合理估计。
+    """
+    global _csi300_pe
+    if _csi300_pe is not None:
+        return _csi300_pe
+    try:
+        df = ak.stock_market_pe_lg(symbol="上证A股")
+        sse_pe = float(df["市盈率"].iloc[-1])
+        # 上证A股PE通常高于沪深300(含大量高PE小盘)
+        # 粗略折算: CSI300 PE ≈ SSE PE * 0.6
+        _csi300_pe = round(sse_pe * 0.6, 1)
+        logger.info(f"沪深300 PE(估算): {_csi300_pe:.1f} (上证PE={sse_pe:.1f})")
+    except Exception as e:
+        logger.warning(f"获取CSI300 PE失败: {e}，使用默认值14.5")
+        _csi300_pe = 14.5
+    return _csi300_pe
+
+
+# ============================================================
+# 5. GrowthOS 统一数据快照
+# ============================================================
+
+def load_growth_data(t_date: str) -> pd.DataFrame:
+    """加载 Growth OS 所需的完整合并数据。
+
+    合并 TDX 财务快照 + 行情估值 + 申万行业。
+    """
+    fin = get_financial_snapshot(t_date)
+    ind_map = load_industry_map()
+
+    # 行业
+    fin["industry_l3"] = fin["code"].map(ind_map)
+    fin["industry_l1"] = fin["industry_l3"].map(_l3_to_l1)
+
+    # 添加行情数据（PE/PB/PS/市值）
+    pe_data = {}
+    pb_data = {}
+    ps_data = {}
+    close_data = {}
+    is_st_data = {}
+
+    for code in fin["code"]:
+        pdf = get_price_data(code)
+        if pdf is None:
+            continue
+        t_dt = pd.Timestamp(t_date)
+        pdf = pdf[pdf["date"] <= t_dt]
+        if pdf.empty:
+            continue
+        last = pdf.iloc[-1]
+        pe_data[code] = last.get("peTTM", np.nan)
+        pb_data[code] = last.get("pbMRQ", np.nan)
+        ps_data[code] = last.get("psTTM", np.nan)
+        close_data[code] = last.get("close", np.nan)
+        is_st_data[code] = last.get("isST", 0)
+
+    fin["pe_ttm"] = fin["code"].map(pe_data)
+    fin["pb_mrq"] = fin["code"].map(pb_data)
+    fin["ps_ttm"] = fin["code"].map(ps_data)
+    fin["close"] = fin["code"].map(close_data)
+    fin["is_st"] = fin["code"].map(is_st_data).fillna(0).astype(int)
+
+    # 过滤 ST
+    fin = fin[fin["is_st"] == 0].copy()
+
+    # 计算衍生指标
+    fin["market_cap"] = fin["close"] * fin["total_shares"] / 1e8  # 亿元
+    fin["pe_ttm"] = fin["pe_ttm"].replace([np.inf, -np.inf], np.nan)
+
+    # 盈利质量
+    fin["profit_margin"] = fin["deducted_profit_q"] / fin["revenue"].replace(0, np.nan)
+
+    # 增长率（直接从TDX字段拿）
+    # revenue_yoy, deducted_profit_yoy 已在缓存中
+
+    logger.info(f"Growth数据快照 {t_date}: {len(fin)} 只有效标的")
+    return fin
+
+
+def _l3_to_l1(l3: str) -> str:
+    """申万三级 → 一级行业（通过已知的分类规则）。"""
+    if not isinstance(l3, str):
+        return "未知"
+    l1_map = {
+        "白酒": "食品饮料", "啤酒": "食品饮料", "乳品": "食品饮料",
+        "调味发酵品": "食品饮料", "零食": "食品饮料", "烘焙食品": "食品饮料",
+        "半导体设备": "电子", "半导体材料": "电子",
+        "集成电路制造": "电子", "集成电路封测": "电子",
+        "消费电子零部件及组装": "电子", "品牌消费电子": "电子",
+        "LED": "电子", "面板": "电子", "印制电路板": "电子",
+        "光伏电池组件": "电力设备", "锂电池": "电力设备",
+        "风电整机": "电力设备", "光伏逆变器": "电力设备",
+        "航空装备": "国防军工", "军工电子": "国防军工", "航天装备": "国防军工",
+        "IT服务": "计算机", "垂直应用软件": "计算机", "横向通用软件": "计算机",
+        "化学制剂": "医药生物", "生物制品": "医药生物",
+        "医疗设备": "医药生物", "医疗耗材": "医药生物",
+        "中药": "医药生物", "医药流通": "医药生物",
+        "证券": "非银金融", "保险": "非银金融", "银行": "银行",
+        "房地产开发": "房地产", "房地产服务": "房地产",
+        "动力煤": "煤炭", "焦煤": "煤炭", "焦炭加工": "煤炭",
+        "黄金": "有色金属", "铜": "有色金属", "铝": "有色金属", "锂": "有色金属",
+        "炼油化工": "石油石化", "油气开采": "石油石化",
+        "氮肥": "基础化工", "磷肥": "基础化工", "农药": "基础化工",
+        "工程机械": "机械设备", "机床设备": "机械设备", "机器人": "机械设备",
+        "乘用车": "汽车", "商用车": "汽车",
+        "汽车电子电气系统": "汽车", "底盘与发动机系统": "汽车",
+        "空调": "家用电器", "冰洗": "家用电器", "小家电": "家用电器",
+        "生猪养殖": "农林牧渔", "水产养殖": "农林牧渔", "种子": "农林牧渔",
+        "火电": "公用事业", "水电": "公用事业", "热电": "公用事业",
+        "快递": "交通运输", "航空运输": "交通运输", "航运": "交通运输",
+        "电信运营商": "通信", "通信网络设备": "通信", "通信终端及配件": "通信",
+    }
+    return l1_map.get(l3, "其他")
