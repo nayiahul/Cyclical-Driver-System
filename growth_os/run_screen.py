@@ -17,7 +17,7 @@ from growth_os.config import DATA_PATHS, EXCLUDED_INDUSTRIES_L1
 from growth_os.data import load_growth_data, get_industry
 from growth_os.lifecycle import classify_lifecycle
 from growth_os.funnel import run_funnel
-from growth_os.scorecard import GrowthScorecard, compute_composite
+from growth_os.scorecard import GrowthScorecard, compute_composite, normalize_pool, recalc_composite_with_ranks
 from growth_os.report import generate_report
 
 
@@ -86,6 +86,22 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
         except Exception as e:
             logger.debug(f"{code} 处理异常: {e}")
             continue
+
+    # 截面排名标准化
+    results = normalize_pool(results)
+
+    # 用标准化后的排名重新计算综合分
+    for r in results:
+        r["composite_score"] = recalc_composite_with_ranks(r)
+        # 更新决策
+        if not r["pass_l1"]:
+            r["decision"] = "一票否决"
+        elif r["composite_score"] >= 70:
+            r["decision"] = "深度研究"
+        elif r["composite_score"] >= 50:
+            r["decision"] = "加入观察池"
+        else:
+            r["decision"] = "暂不关注"
 
     result_df = pd.DataFrame(results)
     if len(result_df) == 0:

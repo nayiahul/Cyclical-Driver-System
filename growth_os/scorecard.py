@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 
 from growth_os.config import LifecycleStage
-from growth_os.lifecycle import get_weights
+from growth_os.lifecycle import get_weights, resolve_weights
 
 
 @dataclass
@@ -58,6 +58,7 @@ class GrowthScorecard:
     # 综合
     composite_score: float = np.nan
     decision: str = ""
+    _saved_weights: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -97,11 +98,61 @@ class GrowthScorecard:
             "growth_accel": self.growth_accel,
             "composite_score": self.composite_score,
             "decision": self.decision,
+            "_saved_weights": self._saved_weights,
         }
 
     @staticmethod
     def csv_columns() -> list:
         return list(GrowthScorecard().to_dict().keys())
+
+
+def normalize_pool(results: list[dict]) -> list[dict]:
+    """候选池截面排名标准化。
+
+    对 L2/L3/L5 在候选池内做百分位排名，
+    消除层间方差差异，让权重设计恢复诚实。
+
+    L1 不参与标准化（它是惩罚/gate，不是分数维度）。
+    L4 不参与标准化（它已经是行业百分位产物）。
+    """
+    if len(results) < 5:
+        return results  # 样本太少，不做标准化
+
+    # 提取各层原始分
+    def _safe_score(r, key):
+        v = r.get(key, np.nan)
+        return v if not np.isnan(v) and v is not None else None
+
+    layers = {
+        "score_l2": [_safe_score(r, "score_l2") for r in results],
+        "score_l3": [_safe_score(r, "score_l3") for r in results],
+        "score_l5": [_safe_score(r, "score_l5") for r in results],
+    }
+
+    # 计算百分位排名 (0-1)
+    ranks = {}
+    for layer, vals in layers.items():
+        valid = [(i, v) for i, v in enumerate(vals) if v is not None]
+        if len(valid) < 3:
+            continue
+        sorted_vals = sorted(v for _, v in valid)
+        n = len(sorted_vals)
+        rank_map = {}
+        for orig_i, v in valid:
+            # 百分位: 严格小于的占比（0=最差, 1=最好）
+            pct = sum(1 for x in sorted_vals if x < v) / n
+            # 拉伸到 [0.05, 0.95] 防止极端
+            pct = 0.05 + pct * 0.90
+            rank_map[orig_i] = round(pct, 4)
+        ranks[layer] = rank_map
+
+    # 写入 rank 字段
+    for layer, rank_map in ranks.items():
+        rank_key = layer + "_rank"
+        for i, r in enumerate(results):
+            r[rank_key] = rank_map.get(i, 0.5)
+
+    return results
 
 
 def compute_composite(
@@ -113,7 +164,10 @@ def compute_composite(
     综合得分 = L1*w1 + L2*w2 + L3*w3 + L4*w4 + L5*w5
     权重由生命周期阶段决定，每层原始分0-10，权重和=1.0，满分100。
     """
-    weights = get_weights(card.lifecycle)
+    # 使用生命周期追踪器（锁定期+混合权重）
+    weights = resolve_weights(card.code, card.lifecycle)
+    # 保存权重供后续标准化重算使用
+    card._saved_weights = weights
     if weights is None:
         # 衰退期: 不淘汰，降级为高风险观察池
         card.composite_score = 0
@@ -166,20 +220,33 @@ def compute_composite(
 
     # 综合得分 (0-100)
     # 五层加权: L1_risk + L2_moat + L3_efficiency + L4_industry + L5_expectation
-    score_l2 = card.score_l2 if not np.isnan(card.score_l2) else 0
-    score_l3 = card.score_l3 if not np.isnan(card.score_l3) else 0
-    score_l4 = card.score_l4 if not np.isnan(card.score_l4) else 0
-    score_l5 = card.score_l5 if not np.isnan(card.score_l5) else 0
+    # 优先使用截面排名分 (rank%)，消除层间方差差异
+    use_ranks = (funnel_result.get("score_l2_rank") is not None)
+
+    if use_ranks:
+        # 用百分位排名 → 映射到 0-10（rank% × 10）
+        rank_l2 = funnel_result.get("score_l2_rank", 0.5)
+        rank_l3 = funnel_result.get("score_l3_rank", 0.5)
+        rank_l5 = funnel_result.get("score_l5_rank", 0.5)
+        s2 = rank_l2 * 10
+        s3 = rank_l3 * 10
+        s5 = rank_l5 * 10
+    else:
+        s2 = card.score_l2 if not np.isnan(card.score_l2) else 0
+        s3 = card.score_l3 if not np.isnan(card.score_l3) else 0
+        s5 = card.score_l5 if not np.isnan(card.score_l5) else 0
+
+    s4 = card.score_l4 if not np.isnan(card.score_l4) else 0
 
     # 排雷风险分: 每触发一个红灯扣1分, 最多扣到0
     l1_risk_score = max(0, 10 - len(card.l1_red_flags))
 
     composite = (
         l1_risk_score * weights["L1_risk"] * 10 +
-        score_l2 * weights["L2_moat"] * 10 +
-        score_l3 * weights["L3_efficiency"] * 10 +
-        score_l4 * weights["L4_industry"] * 10 +
-        score_l5 * weights["L5_expectation"] * 10
+        s2 * weights["L2_moat"] * 10 +
+        s3 * weights["L3_efficiency"] * 10 +
+        s4 * weights["L4_industry"] * 10 +
+        s5 * weights["L5_expectation"] * 10
     )
 
     card.composite_score = round(composite, 1)
@@ -195,3 +262,36 @@ def compute_composite(
         card.decision = "暂不关注"
 
     return card
+
+
+def recalc_composite_with_ranks(r: dict) -> float:
+    """用截面排名分重新计算综合分（供 normalize_pool 后使用）。
+
+    使用 compute_composite 保存的权重，不重复触发 tracker。
+    """
+    weights = r.get("_saved_weights")
+    if weights is None:
+        return r.get("composite_score", 0)
+
+    rank_l2 = r.get("score_l2_rank", 0.5)
+    rank_l3 = r.get("score_l3_rank", 0.5)
+    rank_l5 = r.get("score_l5_rank", 0.5)
+
+    s4_raw = r.get("score_l4", 0)
+    if s4_raw is None or (isinstance(s4_raw, float) and np.isnan(s4_raw)):
+        s4 = 0
+    else:
+        s4 = s4_raw
+
+    red_flags_str = r.get("l1_red_flags", "")
+    red_count = len([x for x in red_flags_str.split("|") if x]) if red_flags_str else 0
+    l1_risk = max(0, 10 - red_count)
+
+    composite = (
+        l1_risk * weights["L1_risk"] * 10 +
+        rank_l2 * 10 * weights["L2_moat"] * 10 +
+        rank_l3 * 10 * weights["L3_efficiency"] * 10 +
+        s4 * weights["L4_industry"] * 10 +
+        rank_l5 * 10 * weights["L5_expectation"] * 10
+    )
+    return round(composite, 1)

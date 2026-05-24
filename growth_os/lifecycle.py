@@ -16,6 +16,99 @@ from growth_os.data import (
 )
 from growth_os.wacc import compute_wacc
 
+# 全局追踪器 {code: LifecycleTracker}
+_trackers: dict = {}
+
+# 锁定期：2个财报期（≈半年）
+LOCK_PERIODS = 2
+
+
+class LifecycleTracker:
+    """跨期生命周期追踪器，带锁定期防抖。
+
+    核心逻辑：
+    - 新判定需要连续2期确认才生效
+    - 锁定期内用旧阶段，可选混合权重过渡
+    """
+
+    def __init__(self, code: str):
+        self.code = code
+        self.current_stage: LifecycleStage | None = None
+        self.pending_stage: LifecycleStage | None = None
+        self.pending_count = 0          # 连续偏离当前阶段的期数
+        self.stage_scores: dict = {}    # {stage: probability}
+
+    def update(self, raw_stage: LifecycleStage) -> LifecycleStage:
+        """输入原始分类，返回锁定后的阶段。"""
+        if self.current_stage is None:
+            self.current_stage = raw_stage
+            self.pending_count = 0
+            return self.current_stage
+
+        if raw_stage == self.current_stage:
+            self.pending_count = 0
+            self.pending_stage = None
+            return self.current_stage
+
+        # 偏离当前阶段
+        if self.pending_stage == raw_stage:
+            self.pending_count += 1
+        else:
+            self.pending_stage = raw_stage
+            self.pending_count = 1
+
+        # 连续偏离满 LOCK_PERIODS → 切换
+        if self.pending_count >= LOCK_PERIODS:
+            self.current_stage = self.pending_stage
+            self.pending_stage = None
+            self.pending_count = 0
+
+        return self.current_stage
+
+    def get_mixed_weights(self, raw_stage: LifecycleStage) -> dict:
+        """输出混合权重。
+
+        正常期：纯当前阶段权重
+        过渡期（pending但未满锁定期）：新旧权重线性混合
+        """
+        current_w = WEIGHT_MATRIX.get(self.current_stage)
+        if current_w is None:
+            return None
+
+        if self.pending_stage is None or self.pending_count == 0:
+            return dict(current_w)
+
+        pending_w = WEIGHT_MATRIX.get(self.pending_stage)
+        if pending_w is None:
+            return dict(current_w)
+
+        # 过渡混合：pending_count / LOCK_PERIODS 的比例用新权重
+        alpha = min(self.pending_count / LOCK_PERIODS, 1.0)
+        mixed = {}
+        for key in current_w:
+            mixed[key] = current_w[key] * (1 - alpha) + pending_w[key] * alpha
+        return mixed
+
+
+def get_tracker(code: str) -> LifecycleTracker:
+    """获取或创建 lifecycle tracker。"""
+    if code not in _trackers:
+        _trackers[code] = LifecycleTracker(code)
+    return _trackers[code]
+
+
+def resolve_weights(code: str, raw_stage: LifecycleStage) -> dict | None:
+    """统一入口：输入 code + 原始阶段 → 输出锁定后的混合权重。
+
+    替换直接调用 get_weights(stage)。
+    """
+    if raw_stage == LifecycleStage.DECLINE:
+        return None  # 衰退期无权重，走观察池
+
+    tracker = get_tracker(code)
+    locked_stage = tracker.update(raw_stage)
+    return tracker.get_mixed_weights(raw_stage)
+
 
 def _get_latest_fy_roic(code: str, t_date: str) -> float | None:
     """获取最近一个完整财年的ROIC。

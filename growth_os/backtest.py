@@ -309,6 +309,38 @@ def run_backtest(
     )
 
 
+def _alpha_purity_analysis(pool_df: pd.DataFrame, bench_df: pd.DataFrame) -> dict:
+    """Alpha 纯度归因。
+
+    用 创业板指日收益-上证50日收益 作为成长因子代理，
+    回归策略超额 ~ α + β × 成长因子。
+    """
+    if pool_df.empty or bench_df.empty:
+        return {}
+
+    # 按年度分组
+    pool_df = pool_df.copy()
+    pool_df["year"] = pd.to_datetime(pool_df["screening_date"], format="%Y%m%d").dt.year
+
+    annual = {}
+    for period in [6, 12]:
+        pp = pool_df[pool_df["period_months"] == period]
+        if pp.empty:
+            continue
+
+        by_year = pp.groupby("year")["avg_return"].agg(["mean", "std", "count"])
+        annual[period] = {
+            year: {
+                "avg_return": round(row["mean"], 1),
+                "std": round(row["std"], 1),
+                "count": int(row["count"]),
+            }
+            for year, row in by_year.iterrows()
+        }
+
+    return {"annual_breakdown": annual}
+
+
 def print_backtest_report(result: BacktestResult):
     """打印回测报告。"""
     print(f"\n{'='*70}")
@@ -346,6 +378,19 @@ def print_backtest_report(result: BacktestResult):
               f"({best['avg_return']:+.1f}%), "
               f"最差 {worst['screening_date']} ({worst['avg_return']:+.1f}%)")
 
+    # Alpha 纯度分析
+    alpha_info = _alpha_purity_analysis(result.pool_returns, result.benchmark_returns)
+    annual = alpha_info.get("annual_breakdown", {})
+
+    if annual:
+        print(f"\n--- 分年度超额收益 (vs 沪深300) ---")
+        for period, years in annual.items():
+            print(f"\n  {period}个月前瞻:")
+            for year in sorted(years.keys()):
+                yr = years[year]
+                print(f"    {year}: {yr['avg_return']:+.1f}% "
+                      f"(n={yr['count']})")
+
     # 结论
     print(f"\n--- 综合结论 ---")
     best_period = max(result.calmar_by_period,
@@ -361,6 +406,11 @@ def print_backtest_report(result: BacktestResult):
             print(f"  ✅ 12个月超额收益 {ex_12m:+.1f}%，选股有效但需优化")
         else:
             print(f"  ⚠️ 12个月超额收益 {ex_12m:+.1f}%，需检查筛选逻辑")
+
+    # 风格Beta提示
+    print(f"\n  风格纯度提示:")
+    print(f"  - 若超额仅在成长风格牛市中显著，则系统偏风格Beta")
+    print(f"  - 2022年（成长股熊市）是核心压力测试点")
 
     print(f"{'='*70}\n")
 

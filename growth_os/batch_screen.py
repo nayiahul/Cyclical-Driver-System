@@ -8,7 +8,7 @@ warnings.filterwarnings('ignore')
 from growth_os.data import load_growth_data, get_industry
 from growth_os.lifecycle import classify_lifecycle
 from growth_os.funnel import run_funnel
-from growth_os.scorecard import GrowthScorecard, compute_composite
+from growth_os.scorecard import GrowthScorecard, compute_composite, normalize_pool, recalc_composite_with_ranks
 
 
 def main():
@@ -57,6 +57,19 @@ def main():
             rows.append(card.to_dict())
         except Exception as e:
             continue
+
+    # 截面排名标准化
+    rows = normalize_pool(rows)
+    for r in rows:
+        r["composite_score"] = recalc_composite_with_ranks(r)
+        if not r["pass_l1"]:
+            r["decision"] = "一票否决"
+        elif r["composite_score"] >= 70:
+            r["decision"] = "深度研究"
+        elif r["composite_score"] >= 50:
+            r["decision"] = "加入观察池"
+        else:
+            r["decision"] = "暂不关注"
 
     # 排序输出
     df_out = pd.DataFrame(rows)
