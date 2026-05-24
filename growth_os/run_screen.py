@@ -72,6 +72,9 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
                 lifecycle=lifecycle,
                 lifecycle_reason=lc_reason,
                 pass_l1=funnel["pass_l1"],
+                l1_verdict=funnel.get("l1_verdict", ""),
+                l1_absolute_reds=funnel.get("l1_absolute_reds", []),
+                l1_conditional_reds=funnel.get("l1_conditional_reds", []),
                 l1_red_flags=funnel["l1_red_flags"],
                 score_l2=funnel.get("score_l2", np.nan),
                 score_l3=funnel.get("score_l3", np.nan),
@@ -111,11 +114,12 @@ def _print_summary(df: pd.DataFrame, n: int = 30):
     print(f"\n{'='*80}")
     print(f"  成长股观察池 Top {min(n, len(df))}")
     print(f"{'='*80}")
-    print(f"{'代码':<8} {'名称':<10} {'行业':<14} {'阶段':<6} {'综合':>5} {'L2':>5} {'L3':>5} {'L4':>5} {'L5':>5} {'决策'}")
-    print(f"{'-'*90}")
+    print(f"{'代码':<8} {'名称':<10} {'行业':<14} {'阶段':<6} {'L1判定':<6} {'综合':>5} {'L2':>5} {'L3':>5} {'L4':>5} {'L5':>5} {'决策'}")
+    print(f"{'-'*100}")
     for _, r in df.head(n).iterrows():
+        l1_short = {"pass": "通过", "review": "观察", "kill_absolute": "淘汰", "kill_conditional": "淘汰"}.get(r.get("l1_verdict", ""), "?")
         print(f"{r['code']:<8} {str(r['name'])[:10]:<10} "
-              f"{str(r['industry_l3'])[:14]:<14} {str(r['lifecycle'])[:6]:<6} "
+              f"{str(r['industry_l3'])[:14]:<14} {str(r['lifecycle'])[:6]:<6} {l1_short:<6} "
               f"{r['composite_score']:>5.1f} {r['score_l2']:>5.1f} "
               f"{r['score_l3']:>5.1f} {r['score_l4']:>5.1f} {r['score_l5']:>5.1f} "
               f"{str(r['decision'])[:8]}")

@@ -20,6 +20,24 @@ from growth_os.data import (
 )
 from growth_os.wacc import compute_wacc
 
+# L1 红灯分级：绝对红灯(单灯淘汰) vs 条件红灯(需2灯淘汰)
+ABSOLUTE_RED_KEYS = {
+    "_error",                    # 无财务数据
+    "goodwill_ratio",            # 商誉/净资产>30% — 并购地雷
+    "receivable_surge",          # 应收增速远超营收 — 恶性赊销
+    "inventory_structure",       # 产成品占比>70% — 滞销
+    "rd_capitalization",         # 研发资本化率>50% — 虚增利润
+    "subsidy_dependency",        # 政府补助占扣非利润>50% — 非经常性依赖
+}
+
+CONDITIONAL_RED_KEYS = {
+    "revenue_cagr_3y",           # 营收3年CAGR过低 — 增长疲弱
+    "deducted_vs_revenue",       # 扣非增速跟不上营收 — 利润质量差
+    "ocf_profit_ratio_3y",       # OCF/净利润低 — 现金含金量不足
+    "inventory_surge",           # 存货增速>营收增速×阈值 — 需结合行业判断
+    "cashflow_burn",             # 近3季OCF<0但利润>0 — 可能是扩张期
+}
+
 
 def run_funnel(
     code: str, t_date: str, industry_l3: str = None,
@@ -59,11 +77,34 @@ def run_funnel(
         "l5_details": {},
     }
 
-    # ---- L1: 排雷 ----
+    # ---- L1: 排雷 (二级红灯制) ----
     l1 = _check_l1(code, t_date, industry_l3)
     result["l1_details"] = l1
-    result["l1_red_flags"] = [k for k, v in l1.items() if v.get("red", False)]
-    result["pass_l1"] = len(result["l1_red_flags"]) < L1_THRESHOLDS["max_red_flags"]
+
+    all_red = [k for k, v in l1.items() if v.get("red", False)]
+    absolute_reds = [k for k in all_red if k in ABSOLUTE_RED_KEYS]
+    conditional_reds = [k for k in all_red if k in CONDITIONAL_RED_KEYS]
+    # 未分类的新红灯默认视为条件红灯
+    unclassified = [k for k in all_red if k not in ABSOLUTE_RED_KEYS and k not in CONDITIONAL_RED_KEYS]
+    conditional_reds.extend(unclassified)
+
+    result["l1_red_flags"] = all_red
+    result["l1_absolute_reds"] = absolute_reds
+    result["l1_conditional_reds"] = conditional_reds
+
+    # 判定
+    if absolute_reds:
+        result["pass_l1"] = False
+        result["l1_verdict"] = "kill_absolute"
+    elif len(conditional_reds) >= 2:
+        result["pass_l1"] = False
+        result["l1_verdict"] = "kill_conditional"
+    elif len(conditional_reds) == 1:
+        result["pass_l1"] = True
+        result["l1_verdict"] = "review"  # 进入观察池但继续打分
+    else:
+        result["pass_l1"] = True
+        result["l1_verdict"] = "pass"
 
     if not result["pass_l1"]:
         return result
@@ -777,6 +818,74 @@ def _l4_fallback(industry_l3: str, result: dict) -> dict:
 # L5: 预期差 (0-10)
 # ============================================================
 
+def compute_forward_growth(code: str, t_date: str) -> tuple[float | None, str]:
+    """计算前瞻增速代理变量 g_proxy。
+
+    指数加权近4季营收yoy（权重 0.4/0.3/0.2/0.1），
+    合同负债交叉验证，OCF含金量折扣。
+
+    Returns:
+        (g, source_tag) — g 为小数如 0.30=30%，source_tag 标识来源
+    """
+    rev_yoy_series = get_quarterly_series(
+        code, "revenue_yoy", n_quarters=8, t_date=t_date
+    ).dropna()
+
+    if len(rev_yoy_series) < 3:
+        # 回退到3年CAGR
+        cagr = compute_revenue_cagr_3y(code, t_date)
+        if cagr is not None:
+            return max(cagr / 100, 0.05), "fallback_cagr3y"
+        return None, "insufficient_data"
+
+    # 指数加权：近4季 yoy，越近权重越高
+    recent = rev_yoy_series.iloc[-4:].values if len(rev_yoy_series) >= 4 else rev_yoy_series.values
+    n = len(recent)
+    alpha = 0.55
+    weights = [alpha ** (n - 1 - i) for i in range(n)]
+    weights_sum = sum(weights)
+    g_ewa = sum(v * w for v, w in zip(recent, weights)) / weights_sum
+
+    if g_ewa <= 0:
+        return 0.05, "ewa_floor"
+
+    # 合同负债交叉验证：合同负债是收入先行指标
+    cl_series = get_quarterly_series(
+        code, "contract_liabilities", n_quarters=8, t_date=t_date
+    ).dropna()
+    if len(cl_series) >= 3:
+        cl_recent = cl_series.iloc[-4:].mean() if len(cl_series) >= 4 else cl_series.mean()
+        cl_old = cl_series.iloc[-8:-4].mean() if len(cl_series) >= 8 else cl_series.iloc[:4].mean()
+        if cl_old > 0:
+            cl_growth = (cl_recent / cl_old - 1)
+            if cl_growth > 0:
+                g_ewa = max(g_ewa, cl_growth * 0.8)  # 合同负债增速衰减后作为下限
+                return min(g_ewa, 0.80), "ewa_cl_crossvalidated"
+
+    # OCF含金量折扣
+    ocf_series = get_quarterly_series(
+        code, "operating_cash_flow", n_quarters=12, t_date=t_date
+    ).dropna()
+    profit_series = get_quarterly_series(
+        code, "deducted_profit_q", n_quarters=12, t_date=t_date
+    ).dropna()
+    if len(ocf_series) >= 4 and len(profit_series) >= 4:
+        common = ocf_series.index.intersection(profit_series.index)
+        if len(common) >= 4:
+            ocf_sum = ocf_series.loc[common].sum()
+            profit_sum = abs(profit_series.loc[common].sum())
+            if profit_sum > 0:
+                ocf_ratio = ocf_sum / profit_sum
+                if ocf_ratio < 0.75:
+                    g_ewa *= 0.7
+                    return max(g_ewa, 0.04), "ewa_ocf_discounted"
+                elif ocf_ratio < 0.95:
+                    g_ewa *= 0.9
+
+    g_ewa = max(0.04, min(g_ewa, 0.80))
+    return g_ewa, "ewa_yoy"
+
+
 def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
     s = L5_SCORING
     max_score = s["l5_max_score"]
@@ -790,25 +899,29 @@ def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
 
     pe = get_pe_ttm(code, t_date)
 
-    # 1. PEG (0-4)
-    rev_yoy = row.get("revenue_yoy")
-    if pe is not None and rev_yoy is not None and not pd.isna(rev_yoy) and rev_yoy > 0:
-        peg = pe / rev_yoy
-        result["peg_ratio"] = {"value": round(peg, 2)}
+    # 1. PEG (0-4) — 用前瞻增速代理 g_proxy
+    g_proxy, g_source = compute_forward_growth(code, t_date)
+    if pe is not None and g_proxy is not None and g_proxy > 0:
+        peg = pe / (g_proxy * 100)  # g_proxy 是小数(0.30=30%)
+        result["peg_ratio"] = {
+            "value": round(peg, 2),
+            "g_proxy": round(g_proxy * 100, 1),
+            "g_source": g_source,
+        }
         if peg < s["peg_undervalued"]:
             result["peg_ratio"]["score"] = 4.0
-            result["peg_ratio"]["label"] = f"低估(PEG={peg:.1f})"
+            result["peg_ratio"]["label"] = f"低估(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
         elif peg < s["peg_fair"]:
             result["peg_ratio"]["score"] = 2.5
-            result["peg_ratio"]["label"] = f"合理(PEG={peg:.1f})"
+            result["peg_ratio"]["label"] = f"合理(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
         elif peg < s["peg_overvalued"]:
             result["peg_ratio"]["score"] = 1.0
-            result["peg_ratio"]["label"] = f"偏贵(PEG={peg:.1f})"
+            result["peg_ratio"]["label"] = f"偏贵(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
         else:
             result["peg_ratio"]["score"] = 0
-            result["peg_ratio"]["label"] = f"高估(PEG={peg:.1f})"
+            result["peg_ratio"]["label"] = f"高估(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
     else:
-        result["peg_ratio"] = {"score": 0, "label": "数据不足"}
+        result["peg_ratio"] = {"score": 0, "label": "数据不足", "g_proxy": None, "g_source": g_source if g_proxy else "insufficient_data"}
 
     # 2. PE 行业内分位 (0-3)
     if pe is not None:

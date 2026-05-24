@@ -19,6 +19,9 @@ class GrowthScorecard:
 
     # A区: 增长真实性
     pass_l1: bool = True
+    l1_verdict: str = ""
+    l1_absolute_reds: list = field(default_factory=list)
+    l1_conditional_reds: list = field(default_factory=list)
     l1_red_flags: list = field(default_factory=list)
     revenue_cagr_3y: Optional[float] = None
     deducted_yoy: Optional[float] = None
@@ -65,6 +68,9 @@ class GrowthScorecard:
             "lifecycle": self.lifecycle.value,
             "lifecycle_reason": self.lifecycle_reason,
             "pass_l1": self.pass_l1,
+            "l1_verdict": self.l1_verdict,
+            "l1_absolute_reds": "|".join(self.l1_absolute_reds),
+            "l1_conditional_reds": "|".join(self.l1_conditional_reds),
             "l1_red_flags": "|".join(self.l1_red_flags),
             "revenue_cagr_3y": self.revenue_cagr_3y,
             "deducted_yoy": self.deducted_yoy,
@@ -109,9 +115,9 @@ def compute_composite(
     """
     weights = get_weights(card.lifecycle)
     if weights is None:
-        # 衰退期: 直接给负分
+        # 衰退期: 不淘汰，降级为高风险观察池
         card.composite_score = 0
-        card.decision = "一票否决(衰退期)"
+        card.decision = "高风险观察池(衰退期)"
         return card
 
     l1 = funnel_result.get("l1_details", {})
@@ -120,7 +126,10 @@ def compute_composite(
     l4 = funnel_result.get("l4_details", {})
     l5 = funnel_result.get("l5_details", {})
 
-    # 填充 A 区
+    # 填充 A 区: L1 verdict + red flag classification
+    card.l1_verdict = funnel_result.get("l1_verdict", "")
+    card.l1_absolute_reds = funnel_result.get("l1_absolute_reds", [])
+    card.l1_conditional_reds = funnel_result.get("l1_conditional_reds", [])
     card.revenue_cagr_3y = l1.get("revenue_cagr_3y", {}).get("value")
     card.deducted_yoy = l1.get("deducted_vs_revenue", {}).get("value", {}).get("deducted")
     card.revenue_yoy = l1.get("deducted_vs_revenue", {}).get("value", {}).get("revenue")

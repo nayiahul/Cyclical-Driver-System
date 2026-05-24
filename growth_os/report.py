@@ -39,6 +39,9 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         lifecycle=lifecycle,
         lifecycle_reason=lc_reason,
         pass_l1=funnel_result["pass_l1"],
+        l1_verdict=funnel_result.get("l1_verdict", ""),
+        l1_absolute_reds=funnel_result.get("l1_absolute_reds", []),
+        l1_conditional_reds=funnel_result.get("l1_conditional_reds", []),
         l1_red_flags=funnel_result["l1_red_flags"],
         score_l2=funnel_result["score_l2"],
         score_l3=funnel_result["score_l3"],
@@ -86,9 +89,17 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"")
 
     # L1 排雷
-    lines.append(f"## L1 排雷 — {'✅ 通过' if card.pass_l1 else '❌ 淘汰'}")
+    verdict_label = {"pass": "✅ 通过", "review": "🟡 条件红灯(观察)", "kill_absolute": "❌ 绝对红灯淘汰", "kill_conditional": "❌ 条件红灯累积淘汰"}
+    verdict_display = verdict_label.get(funnel_result.get("l1_verdict"), funnel_result.get("l1_verdict", "?"))
+    lines.append(f"## L1 排雷 — {verdict_display}")
+    abs_reds = funnel_result.get("l1_absolute_reds", [])
+    cond_reds = funnel_result.get("l1_conditional_reds", [])
+    if abs_reds:
+        lines.append(f"**🔴 绝对红灯**: {', '.join(abs_reds)}")
+    if cond_reds:
+        lines.append(f"**🟡 条件红灯**: {', '.join(cond_reds)}")
     if card.l1_red_flags:
-        lines.append(f"**红灯**: {', '.join(card.l1_red_flags)}")
+        lines.append(f"**全部红灯**: {', '.join(card.l1_red_flags)}")
     lines.append(f"")
     l1d = funnel_result["l1_details"]
     for key, val in l1d.items():
