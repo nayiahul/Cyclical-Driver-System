@@ -228,6 +228,38 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
         "detail": f"近3季OCF={ocf_recent.sum()/1e8:.1f}亿, 利润Q={profit_q/1e8:.1f}亿",
     }
 
+    # 8-10. PDF 附录数据增强排雷（有数据时才检查）
+    try:
+        from growth_os.pdf_data import (
+            get_inventory_signal, get_rd_quality_signal, get_subsidy_signal)
+        # 8. 存货结构
+        inv_signal = get_inventory_signal(code)
+        if inv_signal.get("finished_pct") is not None:
+            result["inventory_structure"] = {
+                "value": f"产成品{inv_signal['finished_pct']:.0f}%",
+                "red": inv_signal.get("severity") == "yellow" and inv_signal.get("finished_pct", 0) > 70,
+                "detail": inv_signal.get("detail", ""),
+            }
+        # 9. 研发资本化率
+        rd_signal = get_rd_quality_signal(code)
+        if rd_signal.get("capitalization_rate") is not None:
+            result["rd_capitalization"] = {
+                "value": f"{rd_signal['capitalization_rate']:.0f}%",
+                "red": rd_signal.get("severity") == "red",
+                "detail": rd_signal.get("detail", ""),
+            }
+        # 10. 政府补助依赖
+        deducted_q = row.get("deducted_profit_q") or 0
+        sub_signal = get_subsidy_signal(code, deducted_q)
+        if sub_signal.get("subsidy_to_profit") is not None:
+            result["subsidy_dependency"] = {
+                "value": f"{sub_signal['subsidy_to_profit']:.0f}%",
+                "red": sub_signal.get("severity") == "red",
+                "detail": sub_signal.get("detail", ""),
+            }
+    except ImportError:
+        pass
+
     return result
 
 
@@ -368,6 +400,21 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
             result["revenue_acceleration"] = {"score": 0, "label": "减速"}
     else:
         result["revenue_acceleration"] = {"score": 0, "label": "数据不足"}
+
+    # 6. 高毛利业务占比 (0-1, PDF数据增强)
+    try:
+        from growth_os.pdf_data import get_cached_pdf_data
+        pdf = get_cached_pdf_data(code)
+        if pdf and pdf.get("high_gm_segment_pct") is not None:
+            high_pct = pdf["high_gm_segment_pct"]
+            if high_pct > 50:
+                result["business_upgrade"] = {"score": 1.0,
+                    "label": f"高毛利业务{high_pct:.0f}%（结构升级）"}
+            elif high_pct > 30:
+                result["business_upgrade"] = {"score": 0.5,
+                    "label": f"高毛利业务{high_pct:.0f}%"}
+    except ImportError:
+        pass
 
     # 合计
     result["total"] = round(min(
