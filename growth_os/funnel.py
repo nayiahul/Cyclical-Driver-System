@@ -572,38 +572,204 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
 # L4: 行业校准 (0-10)
 # ============================================================
 
+# 行业内相对排名权重
+L4_METRIC_WEIGHTS = {
+    "gross_margin": 0.25,     # 毛利率行业内越高越好
+    "revenue_yoy": 0.20,      # 营收增速相对排名
+    "net_margin": 0.20,       # 净利率相对排名
+    "roic": 0.20,             # ROIC相对排名
+    "debt_ratio": 0.15,       # 有息负债率越低越好(反向)
+}
+
+
 def _score_l4(code: str, t_date: str, industry_l3: str) -> dict:
-    """行业翻译器：根据行业特征调整解读。一期返回基础行业匹配分。"""
-    result = {"total": 7.0}  # 默认基础分
+    """行业校准：同行业相对排名 + 行业特征加成 (0-10)。
+
+    核心逻辑：成长股的各项指标在行业内横向比较，
+    而非绝对阈值——好行业里的中等公司可能优于差行业里的第一名。
+    """
+    result = {"total": 5.0}  # 基准分
+    snap = get_financial_snapshot(t_date)
+
+    # 筛选同行业股票
+    from growth_os.data import load_industry_map
+    ind_map = load_industry_map()
+    peers = [c for c in snap["code"].unique()
+             if ind_map.get(c) == industry_l3]
+    peer_snap = snap[snap["code"].isin(peers)]
+
+    if len(peer_snap) < 3:
+        result["note"] = {"label": f"同业样本不足({len(peer_snap)}只)，使用通用校准"}
+        return _l4_fallback(industry_l3, result)
+
+    result["industry_peers"] = {"label": f"同业{len(peer_snap)}只"}
+
+    # 获取个股票数据
+    stock_row = snap[snap["code"] == code]
+    if stock_row.empty:
+        return _l4_fallback(industry_l3, result)
+    stock = stock_row.iloc[0]
+
+    # --- 行业内百分位计算 ---
+    percentiles = {}
+    details = {}
+
+    # 1. 毛利率 (正向)
+    gm = stock.get("gross_margin")
+    if gm is not None and not pd.isna(gm):
+        gm_peers = peer_snap["gross_margin"].dropna()
+        if len(gm_peers) >= 3:
+            pct = (gm_peers < gm).sum() / len(gm_peers) * 100
+            percentiles["gross_margin"] = pct
+            details["gross_margin"] = {
+                "value": round(gm, 1),
+                "percentile": round(pct, 1),
+                "label": f"毛利率{gm:.1f}%(行业分位{pct:.0f}%)",
+            }
+
+    # 2. 营收增速 (正向)
+    rev_yoy = stock.get("revenue_yoy")
+    if rev_yoy is not None and not pd.isna(rev_yoy):
+        rev_peers = peer_snap["revenue_yoy"].dropna()
+        if len(rev_peers) >= 3:
+            pct = (rev_peers < rev_yoy).sum() / len(rev_peers) * 100
+            percentiles["revenue_yoy"] = pct
+            details["revenue_yoy"] = {
+                "value": round(rev_yoy, 1),
+                "percentile": round(pct, 1),
+                "label": f"营收增速{rev_yoy:.1f}%(行业分位{pct:.0f}%)",
+            }
+
+    # 3. 净利率 (正向)
+    nm = stock.get("net_margin")
+    if nm is not None and not pd.isna(nm):
+        nm_peers = peer_snap["net_margin"].dropna()
+        if len(nm_peers) >= 3:
+            pct = (nm_peers < nm).sum() / len(nm_peers) * 100
+            percentiles["net_margin"] = pct
+            details["net_margin"] = {
+                "value": round(nm, 1),
+                "percentile": round(pct, 1),
+                "label": f"净利率{nm:.1f}%(行业分位{pct:.0f}%)",
+            }
+
+    # 4. ROIC (正向)
+    roic_val = stock.get("roic")
+    if roic_val is not None and not pd.isna(roic_val):
+        roic_peers = peer_snap["roic"].dropna()
+        if len(roic_peers) >= 3:
+            pct = (roic_peers < roic_val).sum() / len(roic_peers) * 100
+            percentiles["roic"] = pct
+            details["roic"] = {
+                "value": round(roic_val, 1),
+                "percentile": round(pct, 1),
+                "label": f"ROIC{roic_val:.1f}%(行业分位{pct:.0f}%)",
+            }
+
+    # 5. 有息负债率 (反向：越低越好)
+    debt = stock.get("interest_bearing_debt_ratio")
+    if debt is not None and not pd.isna(debt):
+        debt_peers = peer_snap["interest_bearing_debt_ratio"].dropna()
+        if len(debt_peers) >= 3:
+            # 反向：负债率低=分位高
+            pct = (debt_peers > debt).sum() / len(debt_peers) * 100
+            percentiles["debt_ratio"] = pct
+            details["debt_ratio"] = {
+                "value": round(debt, 1),
+                "percentile": round(pct, 1),
+                "label": f"有息负债率{debt:.1f}%(优于{pct:.0f}%同业)",
+            }
+
+    # --- 加权综合百分位 → 0-10 映射 ---
+    if percentiles:
+        weighted_pct = sum(
+            percentiles.get(k, 50) * L4_METRIC_WEIGHTS[k]
+            for k in L4_METRIC_WEIGHTS
+        ) / sum(L4_METRIC_WEIGHTS[k] for k in L4_METRIC_WEIGHTS
+                 if k in percentiles or True)
+
+        # 调整权重和：只计算有数据的指标
+        available_weight = sum(
+            w for k, w in L4_METRIC_WEIGHTS.items() if k in percentiles)
+        if available_weight > 0:
+            weighted_pct = sum(
+                percentiles[k] * L4_METRIC_WEIGHTS[k]
+                for k in percentiles
+            ) / available_weight
+
+        # 百分位 → 分数映射: 0-100 → 0-10 (线性)
+        industry_score = round(weighted_pct / 10, 1)
+        result["total"] = industry_score
+        result["weighted_percentile"] = {
+            "value": round(weighted_pct, 1),
+            "label": f"行业加权分位{weighted_pct:.0f}% → 基础分{industry_score:.1f}",
+        }
+    else:
+        result["total"] = 5.0
+
+    # --- 行业特征加成 ---
     adj = INDUSTRY_ADJUSTMENTS.get(industry_l3, {})
+    bonus = 0.0
+    bonus_notes = []
 
-    if not adj:
-        result["note"] = {"label": f"通用校准({industry_l3})"}
-        return result
-
-    # 行业匹配度
-    result["industry_match"] = {"label": f"行业校准: {industry_l3}"}
-    notes = []
-    for k, v in adj.items():
-        notes.append(f"{k}={v}")
-
-    # 存货阈值已放宽 → 加分
+    # 主动备产型行业：存货扩张容忍度高
     if adj.get("inventory_growth_threshold", 1.5) > 1.5:
-        result["total"] += 1.0
-        result["inv_tolerance"] = {"label": "存货扩张容忍度高(主动备产型行业)"}
+        bonus += 0.5
+        bonus_notes.append("主动备产型+0.5")
 
-    # 预收款权重高 → 行业重视订单先行
+    # 订单先行型行业：预收款/合同负债权重高
     if adj.get("advance_receipts_weight", 1.0) > 1.2:
-        result["total"] += 0.5
-        result["order_leading"] = {"label": "订单先行型行业"}
+        bonus += 0.5
+        bonus_notes.append("订单先行型+0.5")
 
-    # 高研发行业
+    # 研发驱动型行业
     if adj.get("rd_intensity_high", 8) > 10:
-        result["total"] += 0.5
-        result["rd_heavy"] = {"label": "研发驱动型行业"}
+        bonus += 0.5
+        bonus_notes.append("研发驱动型+0.5")
 
-    result["adjustments"] = {"label": ", ".join(notes)}
-    result["total"] = min(result["total"], 10.0)
+    # 利润容忍型行业（创新药/器械）：不因低利润惩罚
+    if adj.get("profit_tolerance"):
+        if "net_margin" in percentiles and percentiles["net_margin"] < 30:
+            # 低利润在创新药行业正常，补回一些分数
+            bonus += 1.0
+            bonus_notes.append("创新行业利润容忍+1.0")
+
+    # 毛利率敏感型行业：毛利率权重加倍
+    if adj.get("gross_margin_sensitive"):
+        if "gross_margin" in percentiles and percentiles["gross_margin"] > 50:
+            bonus += 0.5
+            bonus_notes.append("毛利率优势行业+0.5")
+
+    if bonus_notes:
+        result["industry_bonus"] = {
+            "value": round(bonus, 1),
+            "label": ", ".join(bonus_notes),
+        }
+
+    result["total"] = round(min(result["total"] + bonus, 10.0), 1)
+
+    # 汇总详情
+    for k, v in details.items():
+        result[k] = v
+
+    if adj:
+        adj_notes = [f"{k}={v}" for k, v in adj.items()
+                     if k in ("inventory_growth_threshold", "advance_receipts_weight",
+                              "rd_intensity_high")]
+        if adj_notes:
+            result["industry_config"] = {"label": ", ".join(adj_notes)}
+
+    return result
+
+
+def _l4_fallback(industry_l3: str, result: dict) -> dict:
+    """当同行业样本不足时的回退逻辑。"""
+    adj = INDUSTRY_ADJUSTMENTS.get(industry_l3, {})
+    if adj:
+        result["industry_match"] = {"label": f"行业特征匹配: {industry_l3}"}
+        result["total"] = 6.0  # 有行业配置但无法做相对排名
+    else:
+        result["total"] = 5.0
     return result
 
 

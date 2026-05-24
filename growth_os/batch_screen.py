@@ -47,6 +47,7 @@ def main():
                 l1_red_flags=funnel['l1_red_flags'],
                 score_l2=funnel.get('score_l2', np.nan),
                 score_l3=funnel.get('score_l3', np.nan),
+                score_l4=funnel.get('score_l4', np.nan),
                 score_l5=funnel.get('score_l5', np.nan),
             )
             card = compute_composite(card, funnel)
@@ -71,11 +72,11 @@ def main():
     print(f"\n{'='*80}")
     print(f"  Top {top_n} 摘要")
     print(f"{'='*80}")
-    cols_show = ['code','industry_l3','lifecycle','composite_score','score_l2','score_l3','score_l5','decision']
+    cols_show = ['code','industry_l3','lifecycle','composite_score','score_l2','score_l3','score_l4','score_l5','decision']
     for _, r in df_out.head(top_n).iterrows():
         print(f"  {r['code']} {str(r['industry_l3'])[:18]:18s} {r['lifecycle']:6s} "
               f"综合={r['composite_score']:5.0f} L2={r['score_l2']:4.1f} "
-              f"L3={r['score_l3']:4.1f} L5={r['score_l5']:4.1f} {r['decision']}")
+              f"L3={r['score_l3']:4.1f} L4={r['score_l4']:4.1f} L5={r['score_l5']:4.1f} {r['decision']}")
 
     # 总统计
     df_all = pd.DataFrame(rows)

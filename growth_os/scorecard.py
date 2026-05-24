@@ -42,7 +42,11 @@ class GrowthScorecard:
     fcf_per_share: Optional[float] = None
     debt_ratio: Optional[float] = None
 
-    # D区: 预期差
+    # D区: 行业校准
+    score_l4: float = np.nan
+    industry_weighted_pct: Optional[float] = None
+
+    # E区: 预期差
     score_l5: float = np.nan
     peg: Optional[float] = None
     pe_percentile: Optional[float] = None
@@ -79,6 +83,8 @@ class GrowthScorecard:
             "roe": self.roe,
             "fcf_per_share": self.fcf_per_share,
             "debt_ratio": self.debt_ratio,
+            "score_l4": self.score_l4,
+            "industry_weighted_pct": self.industry_weighted_pct,
             "score_l5": self.score_l5,
             "peg": self.peg,
             "pe_percentile": self.pe_percentile,
@@ -98,8 +104,8 @@ def compute_composite(
 ) -> GrowthScorecard:
     """计算综合得分并填充打分卡。
 
-    综合得分 = L2*w2 + L3*w3 + L4*w4 + L5*w5
-    权重由生命周期阶段决定。
+    综合得分 = L1*w1 + L2*w2 + L3*w3 + L4*w4 + L5*w5
+    权重由生命周期阶段决定，每层原始分0-10，权重和=1.0，满分100。
     """
     weights = get_weights(card.lifecycle)
     if weights is None:
@@ -141,19 +147,29 @@ def compute_composite(
     if isinstance(debt, dict):
         card.debt_ratio = debt.get("debt_ratio")
 
-    # 填充 D 区
+    # 填充 D 区: 行业校准
+    card.industry_weighted_pct = l4.get("weighted_percentile", {}).get("value")
+
+    # 填充 E 区: 预期差
     card.peg = l5.get("peg_ratio", {}).get("value")
     card.pe_percentile = l5.get("pe_percentile", {}).get("value")
     card.growth_accel = l5.get("growth_acceleration", {}).get("label", "")
 
     # 综合得分 (0-100)
+    # 五层加权: L1_risk + L2_moat + L3_efficiency + L4_industry + L5_expectation
     score_l2 = card.score_l2 if not np.isnan(card.score_l2) else 0
     score_l3 = card.score_l3 if not np.isnan(card.score_l3) else 0
+    score_l4 = card.score_l4 if not np.isnan(card.score_l4) else 0
     score_l5 = card.score_l5 if not np.isnan(card.score_l5) else 0
 
+    # 排雷风险分: 每触发一个红灯扣1分, 最多扣到0
+    l1_risk_score = max(0, 10 - len(card.l1_red_flags))
+
     composite = (
+        l1_risk_score * weights["L1_risk"] * 10 +
         score_l2 * weights["L2_moat"] * 10 +
         score_l3 * weights["L3_efficiency"] * 10 +
+        score_l4 * weights["L4_industry"] * 10 +
         score_l5 * weights["L5_expectation"] * 10
     )
 

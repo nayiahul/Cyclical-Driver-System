@@ -42,6 +42,7 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         l1_red_flags=funnel_result["l1_red_flags"],
         score_l2=funnel_result["score_l2"],
         score_l3=funnel_result["score_l3"],
+        score_l4=funnel_result["score_l4"],
         score_l5=funnel_result["score_l5"],
     )
     card = compute_composite(card, funnel_result)
@@ -113,6 +114,15 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         if key == "total":
             continue
         lines.append(f"- **{key}**: {val.get('label', 'N/A')} (得分: {val.get('score', 0):.1f})")
+    lines.append(f"")
+
+    # L4 行业校准
+    lines.append(f"## L4 行业校准 — {card.score_l4:.1f}/10")
+    l4d = funnel_result["l4_details"]
+    for key, val in l4d.items():
+        if key == "total":
+            continue
+        lines.append(f"- **{key}**: {val.get('label', 'N/A')}")
     lines.append(f"")
 
     # L5 预期差
