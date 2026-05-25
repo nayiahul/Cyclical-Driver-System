@@ -41,9 +41,13 @@ CONDITIONAL_RED_KEYS = {
 
 def run_funnel(
     code: str, t_date: str, industry_l3: str = None,
-    lifecycle: LifecycleStage = None
+    lifecycle: LifecycleStage = None,
+    l1_strict: bool = False,
 ) -> dict:
     """对单只股票执行五层漏斗检查。
+
+    Args:
+        l1_strict: True=条件红灯1项即淘汰（DEFENSE/CAUTION模式）。
 
     Returns:
         {
@@ -92,16 +96,18 @@ def run_funnel(
     result["l1_absolute_reds"] = absolute_reds
     result["l1_conditional_reds"] = conditional_reds
 
-    # 判定
+    # 判定：l1_strict 时条件红灯 ≥1 即淘汰
+    cond_kill_threshold = 1 if l1_strict else 2
+
     if absolute_reds:
         result["pass_l1"] = False
         result["l1_verdict"] = "kill_absolute"
-    elif len(conditional_reds) >= 2:
+    elif len(conditional_reds) >= cond_kill_threshold:
         result["pass_l1"] = False
         result["l1_verdict"] = "kill_conditional"
-    elif len(conditional_reds) == 1:
+    elif len(conditional_reds) == 1 and not l1_strict:
         result["pass_l1"] = True
-        result["l1_verdict"] = "review"  # 进入观察池但继续打分
+        result["l1_verdict"] = "review"
     else:
         result["pass_l1"] = True
         result["l1_verdict"] = "pass"

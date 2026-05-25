@@ -24,6 +24,9 @@ from growth_os.data import (
 from growth_os.lifecycle import classify_lifecycle
 from growth_os.funnel import run_funnel
 from growth_os.scorecard import GrowthScorecard, compute_composite
+from growth_os.regime import (
+    compute_regime, reset_state_machine, RegimeOutput, RegimeState, regime_summary,
+)
 
 
 @dataclass
@@ -38,6 +41,7 @@ class BacktestResult:
     avg_excess_returns: dict            # {period: avg_excess%}
     calmar_by_period: dict              # {period: calmar}
     max_drawdown_by_period: dict        # {period: max_dd%}
+    regime_log: list[dict] = None       # 每期 L0 状态记录
 
 
 def _get_quarterly_dates(start: str, end: str) -> list[str]:
@@ -147,22 +151,28 @@ def run_backtest(
     forward_periods: list[int] = None,
     min_market_cap: float = 50.0,
     pool_size: int = 800,
+    use_regime: bool = True,
 ) -> BacktestResult:
     """运行 Growth OS 多点历史回测。
 
     Args:
         start_date: 回测起始日 YYYYMMDD
         end_date: 回测结束日 YYYYMMDD
-        top_n: 每期选股数量
+        top_n: 每期选股数量（use_regime=True 时被 L0 动态覆盖）
         forward_periods: 前瞻收益期数(月), 默认 [3, 6, 12]
         min_market_cap: 最低市值(亿元)
         pool_size: 每期候选池大小
+        use_regime: 是否启用 L0 风格择时门控
 
     Returns:
         BacktestResult
     """
     if forward_periods is None:
         forward_periods = [3, 6, 12]
+
+    # L0 状态机重置
+    if use_regime:
+        reset_state_machine()
 
     screening_dates = _get_quarterly_dates(start_date, end_date)
     # 过滤掉太近的日期（前瞻期不足）
@@ -172,15 +182,69 @@ def run_backtest(
                        if pd.Timestamp(d) <= cutoff]
 
     logger.info(f"回测: {len(screening_dates)} 个季度筛选点, "
-                f"Top{top_n}, 前瞻{forward_periods}个月")
+                f"Top{top_n}, 前瞻{forward_periods}个月"
+                f"{', L0风格择时: 启用' if use_regime else ''}")
 
     pool_returns_records = []
     benchmark_records = []
+    regime_log = []
 
     for i, t_date in enumerate(screening_dates):
-        logger.info(f"[{i+1}/{len(screening_dates)}] 筛选日期: {t_date}")
+        # L0 风格择时
+        regime = compute_regime(t_date) if use_regime else None
+        if regime:
+            l1_strict = regime.l1_strict
+            w_mode = regime.weight_mode
+            g_discount = regime.g_proxy_discount
+            is_defense = regime.state.value == "DEFENSE"
+        else:
+            l1_strict = False
+            w_mode = "lifecycle"
+            g_discount = 1.0
+            is_defense = False
+
+        if regime:
+            logger.info(f"[{i+1}/{len(screening_dates)}] 筛选日期: {t_date} "
+                        f"| Regime: {regime.state.value} "
+                        f"{'→防御资产' if is_defense else 'wmode=' + w_mode}")
+        else:
+            logger.info(f"[{i+1}/{len(screening_dates)}] 筛选日期: {t_date}")
+
+        # 记录 L0 状态
+        if regime:
+            regime_log.append({
+                "screening_date": t_date,
+                "regime_state": regime.state.value,
+                "weight_mode": w_mode,
+                "is_defense_assets": is_defense,
+                **{f"ch_{k}": v["triggered"]
+                   for k, v in regime.channel_signals.items()},
+            })
 
         try:
+            # ---- DEFENSE 模式：切防御资产，跳过漏斗 ----
+            if is_defense:
+                from growth_os.defense import get_defense_basket_return
+
+                for period in forward_periods:
+                    def_ret = get_defense_basket_return(t_date, period, end_date)
+                    pool_returns_records.append({
+                        "screening_date": t_date,
+                        "period_months": period,
+                        "n_stocks": 0,
+                        "avg_return": round(def_ret * 100, 2),
+                        "median_return": round(def_ret * 100, 2),
+                        "hit_rate": 100.0 if def_ret > 0 else 0.0,
+                    })
+                    bench_ret = _get_benchmark_returns(t_date, period, end_date)
+                    benchmark_records.append({
+                        "screening_date": t_date,
+                        "period_months": period,
+                        "benchmark_return": round(bench_ret * 100, 2) if bench_ret else np.nan,
+                    })
+                continue
+
+            # ---- GROWTH_OK / CAUTION：正常漏斗 ----
             # 加载数据 + 筛选
             df = load_growth_data(t_date)
             df = df[df["market_cap"] >= min_market_cap]
@@ -194,7 +258,10 @@ def run_backtest(
                 try:
                     ind = get_industry(code)
                     lc, lc_reason = classify_lifecycle(code, t_date, ind)
-                    funnel = run_funnel(code, t_date, ind, lc)
+                    funnel = run_funnel(code, t_date, ind, lc, l1_strict=l1_strict)
+                    # L0 g_proxy 折扣：调整 L5 原始分
+                    if g_discount < 1.0 and not np.isnan(funnel.get("score_l5", np.nan)):
+                        funnel["score_l5"] = round(funnel["score_l5"] * g_discount, 1)
                     card = GrowthScorecard(
                         code=code, name=code,
                         industry_l3=ind, industry_l1="",
@@ -206,7 +273,7 @@ def run_backtest(
                         score_l4=funnel.get("score_l4", np.nan),
                         score_l5=funnel.get("score_l5", np.nan),
                     )
-                    card = compute_composite(card, funnel)
+                    card = compute_composite(card, funnel, weight_mode=w_mode)
                     results.append(card.to_dict())
                 except Exception:
                     continue
@@ -306,6 +373,7 @@ def run_backtest(
         avg_excess_returns=avg_excess,
         calmar_by_period=calmar_by_period,
         max_drawdown_by_period=dd_by_period,
+        regime_log=regime_log if use_regime else None,
     )
 
 
@@ -391,6 +459,20 @@ def print_backtest_report(result: BacktestResult):
                 print(f"    {year}: {yr['avg_return']:+.1f}% "
                       f"(n={yr['count']})")
 
+    # L0 风格择时摘要
+    if result.regime_log:
+        rdf = pd.DataFrame(result.regime_log)
+        print(f"\n--- L0 风格择时摘要 ---")
+        for st in ["GROWTH_OK", "CAUTION", "DEFENSE"]:
+            cnt = (rdf["regime_state"] == st).sum()
+            if cnt > 0:
+                print(f"  {st}: {cnt} 期")
+        # 各通道触发率
+        for ch in ["ch_A_growth_rel", "ch_B_rate", "ch_C_drawdown"]:
+            label = ch.replace("ch_", "")
+            rate = rdf[ch].mean() * 100 if ch in rdf.columns else 0
+            print(f"  {label} 触发率: {rate:.0f}%")
+
     # 结论
     print(f"\n--- 综合结论 ---")
     best_period = max(result.calmar_by_period,
@@ -450,6 +532,16 @@ def main():
     )
     merged.to_csv(detail_path, index=False, encoding="utf-8-sig")
     logger.info(f"详细数据已保存: {detail_path}")
+
+    # 保存 L0 状态日志
+    if result.regime_log:
+        regime_path = os.path.join(
+            DATA_PATHS["output_dir"],
+            f"regime_log_{args.start}_{args.end}.csv",
+        )
+        pd.DataFrame(result.regime_log).to_csv(
+            regime_path, index=False, encoding="utf-8-sig")
+        logger.info(f"L0状态日志已保存: {regime_path}")
 
 
 if __name__ == "__main__":

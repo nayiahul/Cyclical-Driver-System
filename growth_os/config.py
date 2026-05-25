@@ -61,6 +61,26 @@ WEIGHT_MATRIX = {
     },
 }
 
+# L0 Regime 防御权重矩阵（不按生命周期，全局统一）
+# DEFENSE: 压低 L4/L5（行业趋势+预期差在熊市误导），拉高 L1/L3（排雷+资本效率）
+# CAUTION: 中间态，比正常权重保守但不极端
+REGIME_WEIGHTS = {
+    "defensive": {
+        "L1_risk": 0.25,
+        "L2_moat": 0.15,
+        "L3_efficiency": 0.40,
+        "L4_industry": 0.10,
+        "L5_expectation": 0.10,
+    },
+    "maturity_forced": {
+        "L1_risk": 0.25,
+        "L2_moat": 0.15,
+        "L3_efficiency": 0.40,
+        "L4_industry": 0.10,
+        "L5_expectation": 0.10,
+    },
+}
+
 # ===== L1 排雷阈值 =====
 L1_THRESHOLDS = {
     "revenue_cagr_3y_min": 10.0,         # 营收3年CAGR下限(%) — 成熟期公司10%已属健康
@@ -186,6 +206,7 @@ CAPEX_HEAVY_INDUSTRIES = {
     "半导体设备", "集成电路制造", "光伏电池组件", "锂电池",
     "航空装备", "航天装备", "化工新材料", "有机硅",
 }
+
 
 # ===== L5 预期差评分参数 =====
 L5_SCORING = {

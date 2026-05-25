@@ -158,21 +158,34 @@ def normalize_pool(results: list[dict]) -> list[dict]:
 def compute_composite(
     card: GrowthScorecard,
     funnel_result: dict,
+    weight_mode: str = "lifecycle",
 ) -> GrowthScorecard:
     """计算综合得分并填充打分卡。
 
     综合得分 = L1*w1 + L2*w2 + L3*w3 + L4*w4 + L5*w5
     权重由生命周期阶段决定，每层原始分0-10，权重和=1.0，满分100。
+
+    Args:
+        weight_mode: "lifecycle"(默认) | "defensive" | "maturity_forced"
+                     非 lifecycle 时使用 REGIME_WEIGHTS 替代生命周期权重。
     """
+    from growth_os.config import REGIME_WEIGHTS
+
     # 使用生命周期追踪器（锁定期+混合权重）
-    weights = resolve_weights(card.code, card.lifecycle)
-    # 保存权重供后续标准化重算使用
-    card._saved_weights = weights
-    if weights is None:
-        # 衰退期: 不淘汰，降级为高风险观察池
+    lifecycle_weights = resolve_weights(card.code, card.lifecycle)
+    if lifecycle_weights is None:
         card.composite_score = 0
         card.decision = "高风险观察池(衰退期)"
         return card
+
+    # L0 Regime 权重覆盖
+    if weight_mode != "lifecycle" and weight_mode in REGIME_WEIGHTS:
+        weights = REGIME_WEIGHTS[weight_mode]
+    else:
+        weights = lifecycle_weights
+
+    # 保存权重供后续标准化重算使用
+    card._saved_weights = weights
 
     l1 = funnel_result.get("l1_details", {})
     l2 = funnel_result.get("l2_details", {})
