@@ -888,6 +888,16 @@ def compute_forward_growth(code: str, t_date: str) -> tuple[float | None, str]:
                 elif ocf_ratio < 0.95:
                     g_ewa *= 0.9
 
+    # 前瞻修正：近2季YoY连续环比回落 → 历史外推高估成长性
+    if len(rev_yoy_series) >= 4:
+        recent_mean = rev_yoy_series.iloc[-2:].mean()
+        older_mean = rev_yoy_series.iloc[-4:-2].mean()
+        if older_mean > 0 and recent_mean < older_mean * 0.95:
+            ratio = recent_mean / older_mean
+            g_ewa *= max(ratio, 0.6)
+            g_ewa = max(0.04, min(g_ewa, 0.80))
+            return g_ewa, "ewa_yoy_declining"
+
     g_ewa = max(0.04, min(g_ewa, 0.80))
     return g_ewa, "ewa_yoy"
 
