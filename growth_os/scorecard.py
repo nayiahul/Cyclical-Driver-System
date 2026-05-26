@@ -1,10 +1,17 @@
 """打分卡 — GrowthScorecard 数据结构与综合评分计算。"""
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Optional
 import numpy as np
 
 from growth_os.config import LifecycleStage
 from growth_os.lifecycle import get_weights, resolve_weights
+
+
+class L5Status(Enum):
+    OK = "ok"             # PE/PEG 完整可用
+    PARTIAL = "partial"   # 仅增长加速度可用，PE/PEG 缺失
+    MISSING = "missing"   # 全部不可用
 
 
 @dataclass
@@ -57,6 +64,7 @@ class GrowthScorecard:
 
     # 综合
     composite_score: float = np.nan
+    l5_status: str = ""           # L5Status: ok/partial/missing
     decision: str = ""
     _saved_weights: dict = field(default_factory=dict)
 
@@ -97,6 +105,7 @@ class GrowthScorecard:
             "pe_percentile": self.pe_percentile,
             "growth_accel": self.growth_accel,
             "composite_score": self.composite_score,
+            "l5_status": self.l5_status,
             "decision": self.decision,
             "_saved_weights": self._saved_weights,
         }
@@ -234,10 +243,23 @@ def compute_composite(
     # 综合得分 (0-100)
     # 五层加权: L1_risk + L2_moat + L3_efficiency + L4_industry + L5_expectation
     # 优先使用截面排名分 (rank%)，消除层间方差差异
+
+    # --- L5 数据完整性检测 ---
+    peg_val = l5.get("peg_ratio", {}).get("value")
+    peg_gproxy = l5.get("peg_ratio", {}).get("g_proxy")
+    ga_score = l5.get("growth_acceleration", {}).get("score", 0)
+    ga_score = ga_score if not (ga_score is None or (isinstance(ga_score, float) and np.isnan(ga_score))) else 0
+
+    if peg_val is not None and peg_gproxy is not None:
+        l5_status = L5Status.OK
+    elif ga_score > 0:
+        l5_status = L5Status.PARTIAL
+    else:
+        l5_status = L5Status.MISSING
+
     use_ranks = (funnel_result.get("score_l2_rank") is not None)
 
     if use_ranks:
-        # 用百分位排名 → 映射到 0-10（rank% × 10）
         rank_l2 = funnel_result.get("score_l2_rank", 0.5)
         rank_l3 = funnel_result.get("score_l3_rank", 0.5)
         rank_l5 = funnel_result.get("score_l5_rank", 0.5)
@@ -251,18 +273,39 @@ def compute_composite(
 
     s4 = card.score_l4 if not np.isnan(card.score_l4) else 0
 
+    # L5 上限锁定（PARTIAL 时上限 5/10）
+    if l5_status == L5Status.PARTIAL:
+        s5 = min(s5, 5.0)
+
     # 排雷风险分: 每触发一个红灯扣1分, 最多扣到0
     l1_risk_score = max(0, 10 - len(card.l1_red_flags))
 
-    composite = (
-        l1_risk_score * weights["L1_risk"] * 10 +
-        s2 * weights["L2_moat"] * 10 +
-        s3 * weights["L3_efficiency"] * 10 +
-        s4 * weights["L4_industry"] * 10 +
-        s5 * weights["L5_expectation"] * 10
-    )
+    if l5_status == L5Status.MISSING:
+        # L5 不参与，L1-L4 权重重归一化
+        w1234 = {
+            "L1_risk": weights["L1_risk"],
+            "L2_moat": weights["L2_moat"],
+            "L3_efficiency": weights["L3_efficiency"],
+            "L4_industry": weights["L4_industry"],
+        }
+        w_sum = sum(w1234.values())
+        composite = (
+            l1_risk_score * (w1234["L1_risk"] / w_sum) * 10 +
+            s2 * (w1234["L2_moat"] / w_sum) * 10 +
+            s3 * (w1234["L3_efficiency"] / w_sum) * 10 +
+            s4 * (w1234["L4_industry"] / w_sum) * 10
+        )
+    else:
+        composite = (
+            l1_risk_score * weights["L1_risk"] * 10 +
+            s2 * weights["L2_moat"] * 10 +
+            s3 * weights["L3_efficiency"] * 10 +
+            s4 * weights["L4_industry"] * 10 +
+            s5 * weights["L5_expectation"] * 10
+        )
 
     card.composite_score = round(composite, 1)
+    card.l5_status = l5_status.value
 
     # 决策
     if not card.pass_l1:

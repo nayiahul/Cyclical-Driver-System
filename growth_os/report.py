@@ -1,5 +1,6 @@
 """个股深度体检报告 — Markdown 格式输出。"""
 import os
+import numpy as np
 from datetime import datetime
 from loguru import logger
 
@@ -69,6 +70,21 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     score_emoji = "🟢" if card.composite_score >= 70 else "🟡" if card.composite_score >= 50 else "🔴"
     lines.append(f"## 综合评分: {score_emoji} {card.composite_score:.1f}/100")
     lines.append(f"**决策**: {card.decision}")
+
+    # L5 估值状态
+    l5_status = card.l5_status
+    l5d = funnel_result["l5_details"]
+    peg_val = l5d.get("peg_ratio", {}).get("value")
+    pe_pct = l5d.get("pe_percentile", {}).get("value")
+    g_proxy = l5d.get("peg_ratio", {}).get("g_proxy")
+
+    if l5_status == "ok":
+        lines.append(f"**估值状态**: ✅ 可评估 — PEG={peg_val:.1f}, PE分位={pe_pct:.0f}%")
+    elif l5_status == "partial":
+        lines.append(f"**估值状态**: ⚠️ 数据不完整 — 仅增长加速度可用，估值上限 5/10")
+    else:
+        lines.append(f"**估值状态**: 🔴 无法评估 — L5未参与综合分，请人工核实")
+
     lines.append(f"**生命周期判定**: {lc_reason}")
     lines.append(f"")
 
@@ -137,8 +153,14 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"")
 
     # L5 预期差
-    lines.append(f"## L5 预期差 — {card.score_l5:.1f}/10")
-    l5d = funnel_result["l5_details"]
+    l5_score_display = card.score_l5 if not np.isnan(card.score_l5) else 0
+    if l5_status == "ok":
+        lines.append(f"## L5 预期差 — {l5_score_display:.1f}/10 ✅")
+    elif l5_status == "partial":
+        lines.append(f"## L5 预期差 — {l5_score_display:.1f}/10 ⚠️ (PE/PEG缺失)")
+    else:
+        lines.append(f"## L5 预期差 — N/A 🔴 (估值不可用)")
+
     for key, val in l5d.items():
         if key == "total":
             continue
