@@ -35,7 +35,6 @@ warnings.filterwarnings("ignore")
 class RegimeState(Enum):
     GROWTH_OK = "GROWTH_OK"
     CAUTION = "CAUTION"
-    RECOVERY = "RECOVERY"
     DEFENSE = "DEFENSE"
 
 
@@ -55,10 +54,6 @@ class RegimeOutput:
     @property
     def is_defense(self) -> bool:
         return self.state == RegimeState.DEFENSE
-
-    @property
-    def is_recovery(self) -> bool:
-        return self.state == RegimeState.RECOVERY
 
 
 # ═══════════════════════════════════════════════════════════
@@ -263,20 +258,17 @@ def _channel_c_drawdown(t_date: str) -> tuple[bool, float]:
 # ═══════════════════════════════════════════════════════════
 
 class _RegimeStateMachine:
-    """非对称去抖状态机（v2.2 +RECOVERY）。
+    """非对称去抖状态机。
 
-    - 进入 DEFENSE：多通道触发时即时生效。
-    - DEFENSE → RECOVERY：raw_state 改善为 CAUTION/GROWTH_OK 时进入过渡态。
-    - RECOVERY → GROWTH_OK：连续 2 期信号良好（GROWTH_OK/CAUTION）则升级。
-    - RECOVERY → DEFENSE：raw_state 重新触发 DEFENSE 则跌回。
-    - RECOVERY 超时：连续 4 期后强制升级 GROWTH_OK。
+    - 进入 DEFENSE：多通道触发时即时生效（不等），应对急跌。
+    - 离开 DEFENSE：1 期 GROWTH_OK 即可退出（通道 C 已内置恢复确认）。
+    - CAUTION ↔ GROWTH_OK：正常去抖。
     """
 
     def __init__(self):
         self.current = RegimeState.GROWTH_OK
         self.pending = RegimeState.GROWTH_OK
         self.counter = 0
-        self.recovery_periods = 0
 
     def update(self, raw_state: RegimeState) -> RegimeState:
         # 多通道升级到 DEFENSE：即时生效
@@ -284,46 +276,16 @@ class _RegimeStateMachine:
             self.current = RegimeState.DEFENSE
             self.pending = RegimeState.DEFENSE
             self.counter = 0
-            self.recovery_periods = 0
             return self.current
 
-        # 已在 DEFENSE 中 → 信号改善 → 进入 RECOVERY
+        # 已在 DEFENSE 中，1 期 GROWTH_OK 即可退出
         if self.current == RegimeState.DEFENSE:
-            if raw_state in (RegimeState.GROWTH_OK, RegimeState.CAUTION):
-                self.current = RegimeState.RECOVERY
-                self.pending = RegimeState.RECOVERY
-                self.counter = 0
-                self.recovery_periods = 1
-                return self.current
-            return self.current
-
-        # 已在 RECOVERY 中
-        if self.current == RegimeState.RECOVERY:
-            self.recovery_periods += 1
-
-            # 跌回 DEFENSE：信号重新恶化
-            if raw_state == RegimeState.DEFENSE:
-                self.current = RegimeState.DEFENSE
-                self.recovery_periods = 0
-                return self.current
-
-            # 超时保护：4期后强制升级
-            if self.recovery_periods >= 4:
+            if raw_state == RegimeState.GROWTH_OK:
                 self.current = RegimeState.GROWTH_OK
-                self.recovery_periods = 0
-                return self.current
-
-            # 连续 2 期信号良好 → 升级 GROWTH_OK
-            if raw_state in (RegimeState.GROWTH_OK, RegimeState.CAUTION):
-                self.counter += 1
-                if self.counter >= 2:
-                    self.current = RegimeState.GROWTH_OK
-                    self.counter = 0
-                    self.recovery_periods = 0
-                    return self.current
-            else:
+                self.pending = RegimeState.GROWTH_OK
                 self.counter = 0
-
+                return self.current
+            # CAUTION 也视为改善方向，但不直接退出 DEFENSE
             return self.current
 
         # CAUTION ↔ GROWTH_OK：标准去抖
@@ -404,11 +366,6 @@ def compute_regime(t_date: str) -> RegimeOutput:
         weight_mode = "maturity_forced"
         l1_strict = True
         g_discount = 0.5
-    elif state == RegimeState.RECOVERY:
-        target_k = K_CAUTION       # Top15 成长 + 防御资产
-        weight_mode = "lifecycle"  # 恢复期用正常权重
-        l1_strict = False
-        g_discount = 0.8           # 轻微折扣，不过度惩罚
     elif state == RegimeState.CAUTION:
         target_k = K_CAUTION
         weight_mode = "defensive"

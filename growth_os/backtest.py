@@ -197,7 +197,6 @@ def run_backtest(
             w_mode = regime.weight_mode
             g_discount = regime.g_proxy_discount
             is_defense = regime.state.value == "DEFENSE"
-            is_recovery = regime.state.value == "RECOVERY"
         else:
             l1_strict = False
             w_mode = "lifecycle"
@@ -207,7 +206,7 @@ def run_backtest(
         if regime:
             logger.info(f"[{i+1}/{len(screening_dates)}] 筛选日期: {t_date} "
                         f"| Regime: {regime.state.value} "
-                        f"{'→防御资产' if is_defense else '→55/45混合' if is_recovery else 'wmode=' + w_mode}")
+                        f"{'→防御资产' if is_defense else 'wmode=' + w_mode}")
         else:
             logger.info(f"[{i+1}/{len(screening_dates)}] 筛选日期: {t_date}")
 
@@ -218,100 +217,104 @@ def run_backtest(
                 "regime_state": regime.state.value,
                 "weight_mode": w_mode,
                 "is_defense_assets": is_defense,
-                "is_recovery": is_recovery,
                 **{f"ch_{k}": v["triggered"]
                    for k, v in regime.channel_signals.items()},
             })
 
         try:
-            # ---- 加载数据 + 运行漏斗（所有模式都跑，DEFENSE时作反事实） ----
+            # ---- DEFENSE 模式：切防御资产，跳过漏斗 ----
+            if is_defense:
+                from growth_os.defense import get_defense_basket_return
+
+                for period in forward_periods:
+                    def_ret = get_defense_basket_return(t_date, period, end_date)
+                    pool_returns_records.append({
+                        "screening_date": t_date,
+                        "period_months": period,
+                        "n_stocks": 0,
+                        "avg_return": round(def_ret * 100, 2),
+                        "median_return": round(def_ret * 100, 2),
+                        "hit_rate": 100.0 if def_ret > 0 else 0.0,
+                    })
+                    bench_ret = _get_benchmark_returns(t_date, period, end_date)
+                    benchmark_records.append({
+                        "screening_date": t_date,
+                        "period_months": period,
+                        "benchmark_return": round(bench_ret * 100, 2) if bench_ret else np.nan,
+                    })
+                continue
+
+            # ---- GROWTH_OK / CAUTION：正常漏斗 ----
+            # 加载数据 + 筛选
             df = load_growth_data(t_date)
             df = df[df["market_cap"] >= min_market_cap]
             if len(df) > pool_size:
                 df = df.nlargest(pool_size, "market_cap")
             codes = df["code"].tolist()
 
-            funnel_returns: dict[int, float | None] = {}
-            if codes:
-                results = []
-                for code in codes:
-                    try:
-                        ind = get_industry(code)
-                        lc, lc_reason = classify_lifecycle(code, t_date, ind)
-                        funnel = run_funnel(code, t_date, ind, lc, l1_strict=l1_strict)
-                        if g_discount < 1.0 and not np.isnan(funnel.get("score_l5", np.nan)):
-                            funnel["score_l5"] = round(funnel["score_l5"] * g_discount, 1)
-                        card = GrowthScorecard(
-                            code=code, name=code,
-                            industry_l3=ind, industry_l1="",
-                            lifecycle=lc, lifecycle_reason=lc_reason,
-                            pass_l1=funnel["pass_l1"],
-                            l1_red_flags=funnel["l1_red_flags"],
-                            score_l2=funnel.get("score_l2", np.nan),
-                            score_l3=funnel.get("score_l3", np.nan),
-                            score_l4=funnel.get("score_l4", np.nan),
-                            score_l5=funnel.get("score_l5", np.nan),
-                        )
-                        card = compute_composite(card, funnel, weight_mode=w_mode)
-                        results.append(card.to_dict())
-                    except Exception:
-                        continue
+            # 运行漏斗
+            results = []
+            for code in codes:
+                try:
+                    ind = get_industry(code)
+                    lc, lc_reason = classify_lifecycle(code, t_date, ind)
+                    funnel = run_funnel(code, t_date, ind, lc, l1_strict=l1_strict)
+                    # L0 g_proxy 折扣：调整 L5 原始分
+                    if g_discount < 1.0 and not np.isnan(funnel.get("score_l5", np.nan)):
+                        funnel["score_l5"] = round(funnel["score_l5"] * g_discount, 1)
+                    card = GrowthScorecard(
+                        code=code, name=code,
+                        industry_l3=ind, industry_l1="",
+                        lifecycle=lc, lifecycle_reason=lc_reason,
+                        pass_l1=funnel["pass_l1"],
+                        l1_red_flags=funnel["l1_red_flags"],
+                        score_l2=funnel.get("score_l2", np.nan),
+                        score_l3=funnel.get("score_l3", np.nan),
+                        score_l4=funnel.get("score_l4", np.nan),
+                        score_l5=funnel.get("score_l5", np.nan),
+                    )
+                    card = compute_composite(card, funnel, weight_mode=w_mode)
+                    results.append(card.to_dict())
+                except Exception:
+                    continue
 
-                if results:
-                    df_result = pd.DataFrame(results)
-                    df_result = df_result.sort_values(
-                        "composite_score", ascending=False).head(top_n)
-                    top_codes = df_result["code"].tolist()
-                    for period in forward_periods:
-                        fwd_returns = []
-                        for code in top_codes:
-                            ret = _get_forward_return(code, t_date, period, end_date)
-                            if ret is not None:
-                                fwd_returns.append(ret)
-                        if fwd_returns:
-                            funnel_returns[period] = float(np.mean(fwd_returns) * 100)
-                        else:
-                            funnel_returns[period] = None
+            if not results:
+                continue
 
-            # ---- DEFENSE / RECOVERY 时计算防御资产收益 ----
-            defense_rets: dict[int, float] = {}
-            if is_defense or is_recovery:
-                from growth_os.defense import get_defense_basket_return
-                for period in forward_periods:
-                    defense_rets[period] = (
-                        get_defense_basket_return(t_date, period, end_date) * 100)
+            df_result = pd.DataFrame(results)
+            df_result = df_result.sort_values(
+                "composite_score", ascending=False
+            ).head(top_n)
 
-            # ---- 记录结果（含归因字段） ----
+            top_codes = df_result["code"].tolist()
+
+            # 计算前瞻收益
             for period in forward_periods:
-                if is_defense:
-                    actual_ret = defense_rets.get(period, 0)
-                    cf_ret = funnel_returns.get(period)
-                    n = 0
-                elif is_recovery:
-                    growth_ret = funnel_returns.get(period)
-                    def_ret = defense_rets.get(period, 0)
-                    if growth_ret is not None:
-                        actual_ret = 0.55 * growth_ret + 0.45 * def_ret
-                    else:
-                        actual_ret = def_ret
-                    cf_ret = growth_ret
-                    n = 15  # Top15
-                else:
-                    actual_ret = funnel_returns.get(period)
-                    cf_ret = None
-                    n = top_n
+                fwd_returns = []
+                for code in top_codes:
+                    ret = _get_forward_return(code, t_date, period, end_date)
+                    if ret is not None:
+                        fwd_returns.append(ret)
 
-                hit = 100.0 if actual_ret is not None and actual_ret > 0 else 0.0
+                if fwd_returns:
+                    avg_ret = np.mean(fwd_returns)
+                    median_ret = np.median(fwd_returns)
+                    hit = sum(1 for r in fwd_returns if r > 0) / len(fwd_returns)
+                else:
+                    avg_ret = np.nan
+                    median_ret = np.nan
+                    hit = np.nan
+
                 pool_returns_records.append({
                     "screening_date": t_date,
                     "period_months": period,
-                    "n_stocks": n,
-                    "avg_return": round(actual_ret, 2) if actual_ret is not None else np.nan,
-                    "median_return": round(actual_ret, 2) if actual_ret is not None else np.nan,
-                    "hit_rate": round(hit, 1),
-                    "funnel_cf_return": round(cf_ret, 2) if cf_ret is not None else np.nan,
-                    "regime": regime.state.value if regime else "GROWTH_OK",
+                    "n_stocks": len(fwd_returns),
+                    "avg_return": round(avg_ret * 100, 2) if not np.isnan(avg_ret) else np.nan,
+                    "median_return": round(median_ret * 100, 2) if not np.isnan(median_ret) else np.nan,
+                    "hit_rate": round(hit * 100, 1) if not np.isnan(hit) else np.nan,
                 })
+
+                # 基准收益
                 bench_ret = _get_benchmark_returns(t_date, period, end_date)
                 benchmark_records.append({
                     "screening_date": t_date,
@@ -404,112 +407,6 @@ def _alpha_purity_analysis(pool_df: pd.DataFrame, bench_df: pd.DataFrame) -> dic
         }
 
     return {"annual_breakdown": annual}
-
-
-def compute_attribution(pool_df: pd.DataFrame, bench_df: pd.DataFrame) -> dict:
-    """归因分析：拆解超额收益来源。
-
-    返回:
-        { "regime_contribution": float,    # DEFENSE切换贡献(pp)
-          "stock_alpha": float,            # 漏斗选股贡献(pp)
-          "defense_carry": float,          # 防御资产Beta收益(pp)
-          "by_period": list[dict],         # 逐期明细
-        }
-    """
-    merged = pool_df.merge(bench_df, on=["screening_date", "period_months"], how="left")
-    if "regime" not in merged.columns or merged["regime"].isna().all():
-        merged["regime"] = "GROWTH_OK"
-
-    # 筛选12M数据做主要归因
-    period = 12
-    p12 = merged[merged["period_months"] == period].copy()
-    if p12.empty:
-        period = max(merged["period_months"].unique())
-        p12 = merged[merged["period_months"] == period].copy()
-
-    p12["actual_ret"] = p12["avg_return"]
-    p12["bench_ret"] = p12["benchmark_return"]
-    p12["cf_ret"] = p12.get("funnel_cf_return", np.nan)
-    p12["excess"] = p12["actual_ret"] - p12["bench_ret"]
-
-    regime_contrib = 0.0
-    stock_alpha_total = 0.0
-    defense_carry_total = 0.0
-    details = []
-
-    for _, row in p12.iterrows():
-        regime = row["regime"]
-        actual = row["actual_ret"]
-        bench = row["bench_ret"]
-        cf = row["cf_ret"]
-
-        if regime == "DEFENSE":
-            # 反事实：假设不切换，漏斗会赚多少
-            if not pd.isna(cf):
-                rc = actual - cf  # regime contribution
-            else:
-                rc = actual - bench
-            sc = 0.0
-            dc = actual - bench  # defense carry = defense vs benchmark
-        else:
-            rc = 0.0
-            sc = actual - bench if not pd.isna(actual) else 0.0
-            dc = 0.0
-
-        regime_contrib += rc if not pd.isna(rc) else 0
-        stock_alpha_total += sc if not pd.isna(sc) else 0
-        defense_carry_total += dc if not pd.isna(dc) else 0
-
-        details.append({
-            "screening_date": row["screening_date"],
-            "regime": regime,
-            "actual": round(actual, 1) if not pd.isna(actual) else 0,
-            "bench": round(bench, 1) if not pd.isna(bench) else 0,
-            "funnel_cf": round(cf, 1) if not pd.isna(cf) else None,
-            "regime_contrib": round(rc, 1) if not pd.isna(rc) else 0,
-            "stock_alpha": round(sc, 1) if not pd.isna(sc) else 0,
-            "defense_carry": round(dc, 1) if not pd.isna(dc) else 0,
-        })
-
-    n = len(p12)
-    total_excess = p12["excess"].sum()
-
-    return {
-        "period_months": period,
-        "n_periods": n,
-        "total_excess": round(total_excess, 1),
-        "avg_excess_per_period": round(total_excess / n, 1) if n > 0 else 0,
-        "regime_contribution": round(regime_contrib, 1),
-        "regime_pct": round(regime_contrib / total_excess * 100, 1) if total_excess != 0 else 0,
-        "stock_alpha": round(stock_alpha_total, 1),
-        "stock_alpha_pct": round(stock_alpha_total / total_excess * 100, 1) if total_excess != 0 else 0,
-        "defense_carry": round(defense_carry_total, 1),
-        "by_period": details,
-    }
-
-
-def print_attribution_report(attr: dict):
-    """打印归因报告。"""
-    print(f"\n{'='*70}")
-    print(f"  超额收益归因分析（{attr['period_months']}个月前瞻，{attr['n_periods']}期）")
-    print(f"{'='*70}")
-    print(f"  总超额: {attr['total_excess']:+.1f}pp (均{attr['avg_excess_per_period']:+.1f}pp/期)")
-    print()
-    print(f"  {'来源':<20} {'贡献':>10} {'占比':>10}")
-    print(f"  {'-'*40}")
-    print(f"  {'Regime择时(防御切换)':<20} {attr['regime_contribution']:>+9.1f}pp {attr['regime_pct']:>9.1f}%")
-    print(f"  {'漏斗选股Alpha':<20} {attr['stock_alpha']:>+9.1f}pp {attr['stock_alpha_pct']:>9.1f}%")
-    print(f"  {'防御资产Beta':<20} {attr['defense_carry']:>+9.1f}pp")
-    print()
-    print(f"  --- 逐期明细 ---")
-    print(f"  {'日期':<12} {'Regime':<12} {'实际':>8} {'基准':>8} {'漏斗CF':>8} {'择时贡献':>10} {'选股Alpha':>10}")
-    print(f"  {'-'*80}")
-    for d in attr["by_period"]:
-        print(f"  {d['screening_date']:<12} {d['regime']:<12} "
-              f"{d['actual']:>+7.1f}% {d['bench']:>+7.1f}% "
-              f"{d['funnel_cf'] if d['funnel_cf'] else 'N/A':>8} "
-              f"{d['regime_contrib']:>+9.1f}pp {d['stock_alpha']:>+9.1f}pp")
-    print(f"{'='*70}\n")
 
 
 def print_backtest_report(result: BacktestResult):
@@ -621,10 +518,6 @@ def main():
     )
 
     print_backtest_report(result)
-
-    # 归因分析
-    attr = compute_attribution(result.pool_returns, result.benchmark_returns)
-    print_attribution_report(attr)
 
     # 保存详细数据
     os.makedirs(DATA_PATHS["output_dir"], exist_ok=True)
