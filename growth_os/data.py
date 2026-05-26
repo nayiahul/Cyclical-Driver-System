@@ -195,7 +195,17 @@ def get_price_data(code: str) -> pd.DataFrame | None:
     if code in _price_cache:
         return _price_cache[code]
 
-    # 优先级：项目缓存目录（2014+完整历史） > 用户桌面文件 > akshare 下载
+    # 优先级：用户桌面文件（列最全，含peTTM） > 项目缓存目录（2014+完整历史） > akshare 下载
+    fname = _code_to_filename(code)
+    fpath = os.path.join(DATA_PATHS["stock_price_dir"], fname)
+    if os.path.exists(fpath):
+        try:
+            df = pd.read_csv(fpath, parse_dates=["date"])
+            _price_cache[code] = df
+            return df
+        except Exception:
+            pass
+
     cache_dir = os.path.join(
         os.path.dirname(os.path.dirname(__file__)), "data", "cache", "daily_prices")
     cache_path = os.path.join(cache_dir, f"{code}.csv")
@@ -203,16 +213,6 @@ def get_price_data(code: str) -> pd.DataFrame | None:
         try:
             df = pd.read_csv(cache_path, dtype={"date": str})
             df["date"] = pd.to_datetime(df["date"])
-            _price_cache[code] = df
-            return df
-        except Exception:
-            pass
-
-    fname = _code_to_filename(code)
-    fpath = os.path.join(DATA_PATHS["stock_price_dir"], fname)
-    if os.path.exists(fpath):
-        try:
-            df = pd.read_csv(fpath, parse_dates=["date"])
             _price_cache[code] = df
             return df
         except Exception:
