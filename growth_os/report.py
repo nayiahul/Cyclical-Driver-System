@@ -67,13 +67,27 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"")
 
     # 摘要
+    l5_status = card.l5_status
+    l5d = funnel_result["l5_details"]
+
     score_emoji = "🟢" if card.composite_score >= 70 else "🟡" if card.composite_score >= 50 else "🔴"
+    qs = card.quality_score if not np.isnan(card.quality_score) else 0
     lines.append(f"## 综合评分: {score_emoji} {card.composite_score:.1f}/100")
+    lines.append(f"| 维度 | 分数 |")
+    lines.append(f"|------|------|")
+    lines.append(f"| 成长质量 (L1-L4) | **{qs:.1f}/100** |")
+    if l5_status == "ok":
+        ls = card.score_l5 if not np.isnan(card.score_l5) else 0
+        lines.append(f"| 估值安全边际 (L5) | **{ls:.1f}/10** |")
+    elif l5_status == "partial":
+        ls = card.score_l5 if not np.isnan(card.score_l5) else 0
+        lines.append(f"| 估值安全边际 (L5) | **{ls:.1f}/10** ⚠️ 数据不完整 |")
+    else:
+        lines.append(f"| 估值安全边际 (L5) | **N/A** 🔴 无法评估 |")
+    lines.append(f"")
     lines.append(f"**决策**: {card.decision}")
 
     # L5 估值状态
-    l5_status = card.l5_status
-    l5d = funnel_result["l5_details"]
     peg_val = l5d.get("peg_ratio", {}).get("value")
     pe_pct = l5d.get("pe_percentile", {}).get("value")
     g_proxy = l5d.get("peg_ratio", {}).get("g_proxy")

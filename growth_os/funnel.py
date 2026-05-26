@@ -971,6 +971,32 @@ def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
     else:
         result["pe_percentile"] = {"score": 0, "label": "无PE数据"}
 
+    # 2.5 PE 自身历史分位 (0-2) — v2.1.3
+    if pe is not None:
+        price_df = get_price_data(code)
+        if price_df is not None and "peTTM" in price_df.columns:
+            pe_hist = price_df[price_df["date"] <= pd.Timestamp(t_date)].tail(1260)  # ~5年
+            pe_vals = pe_hist["peTTM"].dropna()
+            pe_vals = pe_vals[(pe_vals > 0) & (pe_vals < 500)]  # 剔除极端值
+            if len(pe_vals) >= 250:  # 至少1年数据
+                hist_pct = (pe_vals < pe).sum() / len(pe_vals) * 100
+                result["pe_hist_pct"] = {"value": round(hist_pct, 1)}
+                if hist_pct < 30:
+                    result["pe_hist_pct"]["score"] = 2.0
+                    result["pe_hist_pct"]["label"] = f"自身历史低位(分位{hist_pct:.0f}%)"
+                elif hist_pct < 70:
+                    result["pe_hist_pct"]["score"] = 1.0
+                    result["pe_hist_pct"]["label"] = f"自身历史中位(分位{hist_pct:.0f}%)"
+                else:
+                    result["pe_hist_pct"]["score"] = 0
+                    result["pe_hist_pct"]["label"] = f"自身历史高位(分位{hist_pct:.0f}%)"
+            else:
+                result["pe_hist_pct"] = {"score": 0, "label": "历史数据不足"}
+        else:
+            result["pe_hist_pct"] = {"score": 0, "label": "无历史PE数据"}
+    else:
+        result["pe_hist_pct"] = {"score": 0, "label": "无PE数据"}
+
     # 3. 增长加速度 (0-3)
     rev_yoy_series = get_quarterly_series(
         code, "revenue_yoy", n_quarters=6, t_date=t_date

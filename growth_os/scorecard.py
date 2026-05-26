@@ -64,6 +64,7 @@ class GrowthScorecard:
 
     # 综合
     composite_score: float = np.nan
+    quality_score: float = np.nan  # L1-L4 成长质量分（不含L5）
     l5_status: str = ""           # L5Status: ok/partial/missing
     decision: str = ""
     _saved_weights: dict = field(default_factory=dict)
@@ -105,6 +106,7 @@ class GrowthScorecard:
             "pe_percentile": self.pe_percentile,
             "growth_accel": self.growth_accel,
             "composite_score": self.composite_score,
+            "quality_score": self.quality_score,
             "l5_status": self.l5_status,
             "decision": self.decision,
             "_saved_weights": self._saved_weights,
@@ -306,6 +308,20 @@ def compute_composite(
 
     card.composite_score = round(composite, 1)
     card.l5_status = l5_status.value
+
+    # 成长质量分（L1-L4，不含L5估值）
+    q_weights = {
+        "L1_risk": weights["L1_risk"], "L2_moat": weights["L2_moat"],
+        "L3_efficiency": weights["L3_efficiency"], "L4_industry": weights["L4_industry"],
+    }
+    q_sum = sum(q_weights.values())
+    quality = (
+        l1_risk_score * (q_weights["L1_risk"] / q_sum) * 10 +
+        s2 * (q_weights["L2_moat"] / q_sum) * 10 +
+        s3 * (q_weights["L3_efficiency"] / q_sum) * 10 +
+        s4 * (q_weights["L4_industry"] / q_sum) * 10
+    )
+    card.quality_score = round(quality, 1)
 
     # 决策
     if not card.pass_l1:
