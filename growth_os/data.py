@@ -263,9 +263,22 @@ def get_pe_ttm(code: str, t_date: str) -> float | None:
         return None
     t_dt = pd.Timestamp(t_date)
     df = df[df["date"] <= t_dt]
-    if df.empty or pd.isna(df.iloc[-1]["peTTM"]) or df.iloc[-1]["peTTM"] <= 0:
+    try:
+        last_pe = df.iloc[-1]["peTTM"]
+    except KeyError:
+        # akshare 下载的数据无 peTTM 列，回退到从 snapshot 估算
+        snap = get_financial_snapshot(t_date)
+        row = snap[snap["code"] == code]
+        if row.empty:
+            return None
+        mc = get_market_cap(code, t_date)
+        np_profit = row.iloc[0].get("deducted_profit_ttm")
+        if mc and np_profit and not pd.isna(np_profit) and np_profit > 0:
+            return float(mc / np_profit)
         return None
-    return df.iloc[-1]["peTTM"]
+    if pd.isna(last_pe) or last_pe <= 0:
+        return None
+    return last_pe
 
 
 # ============================================================
