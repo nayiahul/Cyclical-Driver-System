@@ -135,3 +135,65 @@ def run_all_probes(code: str, t_date: str) -> list[dict]:
         {"name": "CAPEX效率", **probe_capex_efficiency(code, t_date)},
         {"name": "毛利率韧性", **probe_margin_resilience(code, t_date)},
     ]
+
+
+# ═══════════════════════════════════════════════
+# 市场层面聚合：为 Regime 连续化提供输入
+# ═══════════════════════════════════════════════
+
+def probe_market_health(codes: list[str], t_date: str, sample: int = 100) -> dict:
+    """在候选池中抽样，聚合探针信号为市场增长健康度。
+
+    用于辅助 Regime 判断：高健康度时加速退出 DEFENSE，
+    低健康度时即使价格恢复也保持谨慎。
+
+    Returns:
+        {"health_score": 0-100, "green_pct": float, "red_pct": float,
+         "order_green_pct": float, "capex_red_pct": float, "margin_green_pct": float}
+    """
+    import random
+    if len(codes) > sample:
+        codes = random.sample(codes, sample)
+
+    counts = {"green": 0, "yellow": 0, "red": 0, "unknown": 0, "total": 0}
+    probe_counts = {"order": {"green": 0, "red": 0},
+                    "capex": {"green": 0, "red": 0},
+                    "margin": {"green": 0, "red": 0}}
+
+    for code in codes:
+        try:
+            probes = run_all_probes(code, t_date)
+            for p in probes:
+                level = p["level"]
+                counts[level] = counts.get(level, 0) + 1
+                counts["total"] += 1
+                name = p["name"]
+                if name == "订单领先性":
+                    if level == "green": probe_counts["order"]["green"] += 1
+                    if level == "red": probe_counts["order"]["red"] += 1
+                elif name == "CAPEX效率":
+                    if level == "green": probe_counts["capex"]["green"] += 1
+                    if level == "red": probe_counts["capex"]["red"] += 1
+                elif name == "毛利率韧性":
+                    if level == "green": probe_counts["margin"]["green"] += 1
+                    if level == "red": probe_counts["margin"]["red"] += 1
+        except Exception:
+            counts["unknown"] += 1
+            counts["total"] += 1
+
+    n = max(counts["total"], 1)
+    green_pct = counts["green"] / n * 100
+    red_pct = counts["red"] / n * 100
+
+    # 健康度 = 绿色占比 - 红色占比×1.5（红色惩罚更重）
+    health = max(0, min(100, 50 + green_pct * 0.8 - red_pct * 1.2))
+
+    return {
+        "health_score": round(health, 1),
+        "green_pct": round(green_pct, 1),
+        "red_pct": round(red_pct, 1),
+        "sample_size": n,
+        "order_green_pct": round(probe_counts["order"]["green"] / max(n/3, 1) * 100, 1),
+        "capex_red_pct": round(probe_counts["capex"]["red"] / max(n/3, 1) * 100, 1),
+        "margin_green_pct": round(probe_counts["margin"]["green"] / max(n/3, 1) * 100, 1),
+    }
