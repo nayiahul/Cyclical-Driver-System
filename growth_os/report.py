@@ -188,6 +188,21 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
 
     lines.append(f"")
 
+    # 增长来源探针
+    try:
+        from growth_os.growth_probes import run_all_probes
+        probes = run_all_probes(code, t_date)
+        lines.append(f"## 增长来源探针（持续性判断）")
+        lines.append(f"")
+        for p in probes:
+            lines.append(f"- {p['label']}")
+        lines.append(f"")
+        lines.append(f"> 探针不参与综合评分，仅作为增长持续性参考。")
+        lines.append(f"> 🟢=正面信号 🟡=中性/关注 🔴=风险信号")
+        lines.append(f"")
+    except ImportError:
+        pass
+
     # 卖出信号
     lines.append(f"## 卖出信号")
     lines.append(f"{sell_summary}")
