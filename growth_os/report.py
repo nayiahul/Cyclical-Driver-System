@@ -165,6 +165,13 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         if key == "total":
             continue
         lines.append(f"- **{key}**: {val.get('label', 'N/A')} (得分: {val.get('score', 0):.1f})")
+
+    # PEG 适用域声明
+    if l5_status == "ok":
+        lines.append("")
+        lines.append("> ⚠️ **PEG 框架适用域说明**：PEG 基于「当前增速可持续」的隐含假设。")
+        lines.append("> 对强周期/价格驱动型行业（航运、煤炭、化工等），该假设可能不成立，PEG 信号需谨慎解读。")
+
     lines.append(f"")
 
     # 卖出信号

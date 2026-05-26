@@ -136,6 +136,10 @@ INDUSTRY_ADJUSTMENTS = {
         "inventory_growth_threshold": 1.5,
         "rd_intensity_high": 8.0,
     },
+    # 通信设备 — 硬件制造，研发费率 3-5% 正常
+    "通信网络设备及器件": {
+        "rd_intensity_high": 5.0,
+    },
     # 消费电子 — 毛利率敏感
     "消费电子零部件及组装": {
         "gross_margin_sensitive": True,
