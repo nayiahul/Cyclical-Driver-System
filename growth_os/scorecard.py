@@ -344,6 +344,8 @@ def recalc_composite_with_ranks(r: dict) -> float:
     weights = r.get("_saved_weights")
     if weights is None:
         return r.get("composite_score", 0)
+    if not isinstance(weights, dict):
+        return r.get("composite_score", 0)
 
     rank_l2 = r.get("score_l2_rank", 0.5)
     rank_l3 = r.get("score_l3_rank", 0.5)
@@ -359,11 +361,14 @@ def recalc_composite_with_ranks(r: dict) -> float:
     red_count = len([x for x in red_flags_str.split("|") if x]) if red_flags_str else 0
     l1_risk = max(0, 10 - red_count)
 
-    composite = (
-        l1_risk * weights["L1_risk"] * 10 +
-        rank_l2 * 10 * weights["L2_moat"] * 10 +
-        rank_l3 * 10 * weights["L3_efficiency"] * 10 +
-        s4 * weights["L4_industry"] * 10 +
-        rank_l5 * 10 * weights["L5_expectation"] * 10
-    )
+    try:
+        composite = (
+            l1_risk * weights.get("L1_risk", 0.2) * 10 +
+            rank_l2 * 10 * weights.get("L2_moat", 0.3) * 10 +
+            rank_l3 * 10 * weights.get("L3_efficiency", 0.25) * 10 +
+            s4 * weights.get("L4_industry", 0.15) * 10 +
+            rank_l5 * 10 * weights.get("L5_expectation", 0.1) * 10
+        )
+    except Exception:
+        return r.get("composite_score", 0)
     return round(composite, 1)
