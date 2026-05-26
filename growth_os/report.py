@@ -102,6 +102,60 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"**生命周期判定**: {lc_reason}")
     lines.append(f"")
 
+    # 决策卡片
+    lines.append(f"## 决策卡片")
+    lines.append(f"")
+
+    # 正面因素
+    positives = []
+    if qs >= 75: positives.append(f"成长质量优秀（{qs:.0f}/100）")
+    elif qs >= 60: positives.append(f"成长质量良好（{qs:.0f}/100）")
+    if l5_status == "ok" and card.score_l5 >= 7: positives.append(f"估值安全边际充足（{card.score_l5:.0f}/10）")
+    elif l5_status == "ok" and card.score_l5 >= 4: positives.append(f"估值安全边际尚可（{card.score_l5:.0f}/10）")
+    if card.roic and card.roic_minus_wacc and card.roic_minus_wacc > 3: positives.append(f"ROIC显著优于WACC（利差{card.roic_minus_wacc:.1f}pp）")
+    if hasattr(card, 'pe_percentile') and card.pe_percentile and card.pe_percentile < 40: positives.append(f"PE行业分位偏低（{card.pe_percentile:.0f}%）")
+
+    # 风险因素
+    risks = []
+    pe_hist = funnel_result["l5_details"].get("pe_hist_pct", {})
+    if pe_hist.get("value", 0) > 70: risks.append(f"PE处于自身历史高位（分位{pe_hist['value']:.0f}%），绝对估值不低")
+    if l5_status == "partial": risks.append("估值数据不完整，安全边际判断受限")
+    if l5_status == "missing": risks.append("估值完全不可用，需人工核实PE后评估")
+    if card.peg and card.peg > 2.5: risks.append(f"PEG偏高（{card.peg:.1f}），增速可能已被充分定价")
+
+    # 探针信号
+    probe_green = 0
+    probe_red = 0
+    try:
+        from growth_os.growth_probes import run_all_probes
+        probes = run_all_probes(code, t_date)
+        for p in probes:
+            if p["level"] == "green": probe_green += 1
+            if p["level"] == "red": probe_red += 1
+    except ImportError:
+        probes = []
+
+    lines.append(f"| | 评估 |")
+    lines.append(f"|------|------|")
+    lines.append(f"| **优势** | {', '.join(positives) if positives else '无明显突出优势'} |")
+    lines.append(f"| **风险** | {', '.join(risks) if risks else '未发现明显风险因素'} |")
+    lines.append(f"| **增长持续性** | {probe_green}绿/{probe_red}红（{len(probes)}项探针） |")
+
+    # 综合建议
+    if qs >= 75 and l5_status == "ok" and probe_red == 0:
+        suggestion = "🟢 高质量成长股，估值合理，增长信号健康——可纳入核心持仓"
+    elif qs >= 75 and probe_red > 0:
+        suggestion = "🟡 优质但有隐忧——建议关注探针风险信号，控制单票仓位"
+    elif qs >= 75 and l5_status != "ok":
+        suggestion = "🟡 基本面优异但估值状态不明——建议人工确认PE后决策"
+    elif qs >= 60:
+        suggestion = "🟡 中等质量——可作为观察池标的，等待更好买点或基本面改善"
+    else:
+        suggestion = "🔴 质量偏低——不建议重点关注"
+
+    lines.append(f"| **综合建议** | {suggestion} |")
+    lines.append(f"")
+
     # 飞轮四象限
     lines.append(f"## 飞轮四象限")
     lines.append(f"")
