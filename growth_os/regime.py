@@ -46,6 +46,7 @@ class RegimeOutput:
     l1_strict: bool              # 是否收紧 L1（条件红灯 1 项即淘汰）
     g_proxy_discount: float      # L5 g_proxy 折扣系数 (1.0 = 不打折)
     channel_signals: dict        # 各通道原始信号，用于调试
+    probe_health: float = None   # 探针市场健康度 (0-100)，仅 DEFENSE 退出时计算
 
     @property
     def is_ok(self) -> bool:
@@ -314,6 +315,52 @@ def reset_state_machine():
     """重置去抖状态机（回测开始时调用）。"""
     global _state_machine
     _state_machine = _RegimeStateMachine()
+    clear_probe_cache()
+
+
+# ═══════════════════════════════════════════════════════════
+# 探针健康度（辅助 DEFENSE 退出判断）
+# ═══════════════════════════════════════════════════════════
+
+_PROBE_HEALTH_CACHE: dict[str, float] = {}
+
+
+def _probe_health_score(t_date: str) -> float:
+    """使用增长探针评估市场增长健康度。
+
+    在候选池中抽样，计算探针绿色/红色占比，
+    返回 0-100 健康度分数。用于辅助 DEFENSE 退出判断：
+    高健康度→加速退出，低健康度→保持防御。
+
+    Returns:
+        0-100 分数，异常时返回 50（中性）
+    """
+    if t_date in _PROBE_HEALTH_CACHE:
+        return _PROBE_HEALTH_CACHE[t_date]
+
+    try:
+        from growth_os.data import load_growth_data
+        from growth_os.growth_probes import probe_market_health
+
+        df = load_growth_data(t_date)
+        df = df[df["market_cap"] >= 50]
+        if len(df) > 300:
+            df = df.nlargest(300, "market_cap")
+        codes = df["code"].tolist()
+
+        result = probe_market_health(codes, t_date, sample=30)
+        score = result["health_score"]
+        _PROBE_HEALTH_CACHE[t_date] = score
+        return score
+    except Exception:
+        _PROBE_HEALTH_CACHE[t_date] = 50.0
+        return 50.0
+
+
+def clear_probe_cache():
+    """清除探针缓存（回测重置时调用）。"""
+    global _PROBE_HEALTH_CACHE
+    _PROBE_HEALTH_CACHE = {}
 
 
 # ═══════════════════════════════════════════════════════════
@@ -357,6 +404,14 @@ def compute_regime(t_date: str) -> RegimeOutput:
     else:
         raw_state = RegimeState.GROWTH_OK
 
+    # 探针健康度辅助：当前在DEFENSE中且信号改善时，验证恢复质量
+    probe_health = None
+    if _state_machine.current == RegimeState.DEFENSE and raw_state != RegimeState.DEFENSE:
+        probe_health = _probe_health_score(t_date)
+        # 健康度 < 40 且 A 通道仍弱 → 可能是假恢复，保持 DEFENSE
+        if probe_health < 40 and has_a:
+            raw_state = RegimeState.DEFENSE
+
     # 去抖
     state = _state_machine.update(raw_state)
 
@@ -384,6 +439,7 @@ def compute_regime(t_date: str) -> RegimeOutput:
         l1_strict=l1_strict,
         g_proxy_discount=g_discount,
         channel_signals=signals,
+        probe_health=probe_health,
     )
 
 
