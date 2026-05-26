@@ -125,6 +125,51 @@ def probe_margin_resilience(code: str, t_date: str) -> dict:
 
 
 # ═══════════════════════════════════════════════
+# 探针 4：客户集中度（PDF 年报提取）
+# ═══════════════════════════════════════════════
+
+def probe_customer_concentration(code: str, t_date: str = None) -> dict:
+    """前五大客户销售占比——双击风险 vs 分散韧性。
+
+    数据源：PDF 年报缓存（data/cache/pdf_financials.csv）
+
+    Returns:
+        {"label": str, "level": "green"|"yellow"|"red"|"unknown"}
+    """
+    try:
+        from growth_os.pdf_data import get_cached_pdf_data
+        pdf = get_cached_pdf_data(code)
+        if pdf is None:
+            return {"label": "⚠️ PDF 年报未下载，客户结构未知", "level": "unknown"}
+
+        top5 = pdf.get("top5_customer_ratio")
+        top1 = pdf.get("top1_customer_ratio")
+
+        if top5 is None and top1 is None:
+            return {"label": "⚠️ 年报中未提取到客户集中度数据", "level": "unknown"}
+
+        if top5 is not None:
+            ratio = top5
+        else:
+            ratio = min(top1 * 2.5, 100) if top1 else None  # 估算
+
+        if ratio is None:
+            return {"label": "⚠️ 无法解析客户集中度", "level": "unknown"}
+
+        if ratio > 70:
+            return {"label": f"🔴 客户高度集中（前五占比{ratio:.0f}%），砍单风险高", "level": "red"}
+        elif ratio > 50:
+            return {"label": f"🟡 客户集中度偏高（前五占比{ratio:.0f}%）", "level": "yellow"}
+        elif ratio > 30:
+            return {"label": f"🟡 客户适度集中（前五占比{ratio:.0f}%）", "level": "yellow"}
+        else:
+            return {"label": f"🟢 客户分散（前五占比{ratio:.0f}%），韧性较强", "level": "green"}
+
+    except ImportError:
+        return {"label": "⚠️ PDF 模块不可用", "level": "unknown"}
+
+
+# ═══════════════════════════════════════════════
 # 汇总输出
 # ═══════════════════════════════════════════════
 
@@ -134,6 +179,7 @@ def run_all_probes(code: str, t_date: str) -> list[dict]:
         {"name": "订单领先性", **probe_order_leadership(code, t_date)},
         {"name": "CAPEX效率", **probe_capex_efficiency(code, t_date)},
         {"name": "毛利率韧性", **probe_margin_resilience(code, t_date)},
+        {"name": "客户集中度", **probe_customer_concentration(code, t_date)},
     ]
 
 

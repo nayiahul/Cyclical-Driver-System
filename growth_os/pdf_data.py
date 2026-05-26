@@ -130,6 +130,13 @@ def extract_and_cache(code: str, force: bool = False) -> dict:
             100 - ar_aging.get("within_1y_pct", 100), 1) \
             if ar_aging.get("within_1y_pct") else None
 
+    # 6. 客户集中度
+    from growth_os.pdf_extract import extract_customer_concentration
+    cust = extract_customer_concentration(pdf_path)
+    if cust:
+        result["top5_customer_ratio"] = cust.get("top5_ratio")
+        result["top1_customer_ratio"] = cust.get("top1_ratio")
+
     # 写入缓存
     cache = _load_cache()
     # 删除旧记录

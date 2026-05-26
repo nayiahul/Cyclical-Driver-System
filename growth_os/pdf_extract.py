@@ -322,6 +322,63 @@ def extract_ar_aging(pdf_path: str | Path) -> dict | None:
 
 
 # ============================================================
+# ============================================================
+# 7. 客户集中度（前五客户销售占比）
+# ============================================================
+
+def extract_customer_concentration(pdf_path: str | Path) -> dict | None:
+    """提取前五名客户销售占比。
+
+    搜索关键词: "前五名客户"、"前五大客户"、"主要客户"、"客户集中"
+    年报附注标准披露格式：前五名客户销售额 / 占年度销售总额比例
+
+    Returns:
+        {"top5_ratio": 前五占比(%), "top1_ratio": 第一大占比(%),
+         "customer_count": 客户数量}
+    """
+    tables = extract_tables(pdf_path, pages="all", method="auto")
+
+    for df in tables:
+        text_flat = " ".join(df.astype(str).values.flatten())
+        # 必须包含客户集中度相关关键词
+        if not any(kw in text_flat for kw in [
+            "前五名客户", "前五大客户", "主要客户", "客户集中",
+            "前五名销售", "前五大销售"
+        ]):
+            continue
+
+        # 必须有百分比或比例
+        if "比例" not in text_flat and "%" not in text_flat:
+            continue
+
+        result = {}
+        ratios = []
+        for _, row in df.iterrows():
+            row_str = " ".join(str(v) for v in row.values)
+            vals = _extract_numeric_values(row)
+
+            # 找占比值：通常在 0-100 之间的数
+            pct_vals = [v for v in vals if 0 < v <= 100]
+
+            if any(kw in row_str for kw in ["合计", "总计", "前五", "前5"]):
+                ratios.extend(pct_vals)
+            elif any(kw in row_str for kw in ["第一名", "客户一", "客户1"]):
+                if pct_vals:
+                    result["top1_ratio"] = max(pct_vals)
+            elif "比例" in row_str.lower() or "%" in row_str:
+                ratios.extend(pct_vals)
+
+        # 取最大的合理值作为前五占比
+        valid_ratios = [r for r in ratios if 1 <= r <= 100]
+        if valid_ratios:
+            result["top5_ratio"] = max(valid_ratios)
+            result["customer_count"] = 5
+            return result
+
+    return None
+
+
+# ============================================================
 # 工具函数
 # ============================================================
 
