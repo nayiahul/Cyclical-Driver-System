@@ -1160,7 +1160,7 @@ def score_cycle_position(code: str, t_date: str) -> dict:
         elif inv_days < 180:
             dims.append(f"🟡 库存适中(周转{inv_days:.0f}天)")
         else:
-            dims.append(f"🔴 库存积压(周转{inv_days:.0f}天)")
+            dims.append(f"🔴 库存积压(周转{inv_days:.0f}天；制造业健康区≈120-170天)→出清未完成")
 
     greens = sum(1 for d in dims if "🟢" in d)
     reds = sum(1 for d in dims if "🔴" in d)

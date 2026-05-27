@@ -219,7 +219,10 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     for p in probes:
         if p["level"] == "red":
             short_name = p.get("name", p["label"][:12])
-            risks.append(f"🔴 探针-{short_name}")
+            if "客户集中" in short_name:
+                risks.append(f"🔴 结构性风险-客户集中（可能覆盖所有正面信号）")
+            else:
+                risks.append(f"🔴 探针-{short_name}")
 
     lines.append(f"| | 评估 |")
     lines.append(f"|------|------|")
@@ -525,7 +528,10 @@ def _build_trajectory(code: str, t_date: str, profit_quality: dict = None) -> li
         latest = vals[-1] if len(vals) > 0 else None
         # 向上偏离（单季远高于TTM均值）= 前期基数低，TTM均值滞后于当前高增长
         if latest is not None and latest > recent * 1.5 and latest > 10 and name == "营收增速":
-            items.append(f"  💡 单季增速{latest:.1f}%远高于近4季均值{recent:.1f}%——TTM均值含历史慢速季度，单季仍在高增，两者口径不同不矛盾")
+            items.append(f"  💡 单季增速{latest:.1f}%远高于近4季均值{recent:.1f}%——TTM均值含历史慢速季度，单季仍在高增")
+            # 高增但边际走弱时追加风险提示
+            if delta < 0 and abs(delta) > 20:
+                items.append(f"  ⚠️ 但近4季边际走弱(Δ{delta:+.1f}pp)，若持续回落至均值以下，当前高PE将承压")
         if latest is not None and abs(latest - recent) > abs(recent) * 0.5 and abs(recent) > 2:
             items.append(f"  ⚠️ 最新季度{latest:.1f}%与近4季均值({recent:.1f}%)显著偏离")
 
