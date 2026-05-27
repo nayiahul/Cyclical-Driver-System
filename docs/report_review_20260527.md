@@ -29,9 +29,9 @@
 
 | # | 方向 | 做法 | 来源 | 状态 |
 |---|------|------|------|------|
-| 11 | 探针结构化输出 | 函数返回dict（probe_score 0-1），喂Regime连续化 | 元宝 | todo |
+| 11 | 探针结构化输出 | 每个探针返回 score 0-1，probe_market_health 加权均值替代简单计数 | 元宝 | ✅ done |
 | 12 | PEG适用域按行业自动标注 | 24个行业×3级可信度(valid/caution/misleading) + 增长驱动类型 | 元宝 | ✅ done |
-| 13 | L5增长质量折扣 | `if growth_driver == PRICE_CYCLE: peg_score *= 0.3` | ChatGPT | todo |
+| 13 | L5增长质量折扣 | misleading→PEG×0.3+growth_accel×0.5；caution→PEG×0.7 | ChatGPT | ✅ done |
 | 14 | Trajectory轨迹层 | 4指标×近8季对比：毛利率/ROIC/营收增速/净利率 + 连续方向判断 | ChatGPT | ✅ done |
 | 15 | 探针升级到产业数据层 | 核心变量：渗透率/价格/backlog/CAPEX周期/网络效应 | ChatGPT | todo |
 | 16 | 增长持续性概率 | 从二分类升级到`未来2年维持30%+增长概率：72%` | ChatGPT/kimi | todo |

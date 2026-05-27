@@ -1025,6 +1025,21 @@ def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
     else:
         result["growth_acceleration"] = {"score": 0, "label": "数据不足"}
 
+    # 增长质量折扣：周期价格型行业的 PEG/growth_accel 得分打折
+    from growth_os.config import PEG_CONFIDENCE, PEG_CONFIDENCE_DEFAULT
+    peg_conf = PEG_CONFIDENCE.get(industry_l3, PEG_CONFIDENCE_DEFAULT)
+    if peg_conf["level"] == "misleading":
+        if "peg_ratio" in result and result["peg_ratio"].get("score", 0) > 0:
+            result["peg_ratio"]["score"] = round(result["peg_ratio"]["score"] * 0.3, 1)
+            result["peg_ratio"]["label"] += " (周期型折扣×0.3)"
+        if "growth_acceleration" in result:
+            result["growth_acceleration"]["score"] = round(result["growth_acceleration"]["score"] * 0.5, 1)
+            result["growth_acceleration"]["label"] += " (周期型折扣×0.5)"
+    elif peg_conf["level"] == "caution":
+        if "peg_ratio" in result and result["peg_ratio"].get("score", 0) > 0:
+            result["peg_ratio"]["score"] = round(result["peg_ratio"]["score"] * 0.7, 1)
+            result["peg_ratio"]["label"] += " (谨慎折扣×0.7)"
+
     result["total"] = round(min(
         sum(v.get("score", 0) for k, v in result.items() if k != "total"
     ), max_score), 1)

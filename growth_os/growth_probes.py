@@ -173,14 +173,26 @@ def probe_customer_concentration(code: str, t_date: str = None) -> dict:
 # 汇总输出
 # ═══════════════════════════════════════════════
 
+def _level_to_score(level: str) -> float | None:
+    """将探针等级映射为 0-1 连续分值，供 Regime 连续化使用。"""
+    return {"green": 1.0, "yellow": 0.5, "red": 0.0}.get(level, None)
+
+
 def run_all_probes(code: str, t_date: str) -> list[dict]:
-    """运行全部增长来源探针，返回列表。"""
-    return [
+    """运行全部增长来源探针，返回列表。
+
+    每个探针含 name/label/level/score 字段。
+    score: 0-1 连续分值 (green=1.0, yellow=0.5, red=0.0, unknown=None)
+    """
+    probes = [
         {"name": "订单领先性", **probe_order_leadership(code, t_date)},
         {"name": "CAPEX效率", **probe_capex_efficiency(code, t_date)},
         {"name": "毛利率韧性", **probe_margin_resilience(code, t_date)},
         {"name": "客户集中度", **probe_customer_concentration(code, t_date)},
     ]
+    for p in probes:
+        p["score"] = _level_to_score(p["level"])
+    return probes
 
 
 # ═══════════════════════════════════════════════
@@ -206,6 +218,7 @@ def probe_market_health(codes: list[str], t_date: str, sample: int = 100) -> dic
                     "capex": {"green": 0, "red": 0},
                     "margin": {"green": 0, "red": 0}}
 
+    scores = []
     for code in codes:
         try:
             probes = run_all_probes(code, t_date)
@@ -213,6 +226,8 @@ def probe_market_health(codes: list[str], t_date: str, sample: int = 100) -> dic
                 level = p["level"]
                 counts[level] = counts.get(level, 0) + 1
                 counts["total"] += 1
+                if p.get("score") is not None:
+                    scores.append(p["score"])
                 name = p["name"]
                 if name == "订单领先性":
                     if level == "green": probe_counts["order"]["green"] += 1
@@ -231,8 +246,11 @@ def probe_market_health(codes: list[str], t_date: str, sample: int = 100) -> dic
     green_pct = counts["green"] / n * 100
     red_pct = counts["red"] / n * 100
 
-    # 健康度 = 绿色占比 - 红色占比×1.5（红色惩罚更重）
-    health = max(0, min(100, 50 + green_pct * 0.8 - red_pct * 1.2))
+    # 健康度 = 加权平均分值 × 100（利用 probe_score 连续化）
+    if scores:
+        health = sum(scores) / len(scores) * 100
+    else:
+        health = max(0, min(100, 50 + green_pct * 0.8 - red_pct * 1.2))
 
     return {
         "health_score": round(health, 1),
