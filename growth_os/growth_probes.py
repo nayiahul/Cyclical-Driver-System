@@ -6,6 +6,7 @@
 from __future__ import annotations
 import numpy as np
 import pandas as pd
+from loguru import logger
 
 from growth_os.data import get_financial_snapshot, get_quarterly_series
 
@@ -137,8 +138,34 @@ def probe_customer_concentration(code: str, t_date: str = None) -> dict:
         {"label": str, "level": "green"|"yellow"|"red"|"unknown"}
     """
     try:
-        from growth_os.pdf_data import get_cached_pdf_data
+        from growth_os.pdf_data import get_cached_pdf_data, extract_and_cache
+        from growth_os.pdf_download import get_latest_report_path
         pdf = get_cached_pdf_data(code)
+        if pdf is None:
+            # 缓存缺失，尝试从已下载的PDF中提取
+            pdf_path = get_latest_report_path(code, "annual")
+            if pdf_path:
+                logger.info(f"{code}: 缓存缺失，自动提取客户集中度 from {pdf_path.name}")
+                try:
+                    cust = _quick_extract_cust(pdf_path)
+                    if cust and (cust.get("top5_ratio") or cust.get("top1_ratio")):
+                        # 只存客户集中度到缓存
+                        import pandas as pd, os
+                        cache_path = "data/cache/pdf_financials.csv"
+                        new_row = pd.DataFrame([{
+                            "code": code, "report_year": 2023, "category": "annual",
+                            "top5_customer_ratio": cust.get("top5_ratio"),
+                            "top1_customer_ratio": cust.get("top1_ratio"),
+                        }])
+                        if os.path.exists(cache_path):
+                            existing = pd.read_csv(cache_path, dtype={"code": str})
+                            existing = existing[existing["code"] != code]
+                            new_row = pd.concat([existing, new_row], ignore_index=True)
+                        new_row.to_csv(cache_path, index=False, encoding="utf-8-sig")
+                        pdf = {"top5_customer_ratio": cust.get("top5_ratio"),
+                               "top1_customer_ratio": cust.get("top1_ratio")}
+                except Exception as e:
+                    logger.debug(f"{code}: 自动提取失败: {e}")
         if pdf is None:
             return {"label": "⚠️ 客户结构：数据缺失（PDF年报未下载，无法提取前五大客户占比）", "level": "unknown"}
 
@@ -167,6 +194,48 @@ def probe_customer_concentration(code: str, t_date: str = None) -> dict:
 
     except ImportError:
         return {"label": "⚠️ PDF 模块不可用", "level": "unknown"}
+
+
+def _quick_extract_cust(pdf_path) -> dict | None:
+    """快速提取客户集中度 — 只用 pdfplumber 文字搜索，跳过 camelot。
+
+    直接搜索关键词「前五名客户」，从附近表格提取占比。
+    """
+    try:
+        import pdfplumber, re
+        with pdfplumber.open(str(pdf_path)) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text() or ""
+                if not any(kw in text for kw in ["前五名客户", "前五大客户", "客户集中"]):
+                    continue
+                tables = page.extract_tables()
+                for table in tables:
+                    if not table:
+                        continue
+                    flat = " ".join(str(c) for row in table for c in row if c)
+                    if "前五名" not in flat and "客户" not in flat:
+                        continue
+                    result = {}
+                    ratios = []
+                    for row in table:
+                        if not row:
+                            continue
+                        row_str = " ".join(str(v) for v in row if v)
+                        # 提取百分比
+                        pcts = re.findall(r"(\d+\.?\d*)\s*%", row_str)
+                        nums = [float(p) for p in pcts if 0 < float(p) <= 100]
+                        if any(kw in row_str for kw in ["合计", "总计", "前五"]):
+                            ratios.extend(nums)
+                        if any(kw in row_str for kw in ["第一名", "客户一", "客户1", "客户 A"]):
+                            if nums:
+                                result["top1_ratio"] = max(nums)
+                    valid = [r for r in ratios if 5 <= r <= 99]
+                    if valid:
+                        result["top5_ratio"] = max(valid)
+                        return result
+    except Exception:
+        pass
+    return None
 
 
 # ═══════════════════════════════════════════════
