@@ -561,6 +561,13 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
     else:
         result["roic_trend"] = {"score": 0, "label": "数据不足"}
 
+    # ROIC趋势分条件激活：绝对值<WACC时，趋势改善只给安慰分
+    if (result["roic_trend"].get("score", 0) > 0
+            and result.get("roic_vs_wacc", {}).get("score", 1) == 0
+            and "数据不足" not in result["roic_trend"].get("label", "")):
+        result["roic_trend"]["score"] = round(result["roic_trend"]["score"] * 0.3, 1)
+        result["roic_trend"]["label"] += "（ROIC<WACC，趋势改善意义有限）"
+
     # 3. ROE质量 / 杜邦 (0-2)
     roe = row.get("roe")
     net_margin = row.get("net_margin")
@@ -948,22 +955,24 @@ def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
             "g_source": g_source,
             "g_trusted": g_trusted,
         }
-        if peg < s["peg_undervalued"]:
+        # g* 不可信时用条件语态替代确定性标签（"低估/合理/高估"不可直接采信）
+        if not g_trusted:
+            result["peg_ratio"]["score"] = 1.0
+            result["peg_ratio"]["label"] = (
+                f"⚠️ PEG={peg:.1f} (g*={g_proxy*100:.0f}%与近期增速{rev_yoy_latest:.0f}%背离→可信度低，不可直接采信)"
+            )
+        elif peg < s["peg_undervalued"]:
             result["peg_ratio"]["score"] = 4.0
-            result["peg_ratio"]["label"] = f"低估(PEG={peg:.1f}, g={g_proxy*100:.0f}%){g_trust_note}"
+            result["peg_ratio"]["label"] = f"低估(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
         elif peg < s["peg_fair"]:
             result["peg_ratio"]["score"] = 2.5
-            result["peg_ratio"]["label"] = f"合理(PEG={peg:.1f}, g={g_proxy*100:.0f}%){g_trust_note}"
+            result["peg_ratio"]["label"] = f"合理(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
         elif peg < s["peg_overvalued"]:
             result["peg_ratio"]["score"] = 1.0
-            result["peg_ratio"]["label"] = f"偏贵(PEG={peg:.1f}, g={g_proxy*100:.0f}%){g_trust_note}"
+            result["peg_ratio"]["label"] = f"偏贵(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
         else:
             result["peg_ratio"]["score"] = 0
-            result["peg_ratio"]["label"] = f"高估(PEG={peg:.1f}, g={g_proxy*100:.0f}%){g_trust_note}"
-
-        # g* 不可信时额外折扣
-        if not g_trusted:
-            result["peg_ratio"]["score"] = round(result["peg_ratio"]["score"] * 0.5, 1)
+            result["peg_ratio"]["label"] = f"高估(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
     else:
         result["peg_ratio"] = {"score": 0, "label": "数据不足", "g_proxy": None, "g_source": g_source if g_proxy else "insufficient_data", "g_trusted": False}
 

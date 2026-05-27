@@ -73,6 +73,15 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
 
     score_emoji = "🟢" if card.composite_score >= 70 else "🟡" if card.composite_score >= 50 else "🔴"
     qs = card.quality_score if not np.isnan(card.quality_score) else 0
+
+    # 决策优先于分数区间：如有严重风险，色标降级
+    has_critical_risk = (
+        funnel_result.get("l3_details", {}).get("roic_vs_wacc", {}).get("score", 1) == 0
+        or (l5_status == "ok" and not funnel_result["l5_details"].get("peg_ratio", {}).get("g_trusted", True))
+    )
+    if score_emoji == "🟡" and has_critical_risk:
+        score_emoji = "🟠"  # 黄色降级为橙色：分数尚可但有严重风险
+
     lines.append(f"## 综合评分: {score_emoji} {card.composite_score:.1f}/100")
     lines.append(f"| 维度 | 分数 |")
     lines.append(f"|------|------|")
@@ -420,5 +429,10 @@ def _build_trajectory(code: str, t_date: str) -> list[str]:
         else:
             trend_word = "连续下滑" if downs >= 2 else "边际走弱"
             items.append(f"📉 {name}：近4季{trend_word}（{recent:.1f}{unit}，Δ{delta:+.1f}{unit}）")
+
+        # 最新季度与4Q均值显著偏离时额外标注（ROIC/营收波动大时关键）
+        latest = vals[-1] if len(vals) > 0 else None
+        if latest is not None and abs(latest - recent) > abs(recent) * 0.5 and abs(recent) > 2:
+            items.append(f"  ⚠️ 最新季度{latest:.1f}{unit}与近4季均值({recent:.1f}{unit})显著偏离")
 
     return items
