@@ -96,6 +96,8 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         lines.append(f"| 估值安全边际 (L5) | **N/A** 🔴 无法评估 |")
     lines.append(f"")
     lines.append(f"**决策**: {card.decision}")
+    if not card.is_growth_eligible and card.block_reason:
+        lines.append(f"**⛔ 成长资格**: ❌ 未通过 — {card.block_reason}")
 
     # L5 估值状态
     peg_val = l5d.get("peg_ratio", {}).get("value")

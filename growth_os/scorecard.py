@@ -67,6 +67,8 @@ class GrowthScorecard:
     quality_score: float = np.nan  # L1-L4 成长质量分（不含L5）
     l5_status: str = ""           # L5Status: ok/partial/missing
     decision: str = ""
+    is_growth_eligible: bool = True
+    block_reason: str = ""
     _saved_weights: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -109,6 +111,8 @@ class GrowthScorecard:
             "quality_score": self.quality_score,
             "l5_status": self.l5_status,
             "decision": self.decision,
+            "is_growth_eligible": self.is_growth_eligible,
+            "block_reason": self.block_reason,
             "_saved_weights": self._saved_weights,
         }
 
@@ -323,6 +327,21 @@ def compute_composite(
     )
     card.quality_score = round(quality, 1)
 
+    # 成长资格门：ROIC<WACC且营收负增长→不具成长持仓资格
+    card.is_growth_eligible = True
+    card.block_reason = ""
+    roic_wacc_check = l3.get("roic_vs_wacc", {})
+    rev_yoy_val = card.revenue_yoy
+    if (roic_wacc_check.get("score", 1) == 0
+            and rev_yoy_val is not None and rev_yoy_val < 0):
+        card.is_growth_eligible = False
+        card.block_reason = "ROIC<WACC且营收负增长：周期/出清态，非成长持仓"
+        # 强制降级决策
+        if card.decision == "深度研究":
+            card.decision = "加入观察池"
+        elif card.decision != "一票否决":
+            card.decision = "周期跟踪(非成长持仓)"
+
     # 决策
     if not card.pass_l1:
         card.decision = "一票否决"
@@ -332,6 +351,10 @@ def compute_composite(
         card.decision = "加入观察池"
     else:
         card.decision = "暂不关注"
+
+    # 成长资格门覆盖决策
+    if not card.is_growth_eligible and card.decision != "一票否决":
+        card.decision = f"周期跟踪(非成长持仓)"
 
     return card
 

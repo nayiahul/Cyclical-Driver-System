@@ -753,11 +753,22 @@ def _score_l4(code: str, t_date: str, industry_l3: str) -> dict:
 
         # 百分位 → 分数映射: 0-100 → 0-10 (线性)
         industry_score = round(weighted_pct / 10, 1)
+
+        # 绝对底线约束：ROIC<WACC时行业分位打折（"行业都烂≠你好"）
+        roic_abs = stock.get("roic")
+        wacc_pct = 9.0  # 默认WACC=9%（ROIC字段为百分比值，如3.07=3.07%）
+        if roic_abs is not None and not pd.isna(roic_abs) and roic_abs < wacc_pct:
+            cap_factor = 0.7
+            industry_score = round(industry_score * cap_factor, 1)
+            weighted_pct = round(weighted_pct * cap_factor, 1)
+
         result["total"] = industry_score
         result["weighted_percentile"] = {
             "value": round(weighted_pct, 1),
             "label": f"行业加权分位{weighted_pct:.0f}% → 基础分{industry_score:.1f}",
         }
+        if roic_abs is not None and not pd.isna(roic_abs) and roic_abs < wacc_pct:
+            result["weighted_percentile"]["label"] += "（ROIC<WACC，行业优势折扣×0.7）"
 
         # 同业排名估算
         peer_count = len(peer_snap)
