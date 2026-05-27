@@ -242,9 +242,9 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         if regime.is_defense:
             regime_tag = f"（⚠️ 当前 DEFENSE 期，即使高分也不建议建仓；模型仓位 {position:.0f}%）"
         elif regime.is_ok:
-            regime_tag = f"（GROWTH_OK 期，Regime连续化模型建议成长仓位 {position:.0f}%）"
+            regime_tag = "（GROWTH_OK 期可参与，单票仓位建议不超过成长组合的1/3，避免集中风险）"
         else:
-            regime_tag = f"（CAUTION 期，建议成长仓位 {position:.0f}%）"
+            regime_tag = "（CAUTION 期，建议控制仓位，优先防御型配置）"
     except Exception:
         regime_tag = ""
 
@@ -335,6 +335,12 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     roic_anomaly = l3d.get("roic_single_q_anomaly", {})
     if roic_anomaly and roic_anomaly.get("negative"):
         lines.append(f"- **ROIC单季异常**: {roic_anomaly['label']}")
+    # ROIC口径对照
+    rw_val = l3d.get("roic_vs_wacc", {}).get("value", {})
+    rt_label = l3d.get("roic_trend", {}).get("label", "")
+    if rw_val and rt_label:
+        roic_q = rw_val.get("roic", "?")
+        lines.append(f"> ROIC口径: 上列roic_vs_wacc=单季快照({roic_q}%)，roic_trend=年度TTM对比。决策以单季为准(领先)，年度数据含历史惯性(滞后)。")
     lines.append(f"")
 
     # L4 行业校准
