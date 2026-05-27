@@ -405,6 +405,18 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     except ImportError:
         pass
 
+    # CAPEX 周期定位（探针5 — 不参与评分）
+    try:
+        from growth_os.capex_cycle import classify_capex_cycle
+        capex_cycle = classify_capex_cycle(code, t_date)
+        if capex_cycle.get("level") != "unknown":
+            lines.append(f"## CAPEX 周期定位")
+            lines.append(f"")
+            lines.append(f"- {capex_cycle['label']}")
+            lines.append(f"")
+    except Exception:
+        pass
+
     # 卖出信号
     lines.append(f"## 卖出信号")
     lines.append(f"{sell_summary}")
