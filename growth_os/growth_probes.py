@@ -144,8 +144,21 @@ def probe_customer_concentration(code: str, t_date: str = None) -> dict:
         if pdf is None:
             # 缓存缺失，尝试从已下载的PDF中提取
             pdf_path = get_latest_report_path(code, "annual")
+
+            # PDF不存在则先下载
+            if not pdf_path:
+                logger.info(f"{code}: PDF未下载，从CNINFO获取年报...")
+                try:
+                    from growth_os.pdf_download import download_reports_batch
+                    downloaded = download_reports_batch(code, years=[2023, 2024])
+                    if downloaded:
+                        pdf_path = get_latest_report_path(code, "annual")
+                        logger.info(f"{code}: PDF下载完成: {pdf_path}")
+                except Exception as e:
+                    logger.warning(f"{code}: PDF下载失败: {e}")
+
             if pdf_path:
-                logger.info(f"{code}: 缓存缺失，自动提取客户集中度 from {pdf_path.name}")
+                logger.info(f"{code}: 提取客户集中度 from {pdf_path.name}")
                 try:
                     cust = _quick_extract_cust(pdf_path)
                     if cust and (cust.get("top5_ratio") or cust.get("top1_ratio")):
