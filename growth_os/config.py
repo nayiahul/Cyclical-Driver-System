@@ -202,6 +202,43 @@ INDUSTRY_ADJUSTMENTS = {
     },
 }
 
+# PEG 适用域 — 按行业增长驱动类型标注PEG可信度
+# level: "valid"=PEG有效, "caution"=需注意假设, "misleading"=可能误导
+PEG_CONFIDENCE = {
+    # 技术扩散型 — PEG有效但需盯订单/CAPEX
+    "半导体设备": {"level": "valid", "driver": "技术扩散型", "note": "PEG有效，需盯合同负债(订单先行)和CAPEX效率"},
+    "半导体材料": {"level": "valid", "driver": "技术扩散型", "note": "PEG有效，需盯下游扩产周期"},
+    "集成电路制造": {"level": "valid", "driver": "技术扩散型", "note": "PEG有效，需盯产能利用率和良率爬坡"},
+    "集成电路封测": {"level": "valid", "driver": "技术扩散型", "note": "PEG有效，产能扩张周期需同步验证"},
+    "通信网络设备及器件": {"level": "valid", "driver": "技术扩散型", "note": "PEG有效，需盯订单持续性(合同负债)和CAPEX效率"},
+    "消费电子零部件及组装": {"level": "caution", "driver": "技术扩散型", "note": "PEG可用但需盯大客户周期，单一客户依赖风险"},
+    "品牌消费电子": {"level": "caution", "driver": "品牌溢价型", "note": "PEG可用，品牌溢价可持续性是关键假设"},
+    "军工电子": {"level": "valid", "driver": "订单驱动型", "note": "PEG有效，合同负债先行，需盯型号放量节奏"},
+    "航空装备": {"level": "valid", "driver": "订单驱动型", "note": "PEG有效，合同负债是先行指标，需盯交付节奏"},
+    "航天装备": {"level": "valid", "driver": "订单驱动型", "note": "PEG有效，合同负债先行，型号驱动增长"},
+    "IT服务": {"level": "valid", "driver": "订阅转型型", "note": "PEG有效但需验证ARR/NDR续费率"},
+    "垂直应用软件": {"level": "valid", "driver": "订阅转型型", "note": "PEG有效但需验证续费率(NDR>100%)和人效"},
+    "医疗设备": {"level": "valid", "driver": "技术扩散型", "note": "PEG有效，国产替代+出海驱动，需盯海外收入占比"},
+    # 周期价格型 — PEG可能误导，利润暴增不可持续
+    "光伏电池组件": {"level": "misleading", "driver": "周期价格型", "note": "PEG可能严重误导，产能周期顶部利润暴增不可持续，建议参考PB/EVEBITDA"},
+    "锂电池": {"level": "misleading", "driver": "周期价格型", "note": "PEG可能严重误导，锂价/产能周期驱动利润波动，建议参考PB/EVEBITDA"},
+    "有机硅": {"level": "misleading", "driver": "周期价格型", "note": "PEG可能严重误导，价格周期驱动利润波动剧烈"},
+    "化工新材料": {"level": "caution", "driver": "周期价格型", "note": "PEG需谨慎，新材料有成长性但价格周期不可忽略"},
+    # 品牌/消费型 — PEG有效但增速较慢
+    "白酒": {"level": "valid", "driver": "品牌护城河型", "note": "PEG有效，品牌护城河支撑长期定价权，PEG>1.5仍可接受"},
+    "啤酒": {"level": "valid", "driver": "品牌护城河型", "note": "PEG有效，产品结构升级驱动增长，PEG>1.5仍可接受"},
+    # 创新药/器械 — PEG依赖盈利质量
+    "化学制剂": {"level": "caution", "driver": "管线驱动型", "note": "PEG需谨慎：管线驱动型增长，研发资本化率影响利润质量，建议参考DCF"},
+    "生物制品": {"level": "caution", "driver": "管线驱动型", "note": "PEG需谨慎：管线驱动型增长，需验证现金跑道和BD能力"},
+    # 乘用车/汽配
+    "乘用车": {"level": "caution", "driver": "周期价格型", "note": "周期敏感：电动化转型期PEG可用，但需盯单车均价和毛利率趋势"},
+    "汽车电子电气系统": {"level": "valid", "driver": "技术扩散型", "note": "PEG有效，智能化渗透率提升驱动，需盯研发和定点项目"},
+    # 成熟行业
+    "空调": {"level": "valid", "driver": "成熟分红型", "note": "PEG有效但增长较慢，更多看现金流和分红"},
+}
+
+PEG_CONFIDENCE_DEFAULT = {"level": "caution", "driver": "通用框架", "note": "PEG基于「当前增速可持续」假设，需结合行业特征判断"}
+
 # 金融/地产行业（S2 等信号需要排除的行业）
 EXCLUDED_INDUSTRIES_L1 = {"银行", "证券", "保险", "房地产开发", "房地产服务"}
 

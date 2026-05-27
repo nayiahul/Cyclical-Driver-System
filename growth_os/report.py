@@ -207,6 +207,15 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"| OCF/净利润 | {ocf_ratio:.2f} | {'健康' if ocf_ratio > 0.8 else '关注'} |")
     lines.append(f"")
 
+    # 轨迹层 — 关键指标演化方向
+    traj = _build_trajectory(code, t_date)
+    if traj:
+        lines.append(f"## 轨迹层（演化方向）")
+        lines.append(f"")
+        for item in traj:
+            lines.append(f"- {item}")
+        lines.append(f"")
+
     # L1 排雷
     verdict_label = {"pass": "✅ 通过", "review": "🟡 条件红灯(观察)", "kill_absolute": "❌ 绝对红灯淘汰", "kill_conditional": "❌ 条件红灯累积淘汰"}
     verdict_display = verdict_label.get(funnel_result.get("l1_verdict"), funnel_result.get("l1_verdict", "?"))
@@ -247,10 +256,12 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"")
 
     # L4 行业校准
-    lines.append(f"## L4 行业校准 — {card.score_l4:.1f}/10")
     l4d = funnel_result["l4_details"]
+    peer_rank = l4d.get("peer_rank", {})
+    rank_label = peer_rank.get("label", "") if peer_rank else ""
+    lines.append(f"## L4 行业校准 — {card.score_l4:.1f}/10 — {rank_label}")
     for key, val in l4d.items():
-        if key == "total":
+        if key == "total" or key == "peer_rank":
             continue
         lines.append(f"- **{key}**: {val.get('label', 'N/A')}")
     lines.append(f"")
@@ -269,11 +280,19 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
             continue
         lines.append(f"- **{key}**: {val.get('label', 'N/A')} (得分: {val.get('score', 0):.1f})")
 
-    # PEG 适用域声明
+    # PEG 适用域声明 — 按行业自动标注
     if l5_status == "ok":
-        lines.append("")
-        lines.append("> ⚠️ **PEG 框架适用域说明**：PEG 基于「当前增速可持续」的隐含假设。")
-        lines.append("> 对强周期/价格驱动型行业（航运、煤炭、化工等），该假设可能不成立，PEG 信号需谨慎解读。")
+        from growth_os.config import PEG_CONFIDENCE, PEG_CONFIDENCE_DEFAULT
+        peg_conf = PEG_CONFIDENCE.get(industry_l3, PEG_CONFIDENCE_DEFAULT)
+        level = peg_conf["level"]
+        note = peg_conf["note"]
+        driver = peg_conf["driver"]
+        if level == "misleading":
+            lines.append(f"> 🔴 **PEG 适用域 — {driver}**：{note}")
+        elif level == "caution":
+            lines.append(f"> ⚠️ **PEG 适用域 — {driver}**：{note}")
+        else:
+            lines.append(f"> ✅ **PEG 适用域 — {driver}**：{note}")
 
     lines.append(f"")
 
@@ -329,3 +348,51 @@ def _get_stock_name(code: str) -> str:
     except Exception:
         pass
     return code
+
+
+def _build_trajectory(code: str, t_date: str) -> list[str]:
+    """构建关键指标轨迹层 — 展示演化方向而非截面状态。
+
+    追踪毛利率/ROIC/营收增速/净利率的连续变化方向。
+    """
+    from growth_os.data import get_quarterly_series
+    import numpy as np
+
+    items = []
+    metrics = [
+        ("gross_margin", "毛利率", "pp"),
+        ("roic", "ROIC", "pp"),
+        ("revenue_yoy", "营收增速", "pp"),
+        ("net_margin", "净利率", "pp"),
+    ]
+
+    for field, name, unit in metrics:
+        series = get_quarterly_series(code, field, n_quarters=8, t_date=t_date).dropna()
+        if len(series) < 4:
+            items.append(f"⚪ {name}：数据不足")
+            continue
+
+        recent = series.iloc[-4:].mean()
+        older = series.iloc[-8:-4].mean() if len(series) >= 8 else series.iloc[:4].mean()
+
+        if older <= 0:
+            items.append(f"⚪ {name}：无法比较（基期≤0）")
+            continue
+
+        delta = recent - older
+
+        # 判断连续季度方向
+        vals = series.values
+        ups = sum(1 for i in range(1, min(4, len(vals))) if vals[-i] > vals[-(i+1)])
+        downs = sum(1 for i in range(1, min(4, len(vals))) if vals[-i] < vals[-(i+1)])
+
+        if abs(delta) < 1:
+            items.append(f"➡️ {name}：近4季稳定（{recent:.1f}{unit}，Δ{delta:+.1f}{unit}）")
+        elif delta > 0:
+            trend_word = "连续提升" if ups >= 2 else "边际改善"
+            items.append(f"📈 {name}：近4季{trend_word}（{recent:.1f}{unit}，Δ{delta:+.1f}{unit}）")
+        else:
+            trend_word = "连续下滑" if downs >= 2 else "边际走弱"
+            items.append(f"📉 {name}：近4季{trend_word}（{recent:.1f}{unit}，Δ{delta:+.1f}{unit}）")
+
+    return items

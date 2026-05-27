@@ -751,6 +751,15 @@ def _score_l4(code: str, t_date: str, industry_l3: str) -> dict:
             "value": round(weighted_pct, 1),
             "label": f"行业加权分位{weighted_pct:.0f}% → 基础分{industry_score:.1f}",
         }
+
+        # 同业排名估算
+        peer_count = len(peer_snap)
+        rank_approx = max(1, peer_count - int(round(weighted_pct / 100 * peer_count)))
+        result["peer_rank"] = {
+            "value": rank_approx,
+            "total": peer_count,
+            "label": f"赛道排名第{rank_approx}/{peer_count}",
+        }
     else:
         result["total"] = 5.0
 
