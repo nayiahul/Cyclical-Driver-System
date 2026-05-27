@@ -39,6 +39,9 @@ def probe_order_leadership(code: str, t_date: str) -> dict:
     # 合同负债增速显著高于营收增速 → 需求漏斗充盈
     if cl_growth > 0 and rev_yoy > 0 and cl_growth > rev_yoy * 0.8:
         return {"label": f"🟢 需求漏斗充盈（合同负债+{cl_growth:.0f}%，营收+{rev_yoy:.0f}%）", "level": "green"}
+    # 绝对增速极高(>30%)即使未超营收也属强需求信号（营收确认节奏略慢于订单）
+    elif cl_growth > 30:
+        return {"label": f"🟢 订单高增长（合同负债+{cl_growth:.0f}%，营收+{rev_yoy:.0f}%），需求强劲", "level": "green"}
     elif cl_growth > 0:
         return {"label": f"🟡 订单同步增长（合同负债+{cl_growth:.0f}%）", "level": "yellow"}
     elif cl_growth > -10:

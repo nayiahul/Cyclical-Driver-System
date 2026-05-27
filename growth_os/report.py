@@ -223,7 +223,8 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
 
     lines.append(f"| | 评估 |")
     lines.append(f"|------|------|")
-    lines.append(f"| **优势** | {', '.join(positives) if positives else '无明显突出优势'} |")
+    advantage_label = "**市场状态**" if not card.is_growth_eligible else "**优势**"
+    lines.append(f"| {advantage_label} | {', '.join(positives) if positives else '无明显突出优势'} |")
     lines.append(f"| **风险** | {', '.join(risks) if risks else '未发现明显风险因素'} |")
     # 探针摘要
     if probe_unknown > 0:
@@ -309,6 +310,9 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         # 扣非恶化归因
         if key == "deducted_vs_revenue" and val.get("red") and profit_quality and profit_quality.get("has_issue"):
             lines.append(f"  → 归因：{profit_quality['label']}")
+        # 应收异常说明
+        if key == "receivable_surge" and val.get("red") and card.revenue_yoy is not None and card.revenue_yoy < 0:
+            lines.append(f"  → 营收下降但应收未同步缩减，回款效率恶化")
     lines.append(f"")
 
     # L2 护城河
@@ -513,6 +517,9 @@ def _build_trajectory(code: str, t_date: str, profit_quality: dict = None) -> li
 
         # 最新季度与4Q均值显著偏离时额外标注
         latest = vals[-1] if len(vals) > 0 else None
+        # 向上偏离（单季远高于TTM均值）= 前期基数低，TTM均值滞后于当前高增长
+        if latest is not None and latest > recent * 1.5 and latest > 10 and name == "营收增速":
+            items.append(f"  💡 单季增速{latest:.1f}%远高于近4季均值{recent:.1f}%——TTM均值含历史慢速季度，单季仍在高增，两者口径不同不矛盾")
         if latest is not None and abs(latest - recent) > abs(recent) * 0.5 and abs(recent) > 2:
             items.append(f"  ⚠️ 最新季度{latest:.1f}%与近4季均值({recent:.1f}%)显著偏离")
 
