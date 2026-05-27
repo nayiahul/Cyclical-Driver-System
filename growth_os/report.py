@@ -370,6 +370,22 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
 
     lines.append(f"")
 
+    # 周期位置评估 — 仅非成长持仓时显示
+    if not card.is_growth_eligible:
+        try:
+            from growth_os.funnel import score_cycle_position
+            cycle = score_cycle_position(code, t_date)
+            if cycle.get("dimensions"):
+                lines.append(f"## 周期位置评估（非成长持仓）")
+                lines.append(f"")
+                for d in cycle["dimensions"]:
+                    lines.append(f"- {d}")
+                lines.append(f"")
+                lines.append(f"> {cycle['total_note']}")
+                lines.append(f"")
+        except Exception:
+            pass
+
     # 增长来源探针
     try:
         from growth_os.growth_probes import run_all_probes

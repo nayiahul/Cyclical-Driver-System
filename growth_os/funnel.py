@@ -24,7 +24,6 @@ from growth_os.wacc import compute_wacc
 ABSOLUTE_RED_KEYS = {
     "_error",                    # 无财务数据
     "goodwill_ratio",            # 商誉/净资产>30% — 并购地雷
-    "receivable_surge",          # 应收增速远超营收 — 恶性赊销
     "inventory_structure",       # 产成品占比>70% — 滞销
     "rd_capitalization",         # 研发资本化率>50% — 虚增利润
     "subsidy_dependency",        # 政府补助占扣非利润>50% — 非经常性依赖
@@ -34,6 +33,7 @@ CONDITIONAL_RED_KEYS = {
     "revenue_cagr_3y",           # 营收3年CAGR过低 — 增长疲弱
     "deducted_vs_revenue",       # 扣非增速跟不上营收 — 利润质量差
     "ocf_profit_ratio_3y",       # OCF/净利润低 — 现金含金量不足
+    "receivable_surge",          # 应收增速远超营收 — 需结合营收方向判断
     "inventory_surge",           # 存货增速>营收增速×阈值 — 需结合行业判断
     "cashflow_burn",             # 近3季OCF<0但利润>0 — 可能是扩张期
 }
@@ -112,8 +112,8 @@ def run_funnel(
         result["pass_l1"] = True
         result["l1_verdict"] = "pass"
 
-    if not result["pass_l1"]:
-        return result
+    # 即使 L1 未通过也继续跑完 L2-L5（报告需展示完整诊断）
+    # L1 verdict 已在 report 中体现为"一票否决"
 
     # ---- L2: 护城河 ----
     l2 = _score_l2(code, t_date, industry_l3)
@@ -1089,3 +1089,73 @@ def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
         sum(v.get("score", 0) for k, v in result.items() if k != "total"
     ), max_score), 1)
     return result
+
+
+def score_cycle_position(code: str, t_date: str) -> dict:
+    """周期位置评估 — 用于 is_growth_eligible=False 的标的。
+
+    四维评估（不参与成长股综合分）：
+    1. 现金流安全性: FCF/营收
+    2. 订单能见度: 合同负债/营收
+    3. 债务安全性: 有息负债率
+    4. 库存位置: 存货周转天数
+    """
+    snap = get_financial_snapshot(t_date)
+    row = snap[snap["code"] == code]
+    if row.empty:
+        return {"dimensions": [], "total_note": "数据不足"}
+    row = row.iloc[0]
+
+    dims = []
+    revenue = row.get("revenue") or 1
+
+    fcff = row.get("fcff_per_share")
+    shares = row.get("total_shares")
+    if fcff is not None and shares is not None and not pd.isna(fcff):
+        fcf_total = fcff * shares
+        fcf_yield = fcf_total / revenue * 100 if revenue > 0 else 0
+        if fcf_yield > 5:
+            dims.append(f"🟢 FCF充裕(FCF/营收={fcf_yield:.1f}%)")
+        elif fcf_yield > 0:
+            dims.append(f"🟡 FCF为正(FCF/营收={fcf_yield:.1f}%)")
+        else:
+            dims.append(f"🔴 FCF为负，现金消耗中")
+
+    cl = row.get("contract_liabilities")
+    if cl is not None and not pd.isna(cl) and cl > 0:
+        cl_ratio = cl / revenue * 100
+        if cl_ratio > 20:
+            dims.append(f"🟢 订单充盈(合同负债/营收={cl_ratio:.0f}%)")
+        elif cl_ratio > 5:
+            dims.append(f"🟡 有在手订单(合同负债/营收={cl_ratio:.0f}%)")
+        else:
+            dims.append(f"🟡 订单偏薄(合同负债/营收={cl_ratio:.0f}%)")
+
+    debt_ratio = row.get("interest_bearing_debt_ratio")
+    if debt_ratio is not None and not pd.isna(debt_ratio):
+        if debt_ratio < 30:
+            dims.append(f"🟢 低杠杆(有息负债率={debt_ratio:.1f}%)")
+        elif debt_ratio < 50:
+            dims.append(f"🟡 中等杠杆(有息负债率={debt_ratio:.1f}%)")
+        else:
+            dims.append(f"🔴 高杠杆(有息负债率={debt_ratio:.1f}%)")
+
+    inv_days = row.get("inventory_days")
+    if inv_days is not None and not pd.isna(inv_days):
+        if inv_days < 90:
+            dims.append(f"🟢 库存轻(周转{inv_days:.0f}天)")
+        elif inv_days < 180:
+            dims.append(f"🟡 库存适中(周转{inv_days:.0f}天)")
+        else:
+            dims.append(f"🔴 库存积压(周转{inv_days:.0f}天)")
+
+    greens = sum(1 for d in dims if "🟢" in d)
+    reds = sum(1 for d in dims if "🔴" in d)
+    if greens >= 3 and reds == 0:
+        total_note = "周期安全性较高，可关注拐点信号（营收转正/ROIC回升）"
+    elif reds >= 2:
+        total_note = "周期位置偏弱，需等待更多出清信号（库存下降/资产负债改善）"
+    else:
+        total_note = "周期位置中性，部分维度改善中，建议持续跟踪"
+
+    return {"dimensions": dims, "total_note": total_note}

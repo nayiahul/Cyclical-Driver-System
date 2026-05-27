@@ -330,10 +330,11 @@ def compute_composite(
     # 成长资格门：ROIC<WACC且营收负增长→不具成长持仓资格
     card.is_growth_eligible = True
     card.block_reason = ""
-    roic_wacc_check = l3.get("roic_vs_wacc", {})
+    roic_wacc_val = l3.get("roic_vs_wacc", {}).get("value", {})
+    spread = roic_wacc_val.get("spread") if roic_wacc_val else None
     rev_yoy_val = card.revenue_yoy
-    if (roic_wacc_check.get("score", 1) == 0
-            and rev_yoy_val is not None and rev_yoy_val < 0):
+    roic_below_wacc = spread is not None and spread < 0
+    if roic_below_wacc and rev_yoy_val is not None and rev_yoy_val < 0:
         card.is_growth_eligible = False
         card.block_reason = "ROIC<WACC且营收负增长：周期/出清态，非成长持仓"
         # 强制降级决策
