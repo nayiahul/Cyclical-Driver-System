@@ -316,9 +316,13 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"## L3 资本效率 — {card.score_l3:.1f}/10")
     l3d = funnel_result["l3_details"]
     for key, val in l3d.items():
-        if key == "total":
+        if key == "total" or key == "incremental_roic":
             continue
         lines.append(f"- **{key}**: {val.get('label', 'N/A')} (得分: {val.get('score', 0):.1f})")
+    # 增量ROIC信号（不参与评分，仅作参考）
+    inc_roic = l3d.get("incremental_roic", {})
+    if inc_roic and inc_roic.get("negative"):
+        lines.append(f"- **增量ROIC**: {inc_roic['label']}")
     lines.append(f"")
 
     # L4 行业校准

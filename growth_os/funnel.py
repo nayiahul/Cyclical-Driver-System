@@ -532,6 +532,18 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
         result["roic_vs_wacc"] = {"score": 0, "label": "ROIC数据缺失",
                                   "value": {"roic": None, "wacc": None, "spread": None}}
 
+    # 增量ROIC信号：最新季度ROIC vs 近4季均值
+    if roic is not None and not pd.isna(roic):
+        roic_q = get_quarterly_series(code, "roic", n_quarters=4, t_date=t_date).dropna()
+        if len(roic_q) >= 2:
+            roic_latest = roic_q.iloc[-1]
+            roic_recent_avg = roic_q.mean()
+            if roic_recent_avg > 2 and roic_latest < roic_recent_avg * 0.4:
+                result["incremental_roic"] = {
+                    "label": f"⚠️ 增量ROIC可能为负：最新季度{roic_latest:.1f}%远低于近4季均值{roic_recent_avg:.1f}%，新增资本回报在恶化",
+                    "negative": True,
+                }
+
     # 2. ROIC 趋势 (0-2) — 同比对比(同期)，避免季节性误判
     roic_series = get_quarterly_series(
         code, "roic", n_quarters=16, t_date=t_date
