@@ -1174,4 +1174,11 @@ def score_cycle_position(code: str, t_date: str) -> dict:
     else:
         total_note = "周期位置中性，部分维度改善中，建议持续跟踪"
 
+    # 订单转化效率：合同负债高但营收负增长 → 转化存疑
+    rev_yoy = row.get("revenue_yoy")
+    if rev_yoy is not None and not pd.isna(rev_yoy) and rev_yoy < -5 and cl is not None and cl > 0:
+        cl_ratio = cl / revenue * 100
+        if cl_ratio > 20:
+            dims.append(f"⚠️ 合同负债/营收={cl_ratio:.0f}%但营收{rev_yoy:.0f}%，需确认订单转化效率（交付延迟/订单延期/长周期订单结构）")
+
     return {"dimensions": dims, "total_note": total_note}

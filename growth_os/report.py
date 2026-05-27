@@ -531,9 +531,6 @@ def _build_trajectory(code: str, t_date: str, profit_quality: dict = None) -> li
 
     # 净利率 vs 扣非矛盾标注
     if profit_quality and profit_quality.get("has_issue"):
-        # 检查是否有净利率依赖非经常性的问题
-        for cause in profit_quality.get("causes", []):
-            if "依赖非经常性" in cause:
-                items.append(f"  ⚠️ 归母净利率稳定但扣非净利率已恶化，差额来自非经常性收益")
+        items.append(f"  ⚠️ 归母净利率稳定但扣非净利率已大幅恶化，利润结构存疑")
 
     return items

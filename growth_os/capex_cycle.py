@@ -63,9 +63,17 @@ def classify_capex_cycle(code: str, t_date: str) -> dict:
         level = "green"
         label = f"🟢 复苏期（CAPEX{capex_growth:.0f}%，营收+{rev_growth:.0f}%），产能利用率改善"
     elif abs(capex_growth) < 10 and abs(rev_growth) < 10:
-        phase = "plateau"
-        level = "yellow"
-        label = f"🟡 平台期（CAPEX{capex_growth:+.0f}%，营收{rev_growth:+.0f}%），资本开支平稳"
+        # TTM平稳但需检查单季是否已恶化
+        rev_q = get_quarterly_series(code, "revenue_yoy", n_quarters=1, t_date=t_date).dropna()
+        rev_latest = rev_q.iloc[-1] if len(rev_q) > 0 else rev_growth
+        if rev_latest < -10:
+            phase = "plateau_risky"
+            level = "yellow"
+            label = f"🟡 出清滞后（CAPEX{capex_growth:+.0f}%，营收TTM{rev_growth:+.0f}%/单季{rev_latest:.0f}%），资本开支未随营收收缩"
+        else:
+            phase = "plateau"
+            level = "yellow"
+            label = f"🟡 平台期（CAPEX{capex_growth:+.0f}%，营收{rev_growth:+.0f}%），资本开支平稳"
     elif capex_growth > 0 and rev_growth >= -5:
         phase = "mild_expansion"
         level = "yellow"
