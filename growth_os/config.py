@@ -268,6 +268,25 @@ WACC_CONFIG = {
     "min_market_cap": 1e9,           # 最小市值(10亿) skip太小的
 }
 
+# ===== 预过滤器参数 =====
+PRE_FILTER = {
+    # 第一层：基础清洗
+    "require_fields": ["revenue_yoy", "gross_margin", "deducted_profit_yoy"],
+    "exclude_sectors_l1": ["银行", "非银金融", "房地产"],
+    "min_market_cap": 2.0,          # 最低市值(亿元)，壳价值以下
+
+    # 第二层：Growth Signal Gate — 多路径 OR，全行业相对分位
+    "route_a": {
+        "revenue_pct_threshold": 0.4,  # 行业营收增速分位 > 40%（行业前60%）
+    },
+    "route_b": {
+        "cl_ratio_pct_threshold": 0.4, # 合同负债/总资产 行业分位 > 40%
+    },
+    "route_c": {
+        "roic_pct_threshold": 0.5,     # ROIC 行业分位 > 50%（行业上半区）
+    },
+}
+
 # ===== 数据路径 =====
 DATA_PATHS = {
     "tdx_cache": "data/cache/tdx_financials.csv",

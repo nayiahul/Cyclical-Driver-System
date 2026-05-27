@@ -19,6 +19,7 @@ from growth_os.lifecycle import classify_lifecycle
 from growth_os.funnel import run_funnel
 from growth_os.scorecard import GrowthScorecard, compute_composite, normalize_pool, recalc_composite_with_ranks
 from growth_os.report import generate_report
+from growth_os.pre_filter import pre_filter, sort_by_relevance
 
 
 def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> pd.DataFrame:
@@ -50,10 +51,12 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
     df = df[df["revenue"] > 0].copy()
     logger.info(f"有营收: {len(df)} 只")
 
-    # 限制筛选数量（全市场太慢，取市值前1500只做大池）
-    df = df.sort_values("market_cap", ascending=False).head(1500).copy()
+    # 预过滤：排除法 + 成长信号门控，不按市值截断
+    df, filter_stats = pre_filter(df)
+    # 按成长相关性排序（不截断，仅决定执行顺序）
+    df = sort_by_relevance(df)
     codes = df["code"].tolist()
-    logger.info(f"筛选池: {len(codes)} 只 (市值前1500)")
+    logger.info(f"候选池: {len(codes)} 只（预过滤后，已按成长相关性排序）")
 
     results = []
     for i, code in enumerate(codes):
