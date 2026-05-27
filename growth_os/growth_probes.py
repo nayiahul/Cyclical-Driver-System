@@ -82,6 +82,10 @@ def probe_capex_efficiency(code: str, t_date: str) -> dict:
     elif capex_growth > 30:
         return {"label": f"🟡 扩张期（CAPEX+{capex_growth:.0f}%），关注 ROIC 后续走势", "level": "yellow"}
     elif roic_change > 0:
+        # 检查最新季度是否与近4季均值显著偏离（趋势改善但最新值崩塌）
+        roic_latest = roic_series.iloc[-1] if len(roic_series) > 0 else None
+        if roic_latest is not None and roic_recent > 2 and roic_latest < roic_recent * 0.5:
+            return {"label": f"🟡 ROIC近4季趋势改善（+{roic_change:.1f}pp），但最新季度{roic_latest:.1f}%大幅回落，趋势可能逆转", "level": "yellow"}
         return {"label": f"🟢 ROIC提升（+{roic_change:.1f}pp），资本效率持续改善", "level": "green"}
     else:
         return {"label": "⚪ CAPEX 平稳，无明显信号", "level": "yellow"}

@@ -134,10 +134,17 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     positives = []
     if qs >= 75: positives.append(f"成长质量优秀（{qs:.0f}/100）")
     elif qs >= 60: positives.append(f"成长质量良好（{qs:.0f}/100）")
-    if l5_status == "ok" and card.score_l5 >= 7: positives.append(f"估值安全边际充足（{card.score_l5:.0f}/10）")
-    elif l5_status == "ok" and card.score_l5 >= 4: positives.append(f"估值安全边际尚可（{card.score_l5:.0f}/10）")
+
+    # 非成长持仓：估值低反映周期下行预期，非安全边际
+    if not card.is_growth_eligible:
+        if l5_status == "ok" and hasattr(card, 'pe_percentile') and card.pe_percentile is not None and card.pe_percentile < 30:
+            positives.append(f"PE处于历史低位（分位{card.pe_percentile:.0f}%，市场已反映悲观预期）")
+    else:
+        if l5_status == "ok" and card.score_l5 >= 7: positives.append(f"估值安全边际充足（{card.score_l5:.0f}/10）")
+        elif l5_status == "ok" and card.score_l5 >= 4: positives.append(f"估值安全边际尚可（{card.score_l5:.0f}/10）")
+
     if card.roic and card.roic_minus_wacc and card.roic_minus_wacc > 3: positives.append(f"ROIC显著优于WACC（利差{card.roic_minus_wacc:.1f}pp）")
-    if hasattr(card, 'pe_percentile') and card.pe_percentile and card.pe_percentile < 40: positives.append(f"PE行业分位偏低（{card.pe_percentile:.0f}%）")
+    if hasattr(card, 'pe_percentile') and card.pe_percentile and card.pe_percentile < 40 and card.is_growth_eligible: positives.append(f"PE行业分位偏低（{card.pe_percentile:.0f}%）")
 
     # 风险因素
     risks = []
@@ -306,7 +313,9 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     # L5 预期差
     l5_score_display = card.score_l5 if not np.isnan(card.score_l5) else 0
     if l5_status == "ok":
-        lines.append(f"## L5 预期差 — {l5_score_display:.1f}/10 ✅")
+        g_trusted = l5d.get("peg_ratio", {}).get("g_trusted", True)
+        l5_suffix = " ⚠️ 低可信（PEG失真压分）" if not g_trusted else " ✅"
+        lines.append(f"## L5 预期差 — {l5_score_display:.1f}/10{l5_suffix}")
     elif l5_status == "partial":
         lines.append(f"## L5 预期差 — {l5_score_display:.1f}/10 ⚠️ (PE/PEG缺失)")
     else:
@@ -396,14 +405,15 @@ def _build_trajectory(code: str, t_date: str) -> list[str]:
     import numpy as np
 
     items = []
+    # 单位：绝对值用%，变化量用pp
     metrics = [
-        ("gross_margin", "毛利率", "pp"),
-        ("roic", "ROIC", "pp"),
-        ("revenue_yoy", "营收增速", "pp"),
-        ("net_margin", "净利率", "pp"),
+        ("gross_margin", "毛利率"),
+        ("roic", "ROIC"),
+        ("revenue_yoy", "营收增速"),
+        ("net_margin", "净利率"),
     ]
 
-    for field, name, unit in metrics:
+    for field, name in metrics:
         series = get_quarterly_series(code, field, n_quarters=8, t_date=t_date).dropna()
         if len(series) < 4:
             items.append(f"⚪ {name}：数据不足")
@@ -424,17 +434,17 @@ def _build_trajectory(code: str, t_date: str) -> list[str]:
         downs = sum(1 for i in range(1, min(4, len(vals))) if vals[-i] < vals[-(i+1)])
 
         if abs(delta) < 1:
-            items.append(f"➡️ {name}：近4季稳定（{recent:.1f}{unit}，Δ{delta:+.1f}{unit}）")
+            items.append(f"➡️ {name}：近4季稳定（{recent:.1f}%，Δ{delta:+.1f}pp）")
         elif delta > 0:
             trend_word = "连续提升" if ups >= 2 else "边际改善"
-            items.append(f"📈 {name}：近4季{trend_word}（{recent:.1f}{unit}，Δ{delta:+.1f}{unit}）")
+            items.append(f"📈 {name}：近4季{trend_word}（{recent:.1f}%，Δ{delta:+.1f}pp）")
         else:
             trend_word = "连续下滑" if downs >= 2 else "边际走弱"
-            items.append(f"📉 {name}：近4季{trend_word}（{recent:.1f}{unit}，Δ{delta:+.1f}{unit}）")
+            items.append(f"📉 {name}：近4季{trend_word}（{recent:.1f}%，Δ{delta:+.1f}pp）")
 
-        # 最新季度与4Q均值显著偏离时额外标注（ROIC/营收波动大时关键）
+        # 最新季度与4Q均值显著偏离时额外标注
         latest = vals[-1] if len(vals) > 0 else None
         if latest is not None and abs(latest - recent) > abs(recent) * 0.5 and abs(recent) > 2:
-            items.append(f"  ⚠️ 最新季度{latest:.1f}{unit}与近4季均值({recent:.1f}{unit})显著偏离")
+            items.append(f"  ⚠️ 最新季度{latest:.1f}%与近4季均值({recent:.1f}%)显著偏离")
 
     return items
