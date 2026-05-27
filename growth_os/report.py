@@ -52,6 +52,25 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     )
     card = compute_composite(card, funnel_result)
 
+    # PEG框架覆写：成长资格未通过时，从"可信度低"升级为"框架不适用"
+    if not card.is_growth_eligible and funnel_result["l5_details"].get("peg_ratio", {}).get("score", 0) > 0:
+        peg_r = funnel_result["l5_details"]["peg_ratio"]
+        rev_yoy_val = card.revenue_yoy or 0
+        peg_r["label"] = (
+            f"⛔ PEG框架不适用 — 公司处于周期/出清态（营收{rev_yoy_val:.0f}%，ROIC<WACC），"
+            f"PEG隐含的'增速可持续'假设不成立。建议使用PB-ROE或周期调整估值框架，PEG结果不予采信。"
+        )
+        peg_r["framework_mismatch"] = True
+
+    # 利润质量归因探针
+    profit_quality = None
+    if funnel_result.get("l1_red_flags"):
+        try:
+            from growth_os.profit_quality_probe import probe_profit_quality
+            profit_quality = probe_profit_quality(code, t_date)
+        except Exception:
+            pass
+
     sell_signals = check_sell_signals(code, t_date)
     sell_summary = get_sell_summary(sell_signals)
 
@@ -252,7 +271,7 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"")
 
     # 轨迹层 — 关键指标演化方向
-    traj = _build_trajectory(code, t_date)
+    traj = _build_trajectory(code, t_date, profit_quality)
     if traj:
         lines.append(f"## 轨迹层（演化方向）")
         lines.append(f"")
@@ -279,6 +298,9 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
             continue
         flag = "🔴" if val.get("red") else "✅"
         lines.append(f"- {flag} **{key}**: {val.get('detail', 'N/A')}")
+        # 扣非恶化归因
+        if key == "deducted_vs_revenue" and val.get("red") and profit_quality and profit_quality.get("has_issue"):
+            lines.append(f"  → 归因：{profit_quality['label']}")
     lines.append(f"")
 
     # L2 护城河
@@ -313,8 +335,14 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     # L5 预期差
     l5_score_display = card.score_l5 if not np.isnan(card.score_l5) else 0
     if l5_status == "ok":
+        framework_mismatch = l5d.get("peg_ratio", {}).get("framework_mismatch", False)
         g_trusted = l5d.get("peg_ratio", {}).get("g_trusted", True)
-        l5_suffix = " ⚠️ 低可信（PEG失真压分）" if not g_trusted else " ✅"
+        if framework_mismatch:
+            l5_suffix = " ⛔ 框架不适用（周期/出清态，PEG不可作为买入依据）"
+        elif not g_trusted:
+            l5_suffix = " ⚠️ 低可信（PEG失真压分）"
+        else:
+            l5_suffix = " ✅"
         lines.append(f"## L5 预期差 — {l5_score_display:.1f}/10{l5_suffix}")
     elif l5_status == "partial":
         lines.append(f"## L5 预期差 — {l5_score_display:.1f}/10 ⚠️ (PE/PEG缺失)")
@@ -396,7 +424,7 @@ def _get_stock_name(code: str) -> str:
     return code
 
 
-def _build_trajectory(code: str, t_date: str) -> list[str]:
+def _build_trajectory(code: str, t_date: str, profit_quality: dict = None) -> list[str]:
     """构建关键指标轨迹层 — 展示演化方向而非截面状态。
 
     追踪毛利率/ROIC/营收增速/净利率的连续变化方向。
@@ -446,5 +474,12 @@ def _build_trajectory(code: str, t_date: str) -> list[str]:
         latest = vals[-1] if len(vals) > 0 else None
         if latest is not None and abs(latest - recent) > abs(recent) * 0.5 and abs(recent) > 2:
             items.append(f"  ⚠️ 最新季度{latest:.1f}%与近4季均值({recent:.1f}%)显著偏离")
+
+    # 净利率 vs 扣非矛盾标注
+    if profit_quality and profit_quality.get("has_issue"):
+        # 检查是否有净利率依赖非经常性的问题
+        for cause in profit_quality.get("causes", []):
+            if "依赖非经常性" in cause:
+                items.append(f"  ⚠️ 归母净利率稳定但扣非净利率已恶化，差额来自非经常性收益")
 
     return items
