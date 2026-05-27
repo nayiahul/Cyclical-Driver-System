@@ -11,6 +11,7 @@ from growth_os.funnel import run_funnel
 from growth_os.scorecard import GrowthScorecard, compute_composite
 from growth_os.sell_signals import check_sell_signals, get_sell_summary
 from growth_os.industry_cal import get_industry_narrative
+from growth_os.regime import compute_regime
 
 
 def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
@@ -91,9 +92,21 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     peg_val = l5d.get("peg_ratio", {}).get("value")
     pe_pct = l5d.get("pe_percentile", {}).get("value")
     g_proxy = l5d.get("peg_ratio", {}).get("g_proxy")
+    g_source = l5d.get("peg_ratio", {}).get("g_source", "")
+    g_source_map = {
+        "ewa_yoy": "EWA历史YoY外推",
+        "ewa_cl_crossvalidated": "EWA历史YoY外推+合同负债修正",
+        "ewa_ocf_discounted": "EWA历史YoY外推(OCF含金量折扣)",
+        "ewa_yoy_declining": "EWA历史YoY外推(近2季回落修正)",
+        "fallback_cagr3y": "3年CAGR回退估算",
+        "ewa_floor": "极低增速保底",
+    }
+    g_source_label = g_source_map.get(g_source, g_source)
 
     if l5_status == "ok":
-        lines.append(f"**估值状态**: ✅ 可评估 — PEG={peg_val:.1f}, PE分位={pe_pct:.0f}%")
+        g_note = f" (g*={g_proxy:.0f}%, {g_source_label})" if g_proxy is not None else ""
+        lines.append(f"**估值状态**: ✅ 可评估 — PEG={peg_val:.1f}{g_note}, PE分位={pe_pct:.0f}%")
+        lines.append(f"**g* 说明**: g* 由{g_source_label}，非分析师一致预期CAGR")
     elif l5_status == "partial":
         lines.append(f"**估值状态**: ⚠️ 数据不完整 — 仅增长加速度可用，估值上限 5/10")
     else:
@@ -125,13 +138,17 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
 
     # 探针信号
     probe_green = 0
+    probe_yellow = 0
     probe_red = 0
+    probe_unknown = 0
     try:
         from growth_os.growth_probes import run_all_probes
         probes = run_all_probes(code, t_date)
         for p in probes:
             if p["level"] == "green": probe_green += 1
-            if p["level"] == "red": probe_red += 1
+            elif p["level"] == "yellow": probe_yellow += 1
+            elif p["level"] == "red": probe_red += 1
+            elif p["level"] == "unknown": probe_unknown += 1
     except ImportError:
         probes = []
 
@@ -139,11 +156,28 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"|------|------|")
     lines.append(f"| **优势** | {', '.join(positives) if positives else '无明显突出优势'} |")
     lines.append(f"| **风险** | {', '.join(risks) if risks else '未发现明显风险因素'} |")
-    lines.append(f"| **增长持续性** | {probe_green}绿/{probe_red}红（{len(probes)}项探针） |")
+    # 探针摘要
+    if probe_unknown > 0:
+        probe_summary = f"✅ {probe_green}🟢 / {probe_yellow}🟡 / {probe_red}🔴 / {probe_unknown}⚠️未知"
+    else:
+        probe_summary = f"✅ {probe_green}🟢 / {probe_yellow}🟡 / {probe_red}🔴"
+    lines.append(f"| **增长持续性** | {probe_summary} |")
+
+    # Regime 状态
+    try:
+        regime = compute_regime(t_date)
+        if regime.is_defense:
+            regime_tag = "（⚠️ 当前 DEFENSE 期，即使高分也不建议建仓）"
+        elif regime.is_ok:
+            regime_tag = "（GROWTH_OK 期）"
+        else:
+            regime_tag = "（CAUTION 期，建议控制仓位）"
+    except Exception:
+        regime_tag = ""
 
     # 综合建议
     if qs >= 75 and l5_status == "ok" and probe_red == 0:
-        suggestion = "🟢 高质量成长股，估值合理，增长信号健康——可纳入核心持仓"
+        suggestion = f"🟢 高质量成长股，估值合理，增长信号健康——可纳入核心持仓考量{regime_tag}"
     elif qs >= 75 and probe_red > 0:
         suggestion = "🟡 优质但有隐忧——建议关注探针风险信号，控制单票仓位"
     elif qs >= 75 and l5_status != "ok":
