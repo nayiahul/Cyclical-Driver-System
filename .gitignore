@@ -6,3 +6,4 @@ data/cache/
 output/
 *.egg-info/
 data/archive/
+.codegraph/
