@@ -164,15 +164,18 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         probe_summary = f"✅ {probe_green}🟢 / {probe_yellow}🟡 / {probe_red}🔴"
     lines.append(f"| **增长持续性** | {probe_summary} |")
 
-    # Regime 状态
+    # Regime 状态 + 连续仓位
     try:
         regime = compute_regime(t_date)
+        from growth_os.regime_continuous import ContinuousRegime
+        cr = ContinuousRegime()
+        position = cr.compute(t_date)
         if regime.is_defense:
-            regime_tag = "（⚠️ 当前 DEFENSE 期，即使高分也不建议建仓）"
+            regime_tag = f"（⚠️ 当前 DEFENSE 期，即使高分也不建议建仓；模型仓位 {position:.0f}%）"
         elif regime.is_ok:
-            regime_tag = "（GROWTH_OK 期）"
+            regime_tag = f"（GROWTH_OK 期，建议成长仓位 {position:.0f}%）"
         else:
-            regime_tag = "（CAUTION 期，建议控制仓位）"
+            regime_tag = f"（CAUTION 期，建议成长仓位 {position:.0f}%）"
     except Exception:
         regime_tag = ""
 
@@ -180,7 +183,7 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     if qs >= 75 and l5_status == "ok" and probe_red == 0:
         suggestion = f"🟢 高质量成长股，估值合理，增长信号健康——可纳入核心持仓考量{regime_tag}"
     elif qs >= 75 and probe_red > 0:
-        suggestion = "🟡 优质但有隐忧——建议关注探针风险信号，控制单票仓位"
+        suggestion = f"🟡 优质但有隐忧——建议关注探针风险信号，控制单票仓位{regime_tag}"
     elif qs >= 75 and l5_status != "ok":
         suggestion = "🟡 基本面优异但估值状态不明——建议人工确认PE后决策"
     elif qs >= 60:
