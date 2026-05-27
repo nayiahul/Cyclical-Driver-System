@@ -368,8 +368,8 @@ def extract_customer_concentration(pdf_path: str | Path) -> dict | None:
             elif "比例" in row_str.lower() or "%" in row_str:
                 ratios.extend(pct_vals)
 
-        # 取最大的合理值作为前五占比
-        valid_ratios = [r for r in ratios if 1 <= r <= 100]
+        # 取合理范围内的值作为前五占比（排除合计行100%）
+        valid_ratios = [r for r in ratios if 5 <= r <= 99]
         if valid_ratios:
             result["top5_ratio"] = max(valid_ratios)
             result["customer_count"] = 5
