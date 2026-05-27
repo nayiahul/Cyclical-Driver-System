@@ -115,6 +115,18 @@ def probe_profit_quality(code: str, t_date: str) -> dict:
     # ---- 汇总 ----
     if not causes:
         causes.append("扣非下滑原因待进一步分析（可能涉及资产减值/投资收益/公允价值变动等未提取科目）")
+    else:
+        # 估算归因覆盖率：已知来源占总缺口的大致比例
+        explained_pp = 0
+        for c in causes:
+            if "费用刚性" in c:
+                explained_pp += 5  # rough estimate: expense ratio changes
+            if "信用减值" in c:
+                explained_pp += 3
+            if "非经常性" in c:
+                explained_pp += 10
+        if explained_pp > 0 and gap > explained_pp * 1.5:
+            causes.append(f"⚠️ 以上归因仅解释部分缺口(~{explained_pp}pp)，剩余约{gap-explained_pp:.0f}pp可能来自资产减值损失、其他收益变动、毛利率绝对额变化等未提取科目，建议人工复核年报附注")
 
     level = "red" if has_serious else "yellow"
     label = " | ".join(causes)

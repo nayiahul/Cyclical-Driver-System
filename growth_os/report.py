@@ -61,6 +61,9 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
             f"PEG隐含的'增速可持续'假设不成立。建议使用PB-ROE或周期调整估值框架，PEG结果不予采信。"
         )
         peg_r["framework_mismatch"] = True
+        # PEG不参与L5评分归一化（分数置0，L5总分由PE分位+增长加速度重新分配）
+        peg_r["score"] = 0
+        peg_r["label"] += "（得分: 0 — 不参与L5总分计算）"
 
     # 利润质量归因探针
     profit_quality = None
@@ -316,13 +319,13 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"## L3 资本效率 — {card.score_l3:.1f}/10")
     l3d = funnel_result["l3_details"]
     for key, val in l3d.items():
-        if key == "total" or key == "incremental_roic":
+        if key == "total" or key == "roic_single_q_anomaly":
             continue
         lines.append(f"- **{key}**: {val.get('label', 'N/A')} (得分: {val.get('score', 0):.1f})")
-    # 增量ROIC信号（不参与评分，仅作参考）
-    inc_roic = l3d.get("incremental_roic", {})
-    if inc_roic and inc_roic.get("negative"):
-        lines.append(f"- **增量ROIC**: {inc_roic['label']}")
+    # ROIC单季异常信号（不参与评分，仅作预警）
+    roic_anomaly = l3d.get("roic_single_q_anomaly", {})
+    if roic_anomaly and roic_anomaly.get("negative"):
+        lines.append(f"- **ROIC单季异常**: {roic_anomaly['label']}")
     lines.append(f"")
 
     # L4 行业校准
@@ -413,6 +416,7 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
             lines.append(f"## CAPEX 周期定位")
             lines.append(f"")
             lines.append(f"- {capex_cycle['label']}")
+            lines.append(f"> 基于近4季TTM数据。单季营收增速见飞轮四象限，两者口径不同。")
             lines.append(f"")
     except Exception:
         pass

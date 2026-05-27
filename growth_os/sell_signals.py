@@ -105,14 +105,18 @@ def check_sell_signals(code: str, t_date: str) -> list[dict]:
                 recent_growths.append(
                     (recv_series.iloc[-(i)] / recv_series.iloc[-(i+1)] - 1) * 100
                 )
-        consec_surge = sum(1 for g in recent_growths if g > rev_yoy * 1.5)
+        if rev_yoy < 0:
+            # 营收负增长：应收降幅应跟上营收降幅，否则=回款效率恶化
+            consec_surge = sum(1 for g in recent_growths if (g - rev_yoy) > 15)
+        else:
+            consec_surge = sum(1 for g in recent_growths if g > rev_yoy * 1.5)
         if consec_surge >= 2:
             recv_surge = True
             signals.append({
-                "signal": "应收增速持续远超营收",
+                "signal": "应收相对营收异常刚性",
                 "triggered": True,
                 "severity": "yellow",
-                "reason": f"增长质量恶化: 连续{consec_surge}季应收飙升",
+                "reason": f"增长质量恶化: 连续{consec_surge}季应收增速高于营收增速（回款效率恶化）",
                 "detail": f"营收增速{rev_yoy:.1f}%",
             })
         else:

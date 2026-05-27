@@ -532,15 +532,16 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
         result["roic_vs_wacc"] = {"score": 0, "label": "ROIC数据缺失",
                                   "value": {"roic": None, "wacc": None, "spread": None}}
 
-    # 增量ROIC信号：最新季度ROIC vs 近4季均值
+    # ROIC单季异常检测：最新季度ROIC vs 近4季均值
+    # 注：这不是真正的增量ROIC(ΔNOPAT/ΔIC)，而是单季偏离度预警
     if roic is not None and not pd.isna(roic):
         roic_q = get_quarterly_series(code, "roic", n_quarters=4, t_date=t_date).dropna()
         if len(roic_q) >= 2:
             roic_latest = roic_q.iloc[-1]
             roic_recent_avg = roic_q.mean()
             if roic_recent_avg > 2 and roic_latest < roic_recent_avg * 0.4:
-                result["incremental_roic"] = {
-                    "label": f"⚠️ 增量ROIC可能为负：最新季度{roic_latest:.1f}%远低于近4季均值{roic_recent_avg:.1f}%，新增资本回报在恶化",
+                result["roic_single_q_anomaly"] = {
+                    "label": f"⚠️ ROIC单季异常：最新季度{roic_latest:.1f}%远低于近4季均值{roic_recent_avg:.1f}%，需观察是否为一次性冲击或趋势反转",
                     "negative": True,
                 }
 
@@ -1163,10 +1164,13 @@ def score_cycle_position(code: str, t_date: str) -> dict:
 
     greens = sum(1 for d in dims if "🟢" in d)
     reds = sum(1 for d in dims if "🔴" in d)
+    has_inventory_risk = any("库存积压" in d for d in dims)
     if greens >= 3 and reds == 0:
         total_note = "周期安全性较高，可关注拐点信号（营收转正/ROIC回升）"
     elif reds >= 2:
         total_note = "周期位置偏弱，需等待更多出清信号（库存下降/资产负债改善）"
+    elif has_inventory_risk:
+        total_note = "周期位置承压：现金流与订单支撑短期生存，但库存积压预示跌价准备风险，需关注减值损失计提"
     else:
         total_note = "周期位置中性，部分维度改善中，建议持续跟踪"
 
