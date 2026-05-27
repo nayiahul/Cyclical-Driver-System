@@ -206,11 +206,17 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
         revenue_recent = row.get("revenue", 0) or 0
         if prev_recv > 0 and recent_recv / max(revenue_recent, 1) > 0.01:
             recv_growth = (recent_recv / prev_recv - 1)
-            recv_surge = (rev_yoy_val > 0 and recv_growth > rev_yoy_val / 100 * t["receivable_surge_ratio"])
+            recv_pct = recv_growth * 100
+            if rev_yoy_val > 0:
+                # 正增长：应收增速不应远超营收增速
+                recv_surge = recv_pct > rev_yoy_val * t["receivable_surge_ratio"]
+            else:
+                # 负增长：应收降幅应跟上营收降幅，否则=赊销撑收入
+                recv_surge = (recv_pct - rev_yoy_val) > 15
             result["receivable_surge"] = {
-                "value": round(recv_growth * 100, 1),
+                "value": round(recv_pct, 1),
                 "red": recv_surge,
-                "detail": f"应收增速{recv_growth*100:.1f}% vs 营收增速{rev_yoy_val:.1f}%",
+                "detail": f"应收增速{recv_pct:.1f}% vs 营收增速{rev_yoy_val:.1f}%",
             }
         else:
             result["receivable_surge"] = {"value": None, "red": False,
