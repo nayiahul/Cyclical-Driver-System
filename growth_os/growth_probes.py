@@ -140,13 +140,13 @@ def probe_customer_concentration(code: str, t_date: str = None) -> dict:
         from growth_os.pdf_data import get_cached_pdf_data
         pdf = get_cached_pdf_data(code)
         if pdf is None:
-            return {"label": "⚠️ PDF 年报未下载，客户结构未知", "level": "unknown"}
+            return {"label": "⚠️ 客户结构：数据缺失（PDF年报未下载，无法提取前五大客户占比）", "level": "unknown"}
 
         top5 = pdf.get("top5_customer_ratio")
         top1 = pdf.get("top1_customer_ratio")
 
         if top5 is None and top1 is None:
-            return {"label": "⚠️ 年报中未提取到客户集中度数据", "level": "unknown"}
+            return {"label": "⚠️ 客户结构：年报中未提取到客户集中度数据", "level": "unknown"}
 
         if top5 is not None:
             ratio = top5

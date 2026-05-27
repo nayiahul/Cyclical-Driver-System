@@ -131,7 +131,8 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     # 风险因素
     risks = []
     pe_hist = funnel_result["l5_details"].get("pe_hist_pct", {})
-    if pe_hist.get("value", 0) > 70: risks.append(f"PE处于自身历史高位（分位{pe_hist['value']:.0f}%），绝对估值不低")
+    if pe_hist.get("value", 0) > 90: risks.append(f"PE处于自身历史极高位（分位{pe_hist['value']:.0f}%），估值均值回归风险高")
+    elif pe_hist.get("value", 0) > 70: risks.append(f"PE处于自身历史高位（分位{pe_hist['value']:.0f}%），绝对估值不低，关注均值回归风险")
     if l5_status == "partial": risks.append("估值数据不完整，安全边际判断受限")
     if l5_status == "missing": risks.append("估值完全不可用，需人工核实PE后评估")
     if card.peg and card.peg > 2.5: risks.append(f"PEG偏高（{card.peg:.1f}），增速可能已被充分定价")
