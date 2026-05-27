@@ -61,9 +61,8 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
             f"PEG隐含的'增速可持续'假设不成立。建议使用PB-ROE或周期调整估值框架，PEG结果不予采信。"
         )
         peg_r["framework_mismatch"] = True
-        # PEG不参与L5评分归一化（分数置0，L5总分由PE分位+增长加速度重新分配）
+        # PEG不参与L5评分归一化
         peg_r["score"] = 0
-        peg_r["label"] += "（得分: 0 — 不参与L5总分计算）"
 
     # 利润质量归因探针
     profit_quality = None
@@ -216,6 +215,12 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     except ImportError:
         probes = []
 
+    # 探针红色信号纳入风险栏
+    for p in probes:
+        if p["level"] == "red":
+            short_name = p.get("name", p["label"][:12])
+            risks.append(f"🔴 探针-{short_name}")
+
     lines.append(f"| | 评估 |")
     lines.append(f"|------|------|")
     lines.append(f"| **优势** | {', '.join(positives) if positives else '无明显突出优势'} |")
@@ -236,7 +241,7 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         if regime.is_defense:
             regime_tag = f"（⚠️ 当前 DEFENSE 期，即使高分也不建议建仓；模型仓位 {position:.0f}%）"
         elif regime.is_ok:
-            regime_tag = f"（GROWTH_OK 期，建议成长仓位 {position:.0f}%）"
+            regime_tag = f"（GROWTH_OK 期，Regime连续化模型建议成长仓位 {position:.0f}%）"
         else:
             regime_tag = f"（CAUTION 期，建议成长仓位 {position:.0f}%）"
     except Exception:
@@ -283,7 +288,7 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         lines.append(f"")
 
     # L1 排雷
-    verdict_label = {"pass": "✅ 通过", "review": "🟡 条件红灯(观察)", "kill_absolute": "❌ 绝对红灯淘汰", "kill_conditional": "❌ 条件红灯累积淘汰"}
+    verdict_label = {"pass": "✅ 通过", "review": "🟡 条件红灯(观察)", "kill_absolute": "❌ 绝对红灯淘汰", "kill_conditional": "🟡 条件红灯累积淘汰(≥2项)"}
     verdict_display = verdict_label.get(funnel_result.get("l1_verdict"), funnel_result.get("l1_verdict", "?"))
     lines.append(f"## L1 排雷 — {verdict_display}")
     abs_reds = funnel_result.get("l1_absolute_reds", [])

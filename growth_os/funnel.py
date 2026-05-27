@@ -499,7 +499,7 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
             result["roic_vs_wacc"] = {
                 "value": {"roic": round(roic, 1), "wacc": round(wacc, 1),
                           "spread": round(spread, 1)},
-                "label": f"ROIC({roic:.1f}%) vs WACC({wacc:.1f}%)",
+                "label": f"ROIC(单季{roic:.1f}%) vs WACC({wacc:.1f}%)",
             }
             if spread > s["roic_wacc_spread_excellent"]:
                 result["roic_vs_wacc"]["score"] = 4.0
@@ -558,20 +558,20 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
             prior_fy = fy_current[-2]
             if current_fy > prior_fy:
                 result["roic_trend"] = {"score": 2.0,
-                    "label": f"ROIC提升({prior_fy:.1f}%→{current_fy:.1f}%)"}
+                    "label": f"ROIC提升(年度{prior_fy:.1f}%→{current_fy:.1f}%)"}
             elif current_fy >= prior_fy * 0.9:
                 result["roic_trend"] = {"score": 1.0,
-                    "label": f"ROIC平稳({prior_fy:.1f}%→{current_fy:.1f}%)"}
+                    "label": f"ROIC平稳(年度{prior_fy:.1f}%→{current_fy:.1f}%)"}
             else:
                 result["roic_trend"] = {"score": 0,
-                    "label": f"ROIC下滑({prior_fy:.1f}%→{current_fy:.1f}%)"}
+                    "label": f"ROIC下滑(年度{prior_fy:.1f}%→{current_fy:.1f}%)"}
         else:
             # 无足够FY数据，回退到连续4季对比
             recent = roic_series.iloc[-4:].mean()
             old = roic_series.iloc[-8:-4].mean()
             if recent > old:
                 result["roic_trend"] = {"score": 2.0,
-                    "label": f"ROIC提升({old:.1f}→{recent:.1f})"}
+                    "label": f"ROIC提升(近4季均值{old:.1f}%→{recent:.1f}%)"}
             elif recent >= old * 0.9:
                 result["roic_trend"] = {"score": 1.0, "label": "ROIC平稳"}
             else:
