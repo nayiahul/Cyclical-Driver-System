@@ -137,6 +137,29 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     if l5_status == "missing": risks.append("估值完全不可用，需人工核实PE后评估")
     if card.peg and card.peg > 2.5: risks.append(f"PEG偏高（{card.peg:.1f}），增速可能已被充分定价")
 
+    # L5 PEG g* 可信度
+    g_trusted = funnel_result["l5_details"].get("peg_ratio", {}).get("g_trusted", True)
+    if l5_status == "ok" and not g_trusted:
+        peg_details = funnel_result["l5_details"]["peg_ratio"]
+        g_pct = peg_details.get("g_proxy", "?")
+        risks.append(f"⚠️ PEG可信度低：g*={g_pct}%与近期营收增速背离，PEG可能失真")
+
+    # L3 ROIC毁灭价值
+    l3d = funnel_result.get("l3_details", {})
+    roic_wacc = l3d.get("roic_vs_wacc", {})
+    if roic_wacc.get("score", 1) == 0:
+        risks.append(f"🔴 ROIC<WACC（毁灭价值）")
+
+    # L1 排雷信号
+    if funnel_result.get("l1_red_flags"):
+        risks.append(f"🟡 排雷警告：{', '.join(funnel_result['l1_red_flags'][:2])}")
+
+    # 卖出信号（ROIC跌破WACC / 应收飙升等）
+    if sell_signals:
+        for s in sell_signals[:2]:
+            if s.get("triggered") and s.get("severity") in ("red", "yellow"):
+                risks.append(f"{'🔴' if s['severity'] == 'red' else '🟡'} {s['signal']}")
+
     # 探针信号
     probe_green = 0
     probe_yellow = 0

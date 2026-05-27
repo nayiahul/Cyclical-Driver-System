@@ -926,27 +926,46 @@ def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
 
     # 1. PEG (0-4) — 用前瞻增速代理 g_proxy
     g_proxy, g_source = compute_forward_growth(code, t_date)
+
+    # g* 可信度检验：当 g* 与最新营收增速严重背离时，标记不可信
+    g_trusted = True
+    g_trust_note = ""
+    rev_yoy_latest = row.get("revenue_yoy") if not row.empty else None
+    if g_proxy is not None and rev_yoy_latest is not None and not pd.isna(rev_yoy_latest):
+        g_pct = g_proxy * 100
+        # 只在 g* 明显高估时标记不可信（g*远高于实际=过度乐观）
+        sign_conflict = (g_pct > 10 and rev_yoy_latest < -5)       # g*正增长但实际营收负增长
+        over_optimistic = (g_pct - rev_yoy_latest) > 30             # g*比实际增速高30pp以上
+        if sign_conflict or over_optimistic:
+            g_trusted = False
+            g_trust_note = f"（⚠️ g*={g_pct:.0f}%与近期增速{rev_yoy_latest:.0f}%背离，可信度低）"
+
     if pe is not None and g_proxy is not None and g_proxy > 0:
         peg = pe / (g_proxy * 100)  # g_proxy 是小数(0.30=30%)
         result["peg_ratio"] = {
             "value": round(peg, 2),
             "g_proxy": round(g_proxy * 100, 1),
             "g_source": g_source,
+            "g_trusted": g_trusted,
         }
         if peg < s["peg_undervalued"]:
             result["peg_ratio"]["score"] = 4.0
-            result["peg_ratio"]["label"] = f"低估(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
+            result["peg_ratio"]["label"] = f"低估(PEG={peg:.1f}, g={g_proxy*100:.0f}%){g_trust_note}"
         elif peg < s["peg_fair"]:
             result["peg_ratio"]["score"] = 2.5
-            result["peg_ratio"]["label"] = f"合理(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
+            result["peg_ratio"]["label"] = f"合理(PEG={peg:.1f}, g={g_proxy*100:.0f}%){g_trust_note}"
         elif peg < s["peg_overvalued"]:
             result["peg_ratio"]["score"] = 1.0
-            result["peg_ratio"]["label"] = f"偏贵(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
+            result["peg_ratio"]["label"] = f"偏贵(PEG={peg:.1f}, g={g_proxy*100:.0f}%){g_trust_note}"
         else:
             result["peg_ratio"]["score"] = 0
-            result["peg_ratio"]["label"] = f"高估(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
+            result["peg_ratio"]["label"] = f"高估(PEG={peg:.1f}, g={g_proxy*100:.0f}%){g_trust_note}"
+
+        # g* 不可信时额外折扣
+        if not g_trusted:
+            result["peg_ratio"]["score"] = round(result["peg_ratio"]["score"] * 0.5, 1)
     else:
-        result["peg_ratio"] = {"score": 0, "label": "数据不足", "g_proxy": None, "g_source": g_source if g_proxy else "insufficient_data"}
+        result["peg_ratio"] = {"score": 0, "label": "数据不足", "g_proxy": None, "g_source": g_source if g_proxy else "insufficient_data", "g_trusted": False}
 
     # 2. PE 行业内分位 (0-3)
     if pe is not None:

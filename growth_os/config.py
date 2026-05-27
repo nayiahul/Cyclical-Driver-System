@@ -221,6 +221,7 @@ PEG_CONFIDENCE = {
     "医疗设备": {"level": "valid", "driver": "技术扩散型", "note": "PEG有效，国产替代+出海驱动，需盯海外收入占比"},
     # 周期价格型 — PEG可能误导，利润暴增不可持续
     "光伏电池组件": {"level": "misleading", "driver": "周期价格型", "note": "PEG可能严重误导，产能周期顶部利润暴增不可持续，建议参考PB/EVEBITDA"},
+    "逆变器": {"level": "caution", "driver": "周期价格型", "note": "PEG需谨慎：光伏产业链周期敏感，增速波动大，需盯海外毛利率和市占率方向"},
     "锂电池": {"level": "misleading", "driver": "周期价格型", "note": "PEG可能严重误导，锂价/产能周期驱动利润波动，建议参考PB/EVEBITDA"},
     "有机硅": {"level": "misleading", "driver": "周期价格型", "note": "PEG可能严重误导，价格周期驱动利润波动剧烈"},
     "化工新材料": {"level": "caution", "driver": "周期价格型", "note": "PEG需谨慎，新材料有成长性但价格周期不可忽略"},
