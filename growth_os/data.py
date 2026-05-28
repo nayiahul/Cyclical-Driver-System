@@ -56,6 +56,7 @@ def get_financial_snapshot(t_date: str) -> pd.DataFrame:
 
 
 _quarterly_cache: dict = {}
+_roic_ttm_cache: dict = {}  # {(code, t_date): roic_ttm}
 
 def get_quarterly_series(code: str, field: str, n_quarters: int = 12,
                          t_date: Optional[str] = None) -> pd.Series:
@@ -214,14 +215,20 @@ def compute_roic_ttm(code: str, t_date: str) -> float | None:
     Returns:
         TTM ROIC (%)，数据不足则返回 None。
     """
+    cache_key = (code, t_date)
+    if cache_key in _roic_ttm_cache:
+        return _roic_ttm_cache[cache_key]
+
     # 1. 单季 operating_profit
     op_series = get_quarterly_series(code, "operating_profit",
                                      n_quarters=8, t_date=t_date).dropna()
     if len(op_series) < 6:
+        _roic_ttm_cache[cache_key] = None
         return None
     single_q = de_cumulate_series(op_series)
     valid_q = [q for q in single_q[-4:] if q is not None]
     if len(valid_q) < 3:
+        _roic_ttm_cache[cache_key] = None
         return None
 
     ttm_nopat = sum(valid_q) * 0.75  # tax_rate = 25%
@@ -233,6 +240,7 @@ def compute_roic_ttm(code: str, t_date: str) -> float | None:
     for f in ic_fields:
         s = get_quarterly_series(code, f, n_quarters=8, t_date=t_date)
         if len(s.dropna()) < 4:
+            _roic_ttm_cache[cache_key] = None
             return None  # IC 数据不足，无法计算
         ic_series[f] = s
 
@@ -246,6 +254,7 @@ def compute_roic_ttm(code: str, t_date: str) -> float | None:
             ic_vals.append(ic)
 
     if len(ic_vals) < 4:
+        _roic_ttm_cache[cache_key] = None
         return None
 
     # 平均 IC = (4季前 + 最新) / 2
@@ -254,9 +263,12 @@ def compute_roic_ttm(code: str, t_date: str) -> float | None:
     avg_ic = (ic_begin + ic_end) / 2
 
     if avg_ic <= 0:
+        _roic_ttm_cache[cache_key] = None
         return None
 
-    return round(ttm_nopat / avg_ic * 100, 1)
+    result = round(ttm_nopat / avg_ic * 100, 1)
+    _roic_ttm_cache[cache_key] = result
+    return result
 
 
 # ============================================================

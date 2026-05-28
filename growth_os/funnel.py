@@ -384,6 +384,11 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
                 # 高研发+低营收增长+费用率明显上升 = 研发效率恶化
                 result["expense_leverage"] = {"score": 0, "label": "研发效率恶化",
                                               "recent": round(recent_expense_ratio, 1)}
+            elif is_high_rd and expense_delta < 5:
+                # 高研发+过渡态(营收增速中等或费用率中等) = 半扣分
+                result["expense_leverage"] = {"score": s["expense_leverage_weight"] / 2,
+                                              "label": "扩张中(高研发过渡)",
+                                              "recent": round(recent_expense_ratio, 1)}
             elif recent_expense_ratio < old_expense_ratio * 0.95:
                 result["expense_leverage"] = {"score": s["expense_leverage_weight"],
                                               "label": "释放中",

@@ -29,7 +29,7 @@ class StockRegime(Enum):
     CYCLICAL_TRANSITION = "周期过渡态"
     CYCLICAL_DECLINE = "周期出清"
     COMMODITY_DRIVEN = "商品驱动"
-    VALUE_TRAP = "价值陷阱"
+    VALUE_TRAP = "排雷未通过"
 
 
 class ValuationFramework(Enum):
@@ -181,9 +181,9 @@ REGIME_ROUTES: dict[StockRegime, RegimeRoute] = {
         growth_eligible=False,
         peg_applicable=False,
         decision_ceiling=DecisionTemplate.VETO,
-        narrative="价值陷阱",
+        narrative="排雷未通过",
         space_b_disabled=[],
-        report_note="L1排雷未通过，存在硬伤。不入池，需人工复核。",
+        report_note="L1排雷未通过，存在硬伤。不入成长池，需人工复核排雷事项。",
     ),
 }
 
@@ -210,7 +210,7 @@ def classify_regime(
     """
     from growth_os.config import LifecycleStage
 
-    # 1. L1 排雷未通过 → 价值陷阱
+    # 1. L1 排雷未通过 → 不入池
     if not pass_l1:
         return REGIME_ROUTES[StockRegime.VALUE_TRAP]
 
