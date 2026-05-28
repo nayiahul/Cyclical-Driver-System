@@ -377,6 +377,15 @@ def compute_composite(
         card.composite_score = min(card.composite_score, 75)
         card.decision = "周期跟踪(营收趋势负)"
         card.is_growth_eligible = False
+        card.block_reason = f"营收趋势负(3yCAGR={cagr3:.1f}%)，非成长持仓"
+
+    # v2.5: growth_without_profit — 营收增长但利润恶化
+    if (card.revenue_yoy is not None and card.revenue_yoy > 10
+            and card.deducted_yoy is not None and card.deducted_yoy < -10):
+        card.composite_score = min(card.composite_score, 78)
+        if card.decision == "深度研究":
+            card.decision = "深度研究(利润承压)"
+        card.block_reason = f"增收不增利(营收+{card.revenue_yoy:.0f}%但扣非{card.deducted_yoy:.0f}%)"
 
     # L5 估值框架标签（供 report.py 使用）
     # 由 Regime 决定 PEG 是否适用，写入 funnel_result 供下游读取
