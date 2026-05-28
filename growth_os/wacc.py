@@ -207,8 +207,8 @@ def compute_wacc(code: str, t_date: str) -> float | None:
 
     wacc = (E / V) * r_e + (D / V) * r_d * (1 - tax_rate)
 
-    # v2.5: WACC底线保护 — 低于rf+2%视为计算异常，回退默认9.0%
-    wacc_floor = rf + 2.0
+    # v2.5: WACC底线保护 — 低于max(rf+3%, 4.7%)视为异常，回退默认9.0%
+    wacc_floor = max(rf + 3.0, 4.7)
     if wacc < wacc_floor:
         from loguru import logger
         logger.warning(f"{code}: WACC={wacc:.1f}% < rf+2%={wacc_floor:.1f}% → 回退默认9.0%")

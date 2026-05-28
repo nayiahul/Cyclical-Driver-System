@@ -33,6 +33,7 @@ CONDITIONAL_RED_KEYS = {
     "revenue_cagr_3y",           # 营收3年CAGR过低 — 增长疲弱
     "_yoy_sentinel",             # 扣非/营收增速=500哨兵值 — 数据管道错误
     "yoy_cagr_divergence",       # 近期高增但3年CAGR低 — 周期恢复
+    "profit_without_growth",     # 营收停滞利润暴增 — 伪成长
     "deducted_vs_revenue",       # 扣非增速跟不上营收 — 利润质量差
     "ocf_profit_ratio_3y",       # OCF/净利润低 — 现金含金量不足
     "receivable_surge",          # 应收增速远超营收 — 需结合营收方向判断
@@ -261,6 +262,19 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
         "value": None,
         "red": (ocf_profit_ratio is not None and ocf_profit_ratio < 0 and rd_ratio < 30),
         "detail": f"OCF<0且rd={rd_ratio:.1f}%{'<30%→非高研发→叠加淘汰' if rd_ratio < 30 else '≥30%→高研发豁免'}",
+    }
+
+    # 3b. profit_without_growth — 营收停滞但利润暴增→伪成长
+    profit_wo_growth = False
+    if rev_yoy_val < 5 and deduct_val > 50:
+        ocf_ok = ocf_profit_ratio is not None and ocf_profit_ratio >= 1.0
+        if not ocf_ok:
+            profit_wo_growth = True
+    result["profit_without_growth"] = {
+        "value": None,
+        "red": profit_wo_growth,
+        "detail": (f"营收+{rev_yoy_val:.1f}%但扣非+{deduct_val:.0f}%"
+                   f"{'→利润暴增无增长(OCF未验证)' if profit_wo_growth else ''}"),
     }
 
     # 4. 应收飙升

@@ -371,6 +371,13 @@ def compute_composite(
         card.composite_score = round(card.composite_score * 0.9, 1)
         card.decision = regime_decision(route, card.composite_score)
 
+    # v2.5: CAGR<0 身份门 — 3年营收趋势收缩→非成长持仓
+    cagr3 = card.revenue_cagr_3y
+    if cagr3 is not None and cagr3 < 0:
+        card.composite_score = min(card.composite_score, 75)
+        card.decision = "周期跟踪(营收趋势负)"
+        card.is_growth_eligible = False
+
     # L5 估值框架标签（供 report.py 使用）
     # 由 Regime 决定 PEG 是否适用，写入 funnel_result 供下游读取
     if not route.peg_applicable:

@@ -160,6 +160,20 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
         else:
             r["decision"] = "暂不关注"
 
+    # v2.5: risk_tags — 聚合关键风险标签供CSV可读
+    for r in passed + quarantined:
+        tags = []
+        dr = r.get("debt_ratio") or 0
+        if isinstance(dr, (int, float)) and dr > 60:
+            tags.append(f"高负债{dr:.0f}%")
+        if not r.get("pass_l1"):
+            tags.append(f"L1否决")
+        elif r.get("l1_verdict") == "review":
+            tags.append(f"L1观察")
+        if "周期跟踪" in str(r.get("decision", "")):
+            tags.append("非成长")
+        r["risk_tags"] = "; ".join(tags) if tags else ""
+
     # 隔离池标的统一标记
     for r in quarantined:
         r["decision"] = "一票否决"
