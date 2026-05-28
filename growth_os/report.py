@@ -343,7 +343,9 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     rt_label = l3d.get("roic_trend", {}).get("label", "")
     if rw_val and rt_label:
         roic_q = rw_val.get("roic", "?")
-        lines.append(f"> ROIC口径: 上列roic_vs_wacc=单季快照({roic_q}%)，roic_trend=年度TTM对比。决策以单季为准(领先)，年度数据含历史惯性(滞后)。")
+        is_ttm = rw_val.get("roic_ttm", False)
+        caliber = "TTM(近4季)" if is_ttm else "快照值"
+        lines.append(f"> ROIC口径: roic_vs_wacc={caliber}({roic_q}%)，由单季OP×4/TTM平均IC计算。roic_trend=年度FY对比(参考)。")
     lines.append(f"")
 
     # L4 行业校准

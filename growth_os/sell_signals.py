@@ -9,7 +9,7 @@ from loguru import logger
 
 from growth_os.data import (
     get_financial_snapshot, get_quarterly_series, get_pe_ttm, get_industry,
-    load_industry_map,
+    load_industry_map, compute_roic_ttm,
 )
 from growth_os.wacc import compute_wacc
 
@@ -77,14 +77,15 @@ def check_sell_signals(code: str, t_date: str) -> list[dict]:
         })
 
     # ---- 2. ROIC 跌破 WACC ----
-    roic = row.get("roic")
+    roic_ttm = compute_roic_ttm(code, t_date)
+    roic = roic_ttm if roic_ttm is not None else row.get("roic")
     wacc = compute_wacc(code, t_date)
     if roic is not None and wacc is not None and not pd.isna(roic) and roic < wacc:
         signals.append({
             "signal": "ROIC跌破WACC",
             "triggered": True,
             "severity": "red",
-            "reason": f"扩张毁灭价值: ROIC({roic:.1f}%) < WACC({wacc:.1f}%)",
+            "reason": f"扩张毁灭价值: ROIC(TTM{roic:.1f}%) < WACC({wacc:.1f}%)",
             "detail": f"差距: {roic-wacc:.1f}%",
         })
     else:

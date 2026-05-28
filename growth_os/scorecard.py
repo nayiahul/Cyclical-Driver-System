@@ -46,6 +46,7 @@ class GrowthScorecard:
     # C区: 资本效率
     score_l3: float = np.nan
     roic: Optional[float] = None
+    roic_ttm: Optional[float] = None
     wacc: Optional[float] = None
     roic_minus_wacc: Optional[float] = None
     roe: Optional[float] = None
@@ -96,6 +97,7 @@ class GrowthScorecard:
             "rd_ratio": self.rd_ratio,
             "score_l3": self.score_l3,
             "roic": self.roic,
+            "roic_ttm": self.roic_ttm,
             "wacc": self.wacc,
             "roic_minus_wacc": self.roic_minus_wacc,
             "roe": self.roe,
@@ -230,6 +232,7 @@ def compute_composite(
     roic_wacc = l3.get("roic_vs_wacc", {}).get("value", {})
     if isinstance(roic_wacc, dict):
         card.roic = roic_wacc.get("roic")
+        card.roic_ttm = roic_wacc.get("roic") if roic_wacc.get("roic_ttm") else None
         card.wacc = roic_wacc.get("wacc")
         card.roic_minus_wacc = roic_wacc.get("spread")
     card.roe = l3.get("roe_quality", {}).get("value")

@@ -12,7 +12,7 @@ from growth_os.config import (
 )
 from growth_os.data import (
     get_quarterly_series, get_financial_snapshot, load_tdx_financials, get_industry,
-    compute_revenue_cagr_3y,
+    compute_revenue_cagr_3y, compute_roic_ttm,
 )
 from growth_os.wacc import compute_wacc
 
@@ -164,7 +164,9 @@ def classify_lifecycle(
     deducted_yoy = row.get("deducted_profit_yoy")
     deducted_q = row.get("deducted_profit_q") or 0
     gross_margin = row.get("gross_margin")
-    roic = row.get("roic")
+    roic_raw = row.get("roic")
+    roic_ttm = compute_roic_ttm(code, t_date)
+    roic = roic_ttm if roic_ttm is not None else roic_raw
     net_margin = row.get("net_margin")
     fcf = row.get("fcff_per_share")
     ocf_to_profit = row.get("ocf_to_profit")
@@ -177,15 +179,10 @@ def classify_lifecycle(
     # --- 衰退判定 ---
     wacc = compute_wacc(code, t_date)
 
-    # ROIC年化调整: Q1/H1/9M的ROIC偏低，用最近FY值替代
-    roic_annual = roic
-    if roic is not None and not pd.isna(roic):
-        fy_roic = _get_latest_fy_roic(code, t_date)
-        if fy_roic is not None:
-            roic_annual = fy_roic
+    # ROIC口径: 优先TTM(compute_roic_ttm)，回退快照值
     roic_below_wacc = False
-    if roic_annual is not None and wacc is not None and not pd.isna(roic_annual):
-        roic_below_wacc = roic_annual < wacc
+    if roic is not None and wacc is not None and not pd.isna(roic):
+        roic_below_wacc = roic < wacc
 
     # 毛利率连续2季实质下滑(每季降幅>1pp 或累计>3pp)
     gm_decline = False

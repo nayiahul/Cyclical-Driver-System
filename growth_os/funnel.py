@@ -16,7 +16,7 @@ from growth_os.config import (
 from growth_os.data import (
     get_financial_snapshot, get_quarterly_series, get_price_data,
     get_pe_ttm, load_industry_map, load_tdx_financials, get_industry,
-    compute_revenue_cagr_3y,
+    compute_revenue_cagr_3y, compute_roic_ttm,
 )
 from growth_os.wacc import compute_wacc
 
@@ -509,16 +509,19 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
         return result
     row = row.iloc[0]
 
-    # 1. ROIC vs WACC (0-4)
-    roic = row.get("roic")
+    # 1. ROIC vs WACC (0-4) — 优先使用 TTM ROIC
+    roic_ttm = compute_roic_ttm(code, t_date)
+    roic = roic_ttm if roic_ttm is not None else row.get("roic")
+    roic_source = "TTM" if roic_ttm is not None else "快照"
     wacc = compute_wacc(code, t_date)
     if roic is not None and not pd.isna(roic):
         if wacc is not None:
             spread = roic - wacc
             result["roic_vs_wacc"] = {
                 "value": {"roic": round(roic, 1), "wacc": round(wacc, 1),
-                          "spread": round(spread, 1)},
-                "label": f"ROIC(单季{roic:.1f}%) vs WACC({wacc:.1f}%)",
+                          "spread": round(spread, 1),
+                          "roic_ttm": roic_ttm is not None},
+                "label": f"ROIC(TTM{roic:.1f}%) vs WACC({wacc:.1f}%)",
             }
             if spread > s["roic_wacc_spread_excellent"]:
                 result["roic_vs_wacc"]["score"] = 4.0
@@ -532,8 +535,9 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
         else:
             # WACC 不可用，回退到绝对阈值：ROIC > 10% 优秀, > 5% 及格
             result["roic_vs_wacc"] = {
-                "value": {"roic": round(roic, 1), "wacc": None, "spread": None},
-                "label": f"ROIC={roic:.1f}% (WACC不可算)",
+                "value": {"roic": round(roic, 1), "wacc": None, "spread": None,
+                          "roic_ttm": roic_ttm is not None},
+                "label": f"ROIC(TTM{roic:.1f}%) (WACC不可算)",
             }
             if roic > 10:
                 result["roic_vs_wacc"]["score"] = 3.0

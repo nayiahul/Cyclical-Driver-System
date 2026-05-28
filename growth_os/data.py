@@ -140,6 +140,126 @@ def compute_revenue_cagr_3y(code: str, t_date: str) -> float | None:
 
 
 # ============================================================
+# 1b. TTM ROIC 计算
+# ============================================================
+
+def de_cumulate_series(series: pd.Series) -> list[float]:
+    """将累计值序列拆解为单季度值。
+
+    TDX 利润表字段（revenue/operating_profit 等）按报告期累计：
+      - 0331: Q1 单季值
+      - 0630: H1 累计值 → Q2 = 0630 - 0331
+      - 0930: 9M 累计值 → Q3 = 0930 - 0630
+      - 1231: FY 累计值 → Q4 = 1231 - 0930
+
+    Returns:
+        单季度值列表，长度与输入相同（无法拆解的项为 None）。
+        例如输入 8 个累计值 → 输出 8 个单季值。
+    """
+    vals = series.values
+    dates = [str(d) for d in series.index.tolist()]
+    result = []
+    prev = 0.0
+    for d, v in zip(dates, vals):
+        if pd.isna(v):
+            result.append(None)
+            continue
+        if "0331" in d:
+            q = v
+            prev = v
+        elif "0630" in d:
+            q = v - prev
+            prev = v
+        elif "0930" in d:
+            q = v - prev
+            prev = v
+        elif "1231" in d:
+            q = v - prev
+            prev = 0.0
+        else:
+            q = None
+        result.append(q if q is not None and q > 0 else (0.0 if q is not None else None))
+    return result
+
+
+def compute_invested_capital(row) -> float | None:
+    """从快照行计算 Invested Capital。
+
+    IC = 短期借款 + 长期借款 + 应付债券 + 一年内到期非流动负债
+       + 租赁负债 + 归母权益
+
+    任一必需字段缺失则返回 None。
+    """
+    fields = ["short_term_loan", "long_term_loan", "bonds_payable",
+              "noncurrent_liab_due_1y", "lease_liability", "equity_parent"]
+    total = 0.0
+    for f in fields:
+        v = row.get(f)
+        if v is None or (isinstance(v, float) and pd.isna(v)):
+            return None
+        total += float(v)
+    return total if total > 0 else None
+
+
+def compute_roic_ttm(code: str, t_date: str) -> float | None:
+    """计算 TTM ROIC（Trailing Twelve Months 投入资本回报率）。
+
+    步骤：
+    1. 取 8 季 operating_profit 累计序列 → 拆解为单季值
+    2. 取 8 季 invested capital 各字段 → 计算每季末 IC
+    3. TTM NOPAT = sum(最近4季单季OP) × (1 - 25%)
+    4. 平均 IC = (4季前IC + 最新IC) / 2
+    5. TTM ROIC = TTM NOPAT / 平均 IC × 100
+
+    Returns:
+        TTM ROIC (%)，数据不足则返回 None。
+    """
+    # 1. 单季 operating_profit
+    op_series = get_quarterly_series(code, "operating_profit",
+                                     n_quarters=8, t_date=t_date).dropna()
+    if len(op_series) < 6:
+        return None
+    single_q = de_cumulate_series(op_series)
+    valid_q = [q for q in single_q[-4:] if q is not None]
+    if len(valid_q) < 3:
+        return None
+
+    ttm_nopat = sum(valid_q) * 0.75  # tax_rate = 25%
+
+    # 2. 每季 invested capital
+    ic_fields = ["short_term_loan", "long_term_loan", "bonds_payable",
+                 "noncurrent_liab_due_1y", "lease_liability", "equity_parent"]
+    ic_series = {}
+    for f in ic_fields:
+        s = get_quarterly_series(code, f, n_quarters=8, t_date=t_date)
+        if len(s.dropna()) < 4:
+            return None  # IC 数据不足，无法计算
+        ic_series[f] = s
+
+    # 对齐日期索引，逐季计算 IC
+    common_idx = op_series.index
+    ic_vals = []
+    for i, d in enumerate(common_idx):
+        row = {f: ic_series[f].reindex(common_idx).iloc[i] for f in ic_fields}
+        ic = compute_invested_capital(row)
+        if ic is not None:
+            ic_vals.append(ic)
+
+    if len(ic_vals) < 4:
+        return None
+
+    # 平均 IC = (4季前 + 最新) / 2
+    ic_begin = ic_vals[-min(5, len(ic_vals))]
+    ic_end = ic_vals[-1]
+    avg_ic = (ic_begin + ic_end) / 2
+
+    if avg_ic <= 0:
+        return None
+
+    return round(ttm_nopat / avg_ic * 100, 1)
+
+
+# ============================================================
 # 2. 申万行业
 # ============================================================
 
