@@ -146,6 +146,13 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     # 用标准化后的排名重新计算综合分 + Regime 决策重评
     for r in passed:
         r["composite_score"] = recalc_composite_with_ranks(r)
+        # v2.5: CAGR<0封顶再确认（recalc_composite_with_ranks会用排名分覆盖）
+        cagr3 = r.get("revenue_cagr_3y")
+        if cagr3 is not None and cagr3 < 0:
+            r["composite_score"] = min(r["composite_score"], 75)
+            r["decision"] = "周期跟踪(营收趋势负)"
+            r["is_growth_eligible"] = False
+            continue
         existing = r.get("decision", "")
         # 保留不入池 Regime 的决策（VETO / HIGH_RISK / CYCLE_TRACK）
         if any(kw in existing for kw in ["高风险观察池", "一票否决"]):

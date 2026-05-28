@@ -31,11 +31,12 @@ ABSOLUTE_RED_KEYS = {
 
 CONDITIONAL_RED_KEYS = {
     "revenue_cagr_3y",           # 营收3年CAGR过低 — 增长疲弱
-    "_yoy_sentinel",             # 扣非/营收增速=500哨兵值 — 数据管道错误
+    "yoy_truncated",             # 扣非/营收增速=500哨兵值 — 数据管道错误
     "yoy_cagr_divergence",       # 近期高增但3年CAGR低 — 周期恢复
     "profit_without_growth",     # 营收停滞利润暴增 — 伪成长
     "deducted_vs_revenue",       # 扣非增速跟不上营收 — 利润质量差
     "ocf_profit_ratio_3y",       # OCF/净利润低 — 现金含金量不足
+    "high_leverage",             # 有息负债率>60% — 结构性财务风险
     "receivable_surge",          # 应收增速远超营收 — 需结合营收方向判断
     "inventory_surge",           # 存货增速>营收增速×阈值 — 需结合行业判断
     "cashflow_burn",             # 近3季OCF<0但利润>0 — 可能是扩张期
@@ -182,7 +183,7 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
             extreme_flags.append(f"营收增速={revenue_yoy_raw:.0f}%极端→低基数爆炸")
             has_extreme = True
 
-    result["_yoy_sentinel"] = {
+    result["yoy_truncated"] = {
         "value": None,
         "red": has_sentinel,
         "detail": "; ".join(sentinel_flags) if sentinel_flags else "增速值域正常",
@@ -395,6 +396,14 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
             }
     except ImportError:
         pass
+
+    # v2.5: 高负债检测 — debt_ratio>60%→条件红灯
+    debt_ratio_val = row.get("interest_bearing_debt_ratio")
+    result["high_leverage"] = {
+        "value": round(debt_ratio_val, 1) if debt_ratio_val is not None and not pd.isna(debt_ratio_val) else None,
+        "red": debt_ratio_val is not None and not pd.isna(debt_ratio_val) and debt_ratio_val > 60,
+        "detail": f"有息负债率={debt_ratio_val:.0f}%" if debt_ratio_val is not None and not pd.isna(debt_ratio_val) else "数据不足",
+    }
 
     return result
 
