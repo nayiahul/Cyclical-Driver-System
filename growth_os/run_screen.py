@@ -157,7 +157,7 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
         # 保留不入池 Regime 的决策（VETO / HIGH_RISK / CYCLE_TRACK）
         if any(kw in existing for kw in ["高风险观察池", "一票否决"]):
             continue
-        if "周期跟踪" in existing:
+        if "周期跟踪" in existing or "利润承压" in existing:
             continue
         # 可入池 Regime：用标准化后的综合分重新判定决策层级
         if r["composite_score"] >= 70:
