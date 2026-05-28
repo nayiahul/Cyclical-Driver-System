@@ -208,11 +208,12 @@ def _print_summary(df: pd.DataFrame, quarantine_df: pd.DataFrame = None, n: int 
     print(f"{'-'*100}")
     for _, r in df.head(n).iterrows():
         l1_short = {"pass": "通过", "review": "观察", "kill_absolute": "淘汰", "kill_conditional": "淘汰"}.get(r.get("l1_verdict", ""), "?")
+        l1_review = " ⚠️" if r.get("l1_verdict") == "review" else ""
         print(f"{r['code']:<8} {str(r['name'])[:10]:<10} "
               f"{str(r['industry_l3'])[:14]:<14} {str(r['lifecycle'])[:6]:<6} {l1_short:<6} "
               f"{r['composite_score']:>5.1f} {r['score_l2']:>5.1f} "
               f"{r['score_l3']:>5.1f} {r['score_l4']:>5.1f} {r['score_l5']:>5.1f} "
-              f"{str(r['decision'])[:8]}")
+              f"{str(r['decision'])[:8]}{l1_review}")
 
     print(f"\n生命周期分布:")
     for stage in df["lifecycle"].value_counts().index:

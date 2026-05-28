@@ -366,6 +366,11 @@ def compute_composite(
     # Regime 已内置: 成长资格门 / 衰退期降级 / 商品脉冲检测 / L1否决
     card.decision = regime_decision(route, card.composite_score)
 
+    # P1: L1 review 标的综合分打折（黄灯标的与绿灯标的区分）
+    if card.l1_verdict == "review":
+        card.composite_score = round(card.composite_score * 0.9, 1)
+        card.decision = regime_decision(route, card.composite_score)
+
     # L5 估值框架标签（供 report.py 使用）
     # 由 Regime 决定 PEG 是否适用，写入 funnel_result 供下游读取
     if not route.peg_applicable:

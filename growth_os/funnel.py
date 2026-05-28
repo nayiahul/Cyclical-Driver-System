@@ -31,6 +31,8 @@ ABSOLUTE_RED_KEYS = {
 
 CONDITIONAL_RED_KEYS = {
     "revenue_cagr_3y",           # 营收3年CAGR过低 — 增长疲弱
+    "_yoy_sentinel",             # 扣非/营收增速=500哨兵值 — 数据管道错误
+    "yoy_cagr_divergence",       # 近期高增但3年CAGR低 — 周期恢复
     "deducted_vs_revenue",       # 扣非增速跟不上营收 — 利润质量差
     "ocf_profit_ratio_3y",       # OCF/净利润低 — 现金含金量不足
     "receivable_surge",          # 应收增速远超营收 — 需结合营收方向判断
@@ -153,6 +155,34 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
     t = L1_THRESHOLDS
     result = {}
 
+    # 0. 数据哨兵检测 — 缺值占位符(500/999)→条件红灯, >300%→警告标记
+    BAD_YOY_SENTINELS = {500.0, 999.0, 9999.0}
+    deducted_yoy_val = row.get("deducted_profit_yoy")
+    revenue_yoy_raw = row.get("revenue_yoy")
+    sentinel_flags = []
+    def _is_sentinel(v):
+        return any(abs(v - s) < 0.01 for s in BAD_YOY_SENTINELS)
+
+    has_sentinel = False
+    if deducted_yoy_val is not None and not pd.isna(deducted_yoy_val):
+        if _is_sentinel(deducted_yoy_val):
+            sentinel_flags.append(f"扣非增速={deducted_yoy_val:.0f}%哨兵值→数据缺失占位")
+            has_sentinel = True
+        elif abs(deducted_yoy_val) > 300:
+            sentinel_flags.append(f"扣非增速={deducted_yoy_val:.0f}%极端(低基数)→g*不可信")
+    if revenue_yoy_raw is not None and not pd.isna(revenue_yoy_raw):
+        if _is_sentinel(revenue_yoy_raw):
+            sentinel_flags.append(f"营收增速={revenue_yoy_raw:.0f}%哨兵值→数据缺失占位")
+            has_sentinel = True
+        elif abs(revenue_yoy_raw) > 300:
+            sentinel_flags.append(f"营收增速={revenue_yoy_raw:.0f}%极端→低基数爆炸")
+    # 哨兵值=数据管道错误→条件红灯; 极端值=低基数→仅标记不亮灯
+    result["_yoy_sentinel"] = {
+        "value": None,
+        "red": has_sentinel,
+        "detail": "; ".join(sentinel_flags) if sentinel_flags else "增速值域正常",
+    }
+
     # 1. 营收3年CAGR — 用绝对营收TTM算3年CAGR
     rev_yoy = row.get("revenue_yoy")
     rev_yoy_val = rev_yoy if rev_yoy is not None and not pd.isna(rev_yoy) else 0
@@ -161,6 +191,22 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
         "value": round(cagr_3y, 1) if cagr_3y else None,
         "red": cagr_3y is not None and cagr_3y < t["revenue_cagr_3y_min"],
         "detail": f"营收3年CAGR={cagr_3y:.1f}%" if cagr_3y else "无足够数据",
+    }
+
+    # 1b. yoy-cagr背离检测 — 近期高增但长期萎缩→周期恢复而非成长
+    cagr_val = cagr_3y if cagr_3y else 0
+    yoy_cagr_divergence = False
+    yoy_cagr_detail = ""
+    if rev_yoy_val and cagr_3y is not None:
+        if rev_yoy_val > 50 and cagr_val < 10:
+            yoy_cagr_divergence = True
+            yoy_cagr_detail = f"近期高增({rev_yoy_val:.0f}%)但3年CAGR低({cagr_val:.1f}%)→疑似周期恢复"
+        elif rev_yoy_val > 30 and cagr_val < 0:
+            yoy_cagr_divergence = True
+            yoy_cagr_detail = f"近期高增({rev_yoy_val:.0f}%)但3年萎缩({cagr_val:.1f}%)→确认周期恢复"
+    result["yoy_cagr_divergence"] = {
+        "value": None, "red": yoy_cagr_divergence,
+        "detail": yoy_cagr_detail or "增速趋势一致",
     }
 
     # 2. 扣非增速 vs 营收增速
@@ -190,7 +236,10 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
                 ocf_profit_ratio = ocf_sum / profit_sum
     result["ocf_profit_ratio_3y"] = {
         "value": round(ocf_profit_ratio, 2) if ocf_profit_ratio else None,
-        "red": ocf_profit_ratio is not None and ocf_profit_ratio < t["ocf_profit_ratio_3y_min"],
+        "red": ocf_profit_ratio is not None and (
+            ocf_profit_ratio < 0  # OCF为负→现金无法覆盖利润，强制红灯
+            or ocf_profit_ratio < t["ocf_profit_ratio_3y_min"]
+        ),
         "detail": f"OCF/净利润(3年)={ocf_profit_ratio:.2f}" if ocf_profit_ratio else "数据不足",
     }
 
