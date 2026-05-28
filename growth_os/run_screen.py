@@ -174,9 +174,13 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
         if isinstance(dr, (int, float)) and dr > 60:
             tags.append(f"高负债{dr:.0f}%")
         if not r.get("pass_l1"):
-            tags.append(f"L1否决")
+            tags.append("L1否决")
         elif r.get("l1_verdict") == "review":
-            tags.append(f"L1观察")
+            reds = str(r.get("l1_conditional_reds", ""))
+            if reds:
+                tags.append(f"Review:{reds}")
+            else:
+                tags.append("L1观察")
         if "周期跟踪" in str(r.get("decision", "")):
             tags.append("非成长")
         r["risk_tags"] = "; ".join(tags) if tags else ""

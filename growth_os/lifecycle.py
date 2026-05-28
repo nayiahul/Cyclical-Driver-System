@@ -271,8 +271,11 @@ def classify_lifecycle(
     # --- 加速期判定 ---
     # 营收3年CAGR: 用绝对营收TTM计算
     cagr_3y = compute_revenue_cagr_3y(code, t_date)
+    cagr_estimated = False
     if cagr_3y is None:
         cagr_3y = revenue_yoy if revenue_yoy is not None and not pd.isna(revenue_yoy) else 0
+        cagr_estimated = True
+    cagr_suffix = "(估算)" if cagr_estimated else ""
 
     # 扣非增速 >= 营收增速
     deducted_vs_revenue = (deducted_yoy is not None and revenue_yoy is not None
@@ -298,7 +301,7 @@ def classify_lifecycle(
             and deducted_vs_revenue
             and gm_stable_or_up):
         return LifecycleStage.ACCELERATION, (
-            f"营收CAGR{cagr_3y:.1f}% + 扣非增速同步 + 毛利率稳定 + ROIC{'提升' if roic_up else '平稳'}")
+            f"营收CAGR{cagr_3y:.1f}%{cagr_suffix} + 扣非增速同步 + 毛利率稳定 + ROIC{'提升' if roic_up else '平稳'}")
 
     # --- 成熟期判定 ---
     if roic is not None and wacc is not None and roic > wacc:
@@ -310,7 +313,7 @@ def classify_lifecycle(
 
     # --- 默认：加速期 ---
     if cagr_3y >= 10 and deducted_vs_revenue:
-        return LifecycleStage.ACCELERATION, f"营收CAGR{cagr_3y:.1f}%(低于15%但增长健康)"
+        return LifecycleStage.ACCELERATION, f"营收CAGR{cagr_3y:.1f}%{cagr_suffix}(低于15%但增长健康)"
     elif not is_unprofitable and revenue > 0:
         return LifecycleStage.MATURITY, "利润为正但未达加速标准"
     else:
