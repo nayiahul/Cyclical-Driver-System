@@ -155,32 +155,41 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
     t = L1_THRESHOLDS
     result = {}
 
-    # 0. 数据哨兵检测 — 缺值占位符(500/999)→条件红灯, >300%→警告标记
+    # 0. 数据哨兵/极端值检测 — 哨兵=管道缺陷→条件红灯, 极端=低基数→仅警告
     BAD_YOY_SENTINELS = {500.0, 999.0, 9999.0}
     deducted_yoy_val = row.get("deducted_profit_yoy")
     revenue_yoy_raw = row.get("revenue_yoy")
     sentinel_flags = []
+    extreme_flags = []
     def _is_sentinel(v):
         return any(abs(v - s) < 0.01 for s in BAD_YOY_SENTINELS)
 
     has_sentinel = False
+    has_extreme = False
     if deducted_yoy_val is not None and not pd.isna(deducted_yoy_val):
         if _is_sentinel(deducted_yoy_val):
             sentinel_flags.append(f"扣非增速={deducted_yoy_val:.0f}%哨兵值→数据缺失占位")
             has_sentinel = True
         elif abs(deducted_yoy_val) > 300:
-            sentinel_flags.append(f"扣非增速={deducted_yoy_val:.0f}%极端(低基数)→g*不可信")
+            extreme_flags.append(f"扣非增速={deducted_yoy_val:.0f}%极端(低基数)→g*不可外推")
+            has_extreme = True
     if revenue_yoy_raw is not None and not pd.isna(revenue_yoy_raw):
         if _is_sentinel(revenue_yoy_raw):
             sentinel_flags.append(f"营收增速={revenue_yoy_raw:.0f}%哨兵值→数据缺失占位")
             has_sentinel = True
         elif abs(revenue_yoy_raw) > 300:
-            sentinel_flags.append(f"营收增速={revenue_yoy_raw:.0f}%极端→低基数爆炸")
-    # 哨兵值=数据管道错误→条件红灯; 极端值=低基数→仅标记不亮灯
+            extreme_flags.append(f"营收增速={revenue_yoy_raw:.0f}%极端→低基数爆炸")
+            has_extreme = True
+
     result["_yoy_sentinel"] = {
         "value": None,
         "red": has_sentinel,
         "detail": "; ".join(sentinel_flags) if sentinel_flags else "增速值域正常",
+    }
+    result["_yoy_extreme"] = {
+        "value": None,
+        "red": False,  # 极端值不触发红灯，仅供报告/探针引用
+        "detail": "; ".join(extreme_flags) if extreme_flags else "",
     }
 
     # 1. 营收3年CAGR — 用绝对营收TTM算3年CAGR
@@ -241,6 +250,17 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
             or ocf_profit_ratio < t["ocf_profit_ratio_3y_min"]
         ),
         "detail": f"OCF/净利润(3年)={ocf_profit_ratio:.2f}" if ocf_profit_ratio else "数据不足",
+    }
+
+    # v2.5: OCF负值联动 — 非高研发行业OCF<0自动叠加第二条件红灯
+    # 高研发行业(rd>30%, 如Biotech) OCF为负是行业常态，仅review不kill
+    rd_val = row.get("rd_expense", 0) or 0
+    rev_val = row.get("revenue", 0) or 1
+    rd_ratio = rd_val / rev_val * 100 if rev_val > 0 else 0
+    result["ocf_negative_cascade"] = {
+        "value": None,
+        "red": (ocf_profit_ratio is not None and ocf_profit_ratio < 0 and rd_ratio < 30),
+        "detail": f"OCF<0且rd={rd_ratio:.1f}%{'<30%→非高研发→叠加淘汰' if rd_ratio < 30 else '≥30%→高研发豁免'}",
     }
 
     # 4. 应收飙升
@@ -1041,6 +1061,15 @@ def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
     # 1. PEG (0-4) — 用前瞻增速代理 g_proxy
     g_proxy, g_source = compute_forward_growth(code, t_date)
 
+    # v2.5: 成熟期PEG适用性折扣（PEG框架部分适用→PEG子项×0.5）
+    from growth_os.config import PEG_CONFIDENCE, PEG_CONFIDENCE_DEFAULT
+    peg_conf = PEG_CONFIDENCE.get(industry_l3, PEG_CONFIDENCE_DEFAULT)
+    peg_maturity_discount = 1.0
+    if peg_conf.get("level") == "caution":
+        peg_maturity_discount = 0.7
+    elif peg_conf.get("level") == "misleading":
+        peg_maturity_discount = 0.3
+
     # g* 可信度检验：当 g* 与最新营收增速严重背离时，标记不可信
     g_trusted = True
     g_trust_note = ""
@@ -1082,6 +1111,13 @@ def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
             result["peg_ratio"]["label"] = f"高估(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
     else:
         result["peg_ratio"] = {"score": 0, "label": "数据不足", "g_proxy": None, "g_source": g_source if g_proxy else "insufficient_data", "g_trusted": False}
+
+    # v2.5: PEG适用域折扣（misleading→×0.3, caution→×0.7）
+    if peg_maturity_discount < 1.0 and isinstance(result["peg_ratio"].get("score"), (int, float)):
+        old = result["peg_ratio"]["score"]
+        if old > 0:
+            result["peg_ratio"]["score"] = round(old * peg_maturity_discount, 1)
+            result["peg_ratio"]["label"] += f"（{peg_conf['level']}行业→PEG×{peg_maturity_discount}）"
 
     # 2. PE 行业内分位 (0-3)
     if pe is not None:

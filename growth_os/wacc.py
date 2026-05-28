@@ -206,4 +206,15 @@ def compute_wacc(code: str, t_date: str) -> float | None:
     tax_rate = 0.25
 
     wacc = (E / V) * r_e + (D / V) * r_d * (1 - tax_rate)
+
+    # v2.5: WACC底线保护 — 低于rf+2%视为计算异常，回退默认9.0%
+    wacc_floor = rf + 2.0
+    if wacc < wacc_floor:
+        from loguru import logger
+        logger.warning(f"{code}: WACC={wacc:.1f}% < rf+2%={wacc_floor:.1f}% → 回退默认9.0%")
+        return 9.0
+    if wacc > 25:
+        from loguru import logger
+        logger.warning(f"{code}: WACC={wacc:.1f}% > 25% → 回退默认9.0%")
+        return 9.0
     return float(wacc)

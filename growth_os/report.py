@@ -182,6 +182,7 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     if l5_status == "partial": risks.append("估值数据不完整，安全边际判断受限")
     if l5_status == "missing": risks.append("估值完全不可用，需人工核实PE后评估")
     if card.peg and card.peg > 2.5: risks.append(f"PEG偏高（{card.peg:.1f}），增速可能已被充分定价")
+    if card.debt_ratio and card.debt_ratio > 60: risks.append(f"🔴 高负债经营（有息负债率{card.debt_ratio:.0f}%），财务杠杆风险高")
 
     # L5 PEG g* 可信度
     g_trusted = funnel_result["l5_details"].get("peg_ratio", {}).get("g_trusted", True)
