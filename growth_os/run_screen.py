@@ -58,6 +58,15 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
     codes = df["code"].tolist()
     logger.info(f"候选池: {len(codes)} 只（预过滤后，已按成长相关性排序）")
 
+    # 加载股票名称映射 {code: name}
+    import pandas as _pd
+    _name_map = {}
+    try:
+        _sw = _pd.read_csv(DATA_PATHS["sw_industry_map"], dtype={"证券代码": str})
+        _name_map = dict(zip(_sw["证券代码"].str.zfill(6), _sw["证券名称"]))
+    except Exception:
+        pass
+
     results = []
     for i, code in enumerate(codes):
         if (i + 1) % 100 == 0:
@@ -67,9 +76,10 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
             lifecycle, lc_reason = classify_lifecycle(code, t_date, industry_l3)
             funnel = run_funnel(code, t_date, industry_l3, lifecycle)
 
+            stock_name = _name_map.get(code, code)
             card = GrowthScorecard(
                 code=code,
-                name=df[df["code"] == code].iloc[0].get("name", code) if "name" in df.columns else code,
+                name=stock_name,
                 industry_l3=industry_l3,
                 industry_l1=df[df["code"] == code].iloc[0].get("industry_l1", ""),
                 lifecycle=lifecycle,
@@ -166,6 +176,8 @@ def _print_summary(df: pd.DataFrame, quarantine_df: pd.DataFrame = None, n: int 
     """打印筛选摘要。"""
     print(f"\n{'='*80}")
     print(f"  成长股观察池 Top {min(n, len(df))}")
+    print(f"{'='*80}")
+    print(f"  L2=护城河 L3=资本效率 L4=行业校准 L5=预期差 | 综合=L1-L5加权")
     print(f"{'='*80}")
     print(f"{'代码':<8} {'名称':<10} {'行业':<14} {'阶段':<6} {'L1判定':<6} {'综合':>5} {'L2':>5} {'L3':>5} {'L4':>5} {'L5':>5} {'决策'}")
     print(f"{'-'*100}")
