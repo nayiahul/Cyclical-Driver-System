@@ -90,15 +90,21 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
             logger.debug(f"{code} 处理异常: {e}")
             continue
 
-    # 截面排名标准化
-    results = normalize_pool(results)
+    # P0-1: L1 硬闸 — 分离否决标的到隔离池
+    passed = [r for r in results if r.get("pass_l1", True)]
+    quarantined = [r for r in results if not r.get("pass_l1", True)]
+    logger.info(f"L1硬闸: {len(passed)} 通过, {len(quarantined)} 隔离")
+
+    # 截面排名标准化（仅对通过 L1 的标的，避免隔离池高分拉低正常标的百分位）
+    passed = normalize_pool(passed)
 
     # 用标准化后的排名重新计算综合分
-    for r in results:
+    for r in passed:
         r["composite_score"] = recalc_composite_with_ranks(r)
-        # 更新决策
-        if not r["pass_l1"]:
-            r["decision"] = "一票否决"
+        existing = r.get("decision", "")
+        # 保留 compute_composite 已设置的降级决策（生命周期/成长资格门）
+        if any(kw in existing for kw in ["高风险观察池", "周期跟踪", "一票否决"]):
+            pass
         elif r["composite_score"] >= 70:
             r["decision"] = "深度研究"
         elif r["composite_score"] >= 50:
@@ -106,29 +112,44 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
         else:
             r["decision"] = "暂不关注"
 
-    result_df = pd.DataFrame(results)
+    # 隔离池标的统一标记
+    for r in quarantined:
+        r["decision"] = "一票否决"
+
+    result_df = pd.DataFrame(passed)
     if len(result_df) == 0:
-        logger.error("无有效结果")
+        logger.error("无有效结果（所有标的均未通过L1）")
         return pd.DataFrame()
 
-    # 排序
+    # 排序取 Top N
     result_df = result_df.sort_values("composite_score", ascending=False)
-    result_df = result_df.head(top_n)
+    if len(result_df) > top_n:
+        result_df = result_df.head(top_n)
+    else:
+        logger.warning(f"通过L1标的({len(result_df)})不足top_n({top_n})，展示全部")
 
-    # 输出
+    # 输出主观察池
     os.makedirs(DATA_PATHS["output_dir"], exist_ok=True)
     out_path = os.path.join(DATA_PATHS["output_dir"],
                             f"growth_pool_{t_date}.csv")
     result_df.to_csv(out_path, index=False, encoding="utf-8-sig")
     logger.info(f"观察池已保存: {out_path}")
 
+    # 输出隔离池
+    quarantine_df = pd.DataFrame(quarantined)
+    if len(quarantine_df) > 0:
+        q_path = os.path.join(DATA_PATHS["output_dir"],
+                              f"growth_pool_quarantine_{t_date}.csv")
+        quarantine_df.to_csv(q_path, index=False, encoding="utf-8-sig")
+        logger.info(f"隔离池已保存: {q_path}")
+
     # 打印摘要
-    _print_summary(result_df)
+    _print_summary(result_df, quarantine_df)
 
     return result_df
 
 
-def _print_summary(df: pd.DataFrame, n: int = 30):
+def _print_summary(df: pd.DataFrame, quarantine_df: pd.DataFrame = None, n: int = 30):
     """打印筛选摘要。"""
     print(f"\n{'='*80}")
     print(f"  成长股观察池 Top {min(n, len(df))}")
@@ -150,6 +171,13 @@ def _print_summary(df: pd.DataFrame, n: int = 30):
     print(f"\n决策分布:")
     for dec in df["decision"].value_counts().index:
         print(f"  {dec}: {df['decision'].value_counts()[dec]} 只")
+
+    if quarantine_df is not None and len(quarantine_df) > 0:
+        print(f"\n⚠️  L1 隔离池（一票否决，不在观察池内）:")
+        for _, r in quarantine_df.iterrows():
+            reds = str(r.get("l1_red_flags", ""))[:50]
+            print(f"  {r['code']} {str(r['name'])[:10]:<10} {str(r['industry_l3'])[:14]:<14} "
+                  f"综合{r.get('composite_score',0):.0f}分 → {reds}")
 
 
 def main():

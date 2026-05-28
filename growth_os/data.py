@@ -310,20 +310,24 @@ def get_risk_free_rate() -> float:
 
 
 def get_csi300_pe_ttm() -> float:
-    """获取沪深300 PE TTM（近似值）。
+    """获取沪深300 PE TTM，用于 WACC/ERP 计算。
 
-    优先从 AKShare 上证A股PE校准，回退到合理估计。
+    直接取 CSI300 指数 PE，经 sanity check 后使用。
+    若 PE 极端失真（<8 或 >25），回退到长期中位数 14.5。
     """
     global _csi300_pe
     if _csi300_pe is not None:
         return _csi300_pe
     try:
-        df = ak.stock_market_pe_lg(symbol="上证A股")
-        sse_pe = float(df["市盈率"].iloc[-1])
-        # 上证A股PE通常高于沪深300(含大量高PE小盘)
-        # 粗略折算: CSI300 PE ≈ SSE PE * 0.6
-        _csi300_pe = round(sse_pe * 0.6, 1)
-        logger.info(f"沪深300 PE(估算): {_csi300_pe:.1f} (上证PE={sse_pe:.1f})")
+        df = ak.stock_market_pe_lg(symbol="沪深300")
+        raw_pe = float(df["市盈率"].iloc[-1])
+        if 8 <= raw_pe <= 25:
+            _csi300_pe = round(raw_pe, 1)
+            logger.info(f"沪深300 PE(TTM): {_csi300_pe:.1f}")
+        else:
+            _csi300_pe = 14.5
+            logger.warning(f"沪深300 PE={raw_pe:.1f} 超出合理区间[8,25]，"
+                           f"使用长期中位数{_csi300_pe}")
     except Exception as e:
         logger.warning(f"获取CSI300 PE失败: {e}，使用默认值14.5")
         _csi300_pe = 14.5

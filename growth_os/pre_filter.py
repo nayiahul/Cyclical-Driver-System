@@ -13,6 +13,19 @@ import pandas as pd
 from loguru import logger
 
 from growth_os.config import PRE_FILTER as CFG
+from growth_os.config import GROWTH_INCOMPATIBLE_INDUSTRIES
+
+
+def is_growth_compatible(industry: str) -> tuple[bool, str]:
+    """检查行业是否属于可接受的成长商业模式。
+
+    商品价格驱动/宏观周期驱动的行业不应进入成长股候选池。
+    """
+    industry_clean = (industry or "").strip()
+    for keyword in GROWTH_INCOMPATIBLE_INDUSTRIES:
+        if keyword in industry_clean:
+            return False, f"行业非成长商业模式: {keyword}"
+    return True, ""
 
 
 # ═══════════════════════════════════════════════
@@ -140,9 +153,18 @@ def compute_growth_signals(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def apply_growth_gate(df: pd.DataFrame) -> pd.DataFrame:
-    """应用成长信号门控：至少一条路径通过。"""
+    """应用成长信号门控：行业兼容性 + 至少一条成长路径通过。"""
     df = compute_growth_signals(df)
     n_before = len(df)
+
+    # P1-1: 行业兼容性否决（商品驱动/宏观周期行业）
+    if "industry_l3" in df.columns:
+        compat_mask = df["industry_l3"].apply(lambda x: is_growth_compatible(x)[0])
+        n_excluded = (~compat_mask).sum()
+        if n_excluded > 0:
+            logger.info(f"[L2 行业否决] 排除 {n_excluded} 只非成长行业标的")
+            df = df[compat_mask].copy()
+
     df_out = df[df["_pass_gate"]].copy()
     n_after = len(df_out)
 

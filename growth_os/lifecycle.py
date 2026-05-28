@@ -8,7 +8,7 @@ from typing import Tuple, Optional
 from loguru import logger
 
 from growth_os.config import (
-    LifecycleStage, LIFECYCLE_RULES, WEIGHT_MATRIX,
+    LifecycleStage, LIFECYCLE_RULES, WEIGHT_MATRIX, COMMODITY_INDUSTRIES,
 )
 from growth_os.data import (
     get_quarterly_series, get_financial_snapshot, load_tdx_financials, get_industry,
@@ -128,6 +128,16 @@ def _get_latest_fy_roic(code: str, t_date: str) -> float | None:
     return None
 
 
+def _get_expense_ratio_delta(ratio_series) -> float | None:
+    """计算费用率近4季 vs 前4季的变化（pp），用于判断是否组织扩张。"""
+    clean = ratio_series.dropna()
+    if len(clean) < 6:
+        return None
+    recent = clean.iloc[-4:].mean()
+    prior = clean.iloc[-8:-4].mean() if len(clean) >= 8 else clean.iloc[:4].mean()
+    return round(recent - prior, 1)
+
+
 def classify_lifecycle(
     code: str, t_date: str, industry_l3: str = None
 ) -> Tuple[LifecycleStage, str]:
@@ -138,6 +148,9 @@ def classify_lifecycle(
     """
     if industry_l3 is None:
         industry_l3 = get_industry(code)
+
+    # P1-2: 商品行业预检 — 营收高增若来自价格而非组织扩张，不应标为加速期
+    is_commodity = any(kw in (industry_l3 or "") for kw in COMMODITY_INDUSTRIES)
 
     snap = get_financial_snapshot(t_date)
     row = snap[snap["code"] == code]
@@ -239,6 +252,24 @@ def classify_lifecycle(
                 f"营收为正但利润微薄/为负(净利率{net_margin:.1f}%)")
         else:
             return LifecycleStage.DECLINE, "营收不增长且亏损"
+
+    # --- 商品行业脉冲检测（P1-2） ---
+    # 商品驱动的利润增长 vs 内生飞轮成长：真成长伴随组织扩张（费用率上升）
+    if is_commodity:
+        rev_yoy_val = revenue_yoy if revenue_yoy is not None and not pd.isna(revenue_yoy) else 0
+        if rev_yoy_val > 30:
+            # 检查费用率是否同步扩张（真成长的特征 = 规模扩张 = 费用率上升）
+            admin_delta = _get_expense_ratio_delta(admin_ratio_series)
+            if admin_delta is not None and admin_delta < 2:
+                return LifecycleStage.MATURITY, (
+                    f"商品价格脉冲(营收+{rev_yoy_val:.0f}%但费用率仅+{admin_delta:.1f}pp→非组织扩张)")
+            else:
+                return LifecycleStage.MATURITY, (
+                    f"资源股商品周期(营收+{rev_yoy_val:.0f}%，毛利率{gross_margin:.0f}%)")
+        else:
+            # 商品行业营收增速不突出→成熟期
+            return LifecycleStage.MATURITY, (
+                f"资源股平稳期(营收+{rev_yoy_val:.0f}%，毛利率{gross_margin:.0f}%)")
 
     # --- 加速期判定 ---
     # 营收3年CAGR: 用绝对营收TTM计算

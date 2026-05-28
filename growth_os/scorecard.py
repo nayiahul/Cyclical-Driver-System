@@ -357,6 +357,20 @@ def compute_composite(
     if not card.is_growth_eligible and card.decision != "一票否决":
         card.decision = f"周期跟踪(非成长持仓)"
 
+    # P0-3: 生命周期衰退期强制降级
+    if card.lifecycle == LifecycleStage.DECLINE:
+        if not card.pass_l1:
+            pass  # L1 一票否决已是最强约束
+        elif not card.is_growth_eligible:
+            card.decision = "一票否决(衰退期+成长资格未通过)"
+        else:
+            card.decision = "周期跟踪(衰退期)"
+
+    # 商品脉冲标记检测
+    lr = card.lifecycle_reason or ""
+    if "商品脉冲" in lr and card.decision not in ("一票否决",):
+        card.decision = "周期跟踪(商品驱动)"
+
     return card
 
 

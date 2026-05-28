@@ -355,9 +355,15 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
     admin_series = get_quarterly_series(code, "admin_expense", n_quarters=8, t_date=t_date)
     revenue_q_series = get_quarterly_series(code, "revenue_q", n_quarters=8, t_date=t_date)
 
+    # 提前获取研发强度和营收增速，供 P1-3 门槛判断
+    rd = row.get("rd_expense", 0) or 0
+    revenue = row.get("revenue", 0) or 0
+    rd_ratio_val = rd / revenue * 100 if revenue > 0 else 0
+    rev_yoy_val = row.get("revenue_yoy")
+    rev_yoy_val = rev_yoy_val if rev_yoy_val is not None and not pd.isna(rev_yoy_val) else 0
+
     if (len(selling_series.dropna()) >= 4 and len(admin_series.dropna()) >= 4
             and len(revenue_q_series.dropna()) >= 4):
-        # 最近4季 vs 前4季
         recent_rev = revenue_q_series.iloc[-4:].sum()
         old_rev = revenue_q_series.iloc[-8:-4].sum()
         if old_rev > 0:
@@ -365,7 +371,20 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
                                     admin_series.iloc[-4:].sum()) / recent_rev * 100
             old_expense_ratio = (selling_series.iloc[-8:-4].sum() +
                                  admin_series.iloc[-8:-4].sum()) / old_rev * 100
-            if recent_expense_ratio < old_expense_ratio * 0.95:
+            expense_delta = recent_expense_ratio - old_expense_ratio
+
+            # P1-3: 高研发行业放宽阈值
+            is_high_rd = rd_ratio_val > 8
+            if is_high_rd and rev_yoy_val > 20 and expense_delta < 5:
+                # 高研发+高营收增长+费用率温和上升 = 正常扩张
+                result["expense_leverage"] = {"score": s["expense_leverage_weight"],
+                                              "label": "扩张中(高研发正常)",
+                                              "recent": round(recent_expense_ratio, 1)}
+            elif is_high_rd and rev_yoy_val < 10 and expense_delta > 3:
+                # 高研发+低营收增长+费用率明显上升 = 研发效率恶化
+                result["expense_leverage"] = {"score": 0, "label": "研发效率恶化",
+                                              "recent": round(recent_expense_ratio, 1)}
+            elif recent_expense_ratio < old_expense_ratio * 0.95:
                 result["expense_leverage"] = {"score": s["expense_leverage_weight"],
                                               "label": "释放中",
                                               "recent": round(recent_expense_ratio, 1)}
