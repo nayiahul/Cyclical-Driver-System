@@ -77,8 +77,19 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines = []
     lines.append(f"# 成长股深度体检报告: {name} ({code})")
     lines.append(f"")
+    # 行业范式
+    try:
+        from growth_os.industry_paradigms import get_industry_paradigm
+        paradigm = get_industry_paradigm(industry_l3)
+        paradigm_name = paradigm["name"]
+        paradigm_driver = paradigm["growth_driver"]
+    except Exception:
+        paradigm_name = "通用框架"
+        paradigm_driver = "通用财务分析"
+
     lines.append(f"**日期**: {t_date}")
     lines.append(f"**行业**: {industry_l3}")
+    lines.append(f"**范式**: {paradigm_name}（{paradigm_driver}）")
     lines.append(f"**生命周期**: {lifecycle.value}")
     lines.append(f"**Regime**: {card.stock_regime}")
     lines.append(f"**行业叙事**: {narrative}")

@@ -267,18 +267,45 @@ def _level_to_score(level: str) -> float | None:
     return {"green": 1.0, "yellow": 0.5, "red": 0.0}.get(level, None)
 
 
-def run_all_probes(code: str, t_date: str) -> list[dict]:
+def run_all_probes(code: str, t_date: str, industry_l3: str = None) -> list[dict]:
     """运行全部增长来源探针，返回列表。
 
     每个探针含 name/label/level/score 字段。
     score: 0-1 连续分值 (green=1.0, yellow=0.5, red=0.0, unknown=None)
+
+    v3.0: 按行业范式排序探针顺序（核心探针优先），跳过不适用的探针。
     """
-    probes = [
-        {"name": "订单领先性", **probe_order_leadership(code, t_date)},
-        {"name": "CAPEX效率", **probe_capex_efficiency(code, t_date)},
-        {"name": "毛利率韧性", **probe_margin_resilience(code, t_date)},
-        {"name": "客户集中度", **probe_customer_concentration(code, t_date)},
-    ]
+    all_probes = {
+        "订单领先性": lambda: probe_order_leadership(code, t_date),
+        "CAPEX效率": lambda: probe_capex_efficiency(code, t_date),
+        "毛利率韧性": lambda: probe_margin_resilience(code, t_date),
+        "客户集中度": lambda: probe_customer_concentration(code, t_date),
+    }
+
+    # 获取行业范式，确定探针优先级
+    primary_order = list(all_probes.keys())  # 默认顺序
+    skip_names = set()
+    if industry_l3:
+        try:
+            from growth_os.industry_paradigms import get_industry_paradigm
+            paradigm = get_industry_paradigm(industry_l3)
+            primary_order = paradigm["primary_probes"]
+            skip_names = set(paradigm.get("skip_probes", []))
+        except Exception:
+            pass
+
+    # 按范式优先级排序，跳过不适用的探针
+    probes = []
+    for name in primary_order:
+        if name in skip_names or name not in all_probes:
+            continue
+        probes.append({"name": name, **all_probes[name]()})
+
+    # 补充未在优先级列表中的探针
+    for name, fn in all_probes.items():
+        if name not in primary_order and name not in skip_names:
+            probes.append({"name": name, **fn()})
+
     for p in probes:
         p["score"] = _level_to_score(p["level"])
     return probes
