@@ -4,25 +4,69 @@
 用法:
     .venv/bin/python -m growth_os.run_screen --date 20260519 --top 100
     .venv/bin/python -m growth_os.run_screen --date 20260519 --code 600519
+
+v3.0: 多进程并行（--workers N）+ 批量模式跳过探针。
 """
 import os
 import sys
 import argparse
+from datetime import datetime
+from multiprocessing import Pool, cpu_count
+
 import pandas as pd
 import numpy as np
-from datetime import datetime
 from loguru import logger
 
 from growth_os.config import DATA_PATHS, EXCLUDED_INDUSTRIES_L1
 from growth_os.data import load_growth_data, get_industry
-from growth_os.lifecycle import classify_lifecycle
-from growth_os.funnel import run_funnel
-from growth_os.scorecard import GrowthScorecard, compute_composite, normalize_pool, recalc_composite_with_ranks
+from growth_os.scorecard import normalize_pool, recalc_composite_with_ranks
 from growth_os.report import generate_report
 from growth_os.pre_filter import pre_filter, sort_by_relevance
 
 
-def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> pd.DataFrame:
+# ── 多进程 worker 函数（必须为顶层函数） ──
+
+def _score_one_stock(args: tuple) -> dict | None:
+    """对单只股票完成 漏斗+打分+Regime路由，返回 dict。多进程 worker。"""
+    code, t_date, stock_name, industry_l1 = args
+    try:
+        from growth_os.data import get_industry
+        from growth_os.lifecycle import classify_lifecycle
+        from growth_os.funnel import run_funnel
+        from growth_os.scorecard import GrowthScorecard, compute_composite
+
+        industry_l3 = get_industry(code)
+        lifecycle, lc_reason = classify_lifecycle(code, t_date, industry_l3)
+        funnel = run_funnel(code, t_date, industry_l3, lifecycle)
+
+        card = GrowthScorecard(
+            code=code, name=stock_name,
+            industry_l3=industry_l3, industry_l1=industry_l1,
+            lifecycle=lifecycle, lifecycle_reason=lc_reason,
+            pass_l1=funnel["pass_l1"],
+            l1_verdict=funnel.get("l1_verdict", ""),
+            l1_absolute_reds=funnel.get("l1_absolute_reds", []),
+            l1_conditional_reds=funnel.get("l1_conditional_reds", []),
+            l1_red_flags=funnel["l1_red_flags"],
+            score_l2=funnel.get("score_l2", np.nan),
+            score_l3=funnel.get("score_l3", np.nan),
+            score_l4=funnel.get("score_l4", np.nan),
+            score_l5=funnel.get("score_l5", np.nan),
+        )
+        try:
+            from growth_os.capex_cycle import classify_capex_cycle
+            card.capex_phase = classify_capex_cycle(code, t_date).get("phase", "")
+        except Exception:
+            pass
+        card = compute_composite(card, funnel)
+        return card.to_dict()
+    except Exception as e:
+        logger.debug(f"{code} 处理异常: {e}")
+        return None
+
+
+def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
+               workers: int = None) -> pd.DataFrame:
     """全市场成长股筛选。
 
     Args:
@@ -58,54 +102,35 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
     codes = df["code"].tolist()
     logger.info(f"候选池: {len(codes)} 只（预过滤后，已按成长相关性排序）")
 
-    # 加载股票名称映射 {code: name}
-    import pandas as _pd
+    # 加载股票名称 + 行业映射
     _name_map = {}
+    _industry_l1_map = {}
     try:
-        _sw = _pd.read_csv(DATA_PATHS["sw_industry_map"], dtype={"证券代码": str})
+        _sw = pd.read_csv(DATA_PATHS["sw_industry_map"], dtype={"证券代码": str})
         _name_map = dict(zip(_sw["证券代码"].str.zfill(6), _sw["证券名称"]))
     except Exception:
         pass
+    _industry_l1_map = dict(zip(df["code"], df.get("industry_l1", "")))
+
+    # 构建 worker 任务参数
+    tasks = [
+        (code, t_date, _name_map.get(code, code),
+         _industry_l1_map.get(code, ""))
+        for code in codes
+    ]
+
+    # 多进程并行打分
+    n_workers = workers or max(1, cpu_count() - 1)  # 默认留1核
+    logger.info(f"多进程评分: {n_workers} workers × {len(tasks)} stocks")
 
     results = []
-    for i, code in enumerate(codes):
-        if (i + 1) % 100 == 0:
-            logger.info(f"进度: {i+1}/{len(codes)}")
-        try:
-            industry_l3 = get_industry(code)
-            lifecycle, lc_reason = classify_lifecycle(code, t_date, industry_l3)
-            funnel = run_funnel(code, t_date, industry_l3, lifecycle)
-
-            stock_name = _name_map.get(code, code)
-            card = GrowthScorecard(
-                code=code,
-                name=stock_name,
-                industry_l3=industry_l3,
-                industry_l1=df[df["code"] == code].iloc[0].get("industry_l1", ""),
-                lifecycle=lifecycle,
-                lifecycle_reason=lc_reason,
-                pass_l1=funnel["pass_l1"],
-                l1_verdict=funnel.get("l1_verdict", ""),
-                l1_absolute_reds=funnel.get("l1_absolute_reds", []),
-                l1_conditional_reds=funnel.get("l1_conditional_reds", []),
-                l1_red_flags=funnel["l1_red_flags"],
-                score_l2=funnel.get("score_l2", np.nan),
-                score_l3=funnel.get("score_l3", np.nan),
-                score_l4=funnel.get("score_l4", np.nan),
-                score_l5=funnel.get("score_l5", np.nan),
-            )
-            # CAPEX 周期阶段（供 Regime 路由使用）
-            try:
-                from growth_os.capex_cycle import classify_capex_cycle
-                _cc = classify_capex_cycle(code, t_date)
-                card.capex_phase = _cc.get("phase", "")
-            except Exception:
-                pass
-            card = compute_composite(card, funnel)
-            results.append(card.to_dict())
-        except Exception as e:
-            logger.debug(f"{code} 处理异常: {e}")
-            continue
+    with Pool(processes=n_workers) as pool:
+        for i, r in enumerate(pool.imap_unordered(_score_one_stock, tasks,
+                                                   chunksize=max(10, len(tasks)//(n_workers*8)))):
+            if r is not None:
+                results.append(r)
+            if (i + 1) % 500 == 0:
+                logger.info(f"收集进度: {i+1}/{len(tasks)}")
 
     # P0-1: L1 硬闸 — 分离否决标的到隔离池
     passed = [r for r in results if r.get("pass_l1", True)]
@@ -208,6 +233,8 @@ def main():
                         help="单只股票代码 (个股深度体检模式)")
     parser.add_argument("--min-cap", type=float, default=20.0,
                         help="最低市值(亿元) (默认20)")
+    parser.add_argument("--workers", type=int, default=None,
+                        help=f"并行进程数 (默认cpu_count-1)")
     args = parser.parse_args()
 
     t_date = args.date or datetime.now().strftime("%Y%m%d")
@@ -220,7 +247,8 @@ def main():
                 print(f.read())
     else:
         # 全市场筛选
-        screen_all(t_date, top_n=args.top, min_market_cap=args.min_cap)
+        screen_all(t_date, top_n=args.top, min_market_cap=args.min_cap,
+                   workers=args.workers)
 
 
 if __name__ == "__main__":
