@@ -424,15 +424,26 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     except ImportError:
         pass
 
-    # CAPEX 周期定位（探针5 — 不参与评分）
+    # CAPEX 周期定位 + 深度分析（v3.0）
     try:
-        from growth_os.capex_cycle import classify_capex_cycle
+        from growth_os.capex_cycle import (
+            classify_capex_cycle, classify_capex_intensity, analyze_capex_trend,
+        )
         capex_cycle = classify_capex_cycle(code, t_date)
+        capex_intensity = classify_capex_intensity(code, t_date)
+        capex_trend = analyze_capex_trend(code, t_date)
+
         if capex_cycle.get("level") != "unknown":
             lines.append(f"## CAPEX 周期定位")
             lines.append(f"")
-            lines.append(f"- {capex_cycle['label']}")
-            lines.append(f"> 基于近4季TTM数据。单季营收增速见飞轮四象限，两者口径不同。")
+            lines.append(f"- **周期阶段**: {capex_cycle['label']}")
+            lines.append(f"- **投入强度**: {capex_intensity['label']}")
+            if capex_trend.get("label"):
+                lines.append(f"- **趋势信号**: {capex_trend['label']}")
+            # CAPEX 预警（来自 Regime）
+            if card.capex_phase in ("danger", "contraction") and card.stock_regime.startswith("成长"):
+                lines.append(f"- ⚠️ **Regime预警**: 成长股处于CAPEX{capex_cycle['phase']}阶段，关注产能/资本开支风险")
+            lines.append(f"> CAPEX增速{capex_cycle['capex_growth']:+.0f}%，营收增速{capex_cycle['rev_growth']:+.0f}%（TTM近4季vs前4季）。CAPEX/固定资产={capex_intensity.get('capex_fa_ratio', '?')}%。")
             lines.append(f"")
     except Exception:
         pass

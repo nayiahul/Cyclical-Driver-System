@@ -61,8 +61,9 @@ class RegimeRoute:
     peg_applicable: bool   # PEG 框架是否适用
     decision_ceiling: DecisionTemplate  # 该 Regime 下最高可达的决策等级
     narrative: str         # 报告叙事标签
-    space_b_disabled: list[str]  # Space B 中禁用的子维度
     report_note: str       # 报告附注
+    space_b_disabled: list[str] = field(default_factory=list)  # Space B 中禁用的子维度
+    capex_alert: str = ""  # CAPEX 周期预警（空=无预警）
 
 
 # ═══════════════════════════════════════════════
@@ -198,6 +199,7 @@ def classify_regime(
     pass_l1: bool,
     is_commodity: bool = False,
     lifecycle_reason: str = "",
+    capex_phase: str = "",
 ) -> RegimeRoute:
     """根据信号组合判定个股 Regime，返回完整路由。
 
@@ -207,6 +209,8 @@ def classify_regime(
     3. 生命周期衰退 → CYCLICAL_DECLINE
     4. 成长资格未通过 → CYCLICAL_TRANSITION
     5. 生命周期路由 → GROWTH_ACCELERATION / GROWTH_MATURE / GROWTH_INTRODUCTION
+
+    CAPEX 周期信号作为路由结果的风险标记（不改变 Regime 分类，但附加预警）。
     """
     from growth_os.config import LifecycleStage
 
@@ -224,18 +228,29 @@ def classify_regime(
 
     # 4. 成长资格未通过 → 周期过渡
     if not is_growth_eligible:
-        return REGIME_ROUTES[StockRegime.CYCLICAL_TRANSITION]
+        route = REGIME_ROUTES[StockRegime.CYCLICAL_TRANSITION]
+        # CAPEX 复苏信号：提示接近周期底部
+        if capex_phase in ("recovery",):
+            route.capex_alert = f"CAPEX复苏信号({capex_phase})：营收改善+CAPEX未增→产能利用率提升，关注反转"
+        return route
 
-    # 5. 生命周期路由
+    # 5. 生命周期路由 + CAPEX 预警
     if lifecycle == LifecycleStage.ACCELERATION:
-        return REGIME_ROUTES[StockRegime.GROWTH_ACCELERATION]
+        route = REGIME_ROUTES[StockRegime.GROWTH_ACCELERATION]
     elif lifecycle == LifecycleStage.MATURITY:
-        return REGIME_ROUTES[StockRegime.GROWTH_MATURE]
+        route = REGIME_ROUTES[StockRegime.GROWTH_MATURE]
     elif lifecycle == LifecycleStage.INTRODUCTION:
-        return REGIME_ROUTES[StockRegime.GROWTH_INTRODUCTION]
+        route = REGIME_ROUTES[StockRegime.GROWTH_INTRODUCTION]
+    else:
+        route = REGIME_ROUTES[StockRegime.CYCLICAL_TRANSITION]
 
-    # 回退：周期过渡
-    return REGIME_ROUTES[StockRegime.CYCLICAL_TRANSITION]
+    # CAPEX 预警：成长股在产能过剩/收缩区 → 风险标记
+    if capex_phase in ("danger",):
+        route.capex_alert = f"产能过剩预警(CAPEX={capex_phase})：CAPEX扩张但营收未跟上，警惕周期顶部"
+    elif capex_phase in ("contraction",):
+        route.capex_alert = f"CAPEX收缩({capex_phase})：主动或被动缩减开支，关注是否进入衰退"
+
+    return route
 
 
 def regime_decision(route: RegimeRoute, composite_score: float) -> str:

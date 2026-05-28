@@ -84,6 +84,13 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
                 score_l4=funnel.get("score_l4", np.nan),
                 score_l5=funnel.get("score_l5", np.nan),
             )
+            # CAPEX 周期阶段（供 Regime 路由使用）
+            try:
+                from growth_os.capex_cycle import classify_capex_cycle
+                _cc = classify_capex_cycle(code, t_date)
+                card.capex_phase = _cc.get("phase", "")
+            except Exception:
+                pass
             card = compute_composite(card, funnel)
             results.append(card.to_dict())
         except Exception as e:

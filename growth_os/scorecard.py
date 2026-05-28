@@ -73,6 +73,7 @@ class GrowthScorecard:
     l5_status: str = ""           # L5Status: ok/partial/missing
     decision: str = ""
     stock_regime: str = ""         # StockRegime value
+    capex_phase: str = ""          # CAPEX cycle phase
     is_growth_eligible: bool = True
     block_reason: str = ""
     _saved_weights: dict = field(default_factory=dict)
@@ -119,6 +120,7 @@ class GrowthScorecard:
             "l5_status": self.l5_status,
             "decision": self.decision,
             "stock_regime": self.stock_regime,
+            "capex_phase": self.capex_phase,
             "is_growth_eligible": self.is_growth_eligible,
             "block_reason": self.block_reason,
             "_saved_weights": self._saved_weights,
@@ -217,6 +219,7 @@ def compute_composite(
         pass_l1=card.pass_l1,
         is_commodity=_is_commodity,
         lifecycle_reason=card.lifecycle_reason,
+        capex_phase=card.capex_phase,
     )
     card.stock_regime = route.regime.value
     card.is_growth_eligible = route.growth_eligible
