@@ -185,13 +185,6 @@ def _print_summary(df: pd.DataFrame, quarantine_df: pd.DataFrame = None, n: int 
     for dec in df["decision"].value_counts().index:
         print(f"  {dec}: {df['decision'].value_counts()[dec]} 只")
 
-    if quarantine_df is not None and len(quarantine_df) > 0:
-        print(f"\n⚠️  L1 隔离池（一票否决，不在观察池内）:")
-        for _, r in quarantine_df.iterrows():
-            reds = str(r.get("l1_red_flags", ""))[:50]
-            print(f"  {r['code']} {str(r['name'])[:10]:<10} {str(r['industry_l3'])[:14]:<14} "
-                  f"综合{r.get('composite_score',0):.0f}分 → {reds}")
-
 
 def main():
     parser = argparse.ArgumentParser(description="成长股挖掘系统 — 批量筛选/个股体检")
