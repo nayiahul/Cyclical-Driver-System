@@ -34,6 +34,8 @@ output/        # 输出结果
 ```bash
 source .venv/bin/activate
 python -c "from growth_os.report import generate_report; generate_report('300308', '20260526')"
+
+python -m growth_os.report 300308 20260527  # 个股的详细体检报告
 ```
 
 输出 `output/growth_report_{code}_{date}.md`，包含综合评分、决策卡片、L1-L5 分层诊断、轨迹层、增长来源探针。
@@ -42,13 +44,14 @@ python -c "from growth_os.report import generate_report; generate_report('300308
 
 ```bash
 source .venv/bin/activate
-python main.py                         # 完整回测 2015-2024 → output/nav.csv
-python run_slice4.py                   # 切片4回测
-python run_slice5.py                   # 切片5回测
-python growth_os/run_screen.py         # 全市场扫描 → 观察池 CSV
-python growth_os/batch_screen.py       # 批量筛选 → Top N CSV
-python screener.py                     # 三维筛选器（景气度/壁垒/估值）
-python sweep.py                        # 参数网格扫描 (TOP_N × PEG_MAX)
+python main.py                            # 完整回测 2015-2024 → output/nav.csv
+python run_slice4.py                      # 切片4回测
+python run_slice5.py                      # 切片5回测
+python growth_os/run_screen.py            # 全市场扫描 → 观察池 CSV
+python -m growth_os.run_screen --top 20   # 全 A 股过预过滤器 + 六层漏斗，输出 Top N 到 CSV
+python growth_os/batch_screen.py          # 批量筛选、走完整漏斗打分，输出排序后的候选池 → Top N CSV  
+python screener.py                        # 三维筛选器（景气度/壁垒/估值） 
+python sweep.py                           # 参数网格扫描 (TOP_N × PEG_MAX)
 ```
 
 ### 3. 工具/诊断/数据维护
