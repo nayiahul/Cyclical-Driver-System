@@ -98,14 +98,20 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0) -> p
     # 截面排名标准化（仅对通过 L1 的标的，避免隔离池高分拉低正常标的百分位）
     passed = normalize_pool(passed)
 
-    # 用标准化后的排名重新计算综合分
+    from growth_os.regime_router import classify_regime, regime_decision, REGIME_ROUTES
+    from growth_os.config import COMMODITY_INDUSTRIES, LifecycleStage
+
+    # 用标准化后的排名重新计算综合分 + Regime 决策重评
     for r in passed:
         r["composite_score"] = recalc_composite_with_ranks(r)
         existing = r.get("decision", "")
-        # 保留 compute_composite 已设置的降级决策（生命周期/成长资格门）
-        if any(kw in existing for kw in ["高风险观察池", "周期跟踪", "一票否决"]):
-            pass
-        elif r["composite_score"] >= 70:
+        # 保留不入池 Regime 的决策（VETO / HIGH_RISK / CYCLE_TRACK）
+        if any(kw in existing for kw in ["高风险观察池", "一票否决"]):
+            continue
+        if "周期跟踪" in existing:
+            continue
+        # 可入池 Regime：用标准化后的综合分重新判定决策层级
+        if r["composite_score"] >= 70:
             r["decision"] = "深度研究"
         elif r["composite_score"] >= 50:
             r["decision"] = "加入观察池"

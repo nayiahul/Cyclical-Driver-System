@@ -52,16 +52,11 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     )
     card = compute_composite(card, funnel_result)
 
-    # PEG框架覆写：成长资格未通过时，从"可信度低"升级为"框架不适用"
-    if not card.is_growth_eligible and funnel_result["l5_details"].get("peg_ratio", {}).get("score", 0) > 0:
-        peg_r = funnel_result["l5_details"]["peg_ratio"]
-        rev_yoy_val = card.revenue_yoy or 0
-        peg_r["label"] = (
-            f"⛔ PEG框架不适用 — 公司处于周期/出清态（营收{rev_yoy_val:.0f}%，ROIC<WACC），"
-            f"PEG隐含的'增速可持续'假设不成立。建议使用PB-ROE或周期调整估值框架，PEG结果不予采信。"
-        )
+    # v3.0: PEG框架覆写 — 由 Regime 路由决定，非手动 is_growth_eligible 判断
+    if funnel_result.get("_peg_overridden"):
+        peg_r = funnel_result["l5_details"].get("peg_ratio", {})
+        peg_r["label"] = funnel_result.get("_peg_note", peg_r.get("label", ""))
         peg_r["framework_mismatch"] = True
-        # PEG不参与L5评分归一化
         peg_r["score"] = 0
 
     # 利润质量归因探针
@@ -85,6 +80,7 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     lines.append(f"**日期**: {t_date}")
     lines.append(f"**行业**: {industry_l3}")
     lines.append(f"**生命周期**: {lifecycle.value}")
+    lines.append(f"**Regime**: {card.stock_regime}")
     lines.append(f"**行业叙事**: {narrative}")
     lines.append(f"")
 

@@ -4,6 +4,10 @@ from enum import Enum
 from typing import Optional
 import numpy as np
 
+from growth_os.regime_router import (
+    StockRegime, classify_regime, regime_decision, REGIME_ROUTES,
+)
+
 from growth_os.config import LifecycleStage
 from growth_os.lifecycle import get_weights, resolve_weights
 
@@ -68,6 +72,7 @@ class GrowthScorecard:
     quality_score: float = np.nan  # L1-L4 成长质量分（不含L5）
     l5_status: str = ""           # L5Status: ok/partial/missing
     decision: str = ""
+    stock_regime: str = ""         # StockRegime value
     is_growth_eligible: bool = True
     block_reason: str = ""
     _saved_weights: dict = field(default_factory=dict)
@@ -113,6 +118,7 @@ class GrowthScorecard:
             "quality_score": self.quality_score,
             "l5_status": self.l5_status,
             "decision": self.decision,
+            "stock_regime": self.stock_regime,
             "is_growth_eligible": self.is_growth_eligible,
             "block_reason": self.block_reason,
             "_saved_weights": self._saved_weights,
@@ -179,36 +185,57 @@ def compute_composite(
 ) -> GrowthScorecard:
     """计算综合得分并填充打分卡。
 
-    综合得分 = L1*w1 + L2*w2 + L3*w3 + L4*w4 + L5*w5
-    权重由生命周期阶段决定，每层原始分0-10，权重和=1.0，满分100。
-
-    Args:
-        weight_mode: "lifecycle"(默认) | "defensive" | "maturity_forced"
-                     非 lifecycle 时使用 REGIME_WEIGHTS 替代生命周期权重。
+    v3.0: Regime 路由替代生命周期权重 — Regime 决定的不只是权重，
+    而是整个评估框架（估值框架/权重矩阵/决策上限/叙事标签）。
     """
-    from growth_os.config import REGIME_WEIGHTS
-
-    # 使用生命周期追踪器（锁定期+混合权重）
-    lifecycle_weights = resolve_weights(card.code, card.lifecycle)
-    if lifecycle_weights is None:
-        card.composite_score = 0
-        card.decision = "高风险观察池(衰退期)"
-        return card
-
-    # L0 Regime 权重覆盖
-    if weight_mode != "lifecycle" and weight_mode in REGIME_WEIGHTS:
-        weights = REGIME_WEIGHTS[weight_mode]
-    else:
-        weights = lifecycle_weights
-
-    # 保存权重供后续标准化重算使用
-    card._saved_weights = weights
+    from growth_os.config import REGIME_WEIGHTS as MARKET_REGIME_WEIGHTS
+    from growth_os.config import COMMODITY_INDUSTRIES
 
     l1 = funnel_result.get("l1_details", {})
     l2 = funnel_result.get("l2_details", {})
     l3 = funnel_result.get("l3_details", {})
     l4 = funnel_result.get("l4_details", {})
     l5 = funnel_result.get("l5_details", {})
+
+    # 先计算成长资格门（ROIC<WACC且营收负增长），供 Regime 路由使用
+    roic_wacc_val = l3.get("roic_vs_wacc", {}).get("value", {})
+    spread = roic_wacc_val.get("spread") if roic_wacc_val else None
+    rev_yoy_val = l1.get("deducted_vs_revenue", {}).get("value", {}).get("revenue")
+    roic_below_wacc = spread is not None and spread < 0
+    _is_growth_eligible = not (
+        roic_below_wacc and rev_yoy_val is not None and rev_yoy_val < 0
+    )
+
+    # 检查是否为商品驱动行业
+    industry = card.industry_l3 or ""
+    _is_commodity = any(kw in industry for kw in COMMODITY_INDUSTRIES)
+
+    # v3.0: Regime 路由 — 替代生命周期权重
+    route = classify_regime(
+        lifecycle=card.lifecycle,
+        is_growth_eligible=_is_growth_eligible,
+        pass_l1=card.pass_l1,
+        is_commodity=_is_commodity,
+        lifecycle_reason=card.lifecycle_reason,
+    )
+    card.stock_regime = route.regime.value
+    card.is_growth_eligible = route.growth_eligible
+    card.block_reason = route.report_note
+
+    # 不入池的 Regime（权重全零）：直接返回
+    if route.decision_ceiling.value in ("一票否决", "高风险观察池"):
+        card.composite_score = 0
+        card.decision = regime_decision(route, 0)
+        card._saved_weights = route.weight_matrix
+        return card
+
+    # L0 市场 Regime 权重覆盖（保留，但作用于 Regime 内部权重调整）
+    if weight_mode != "lifecycle" and weight_mode in MARKET_REGIME_WEIGHTS:
+        weights = MARKET_REGIME_WEIGHTS[weight_mode]
+    else:
+        weights = route.weight_matrix
+
+    card._saved_weights = weights
 
     # 填充 A 区: L1 verdict + red flag classification
     card.l1_verdict = funnel_result.get("l1_verdict", "")
@@ -330,49 +357,20 @@ def compute_composite(
     )
     card.quality_score = round(quality, 1)
 
-    # 成长资格门：ROIC<WACC且营收负增长→不具成长持仓资格
-    card.is_growth_eligible = True
-    card.block_reason = ""
-    roic_wacc_val = l3.get("roic_vs_wacc", {}).get("value", {})
-    spread = roic_wacc_val.get("spread") if roic_wacc_val else None
-    rev_yoy_val = card.revenue_yoy
-    roic_below_wacc = spread is not None and spread < 0
-    if roic_below_wacc and rev_yoy_val is not None and rev_yoy_val < 0:
-        card.is_growth_eligible = False
-        card.block_reason = "ROIC<WACC且营收负增长：周期/出清态，非成长持仓"
-        # 强制降级决策
-        if card.decision == "深度研究":
-            card.decision = "加入观察池"
-        elif card.decision != "一票否决":
-            card.decision = "周期跟踪(非成长持仓)"
+    # v3.0: Regime 路由统一决策 — 替代零散的条件判断树
+    # Regime 已内置: 成长资格门 / 衰退期降级 / 商品脉冲检测 / L1否决
+    card.decision = regime_decision(route, card.composite_score)
 
-    # 决策
-    if not card.pass_l1:
-        card.decision = "一票否决"
-    elif card.composite_score >= 70:
-        card.decision = "深度研究"
-    elif card.composite_score >= 50:
-        card.decision = "加入观察池"
-    else:
-        card.decision = "暂不关注"
-
-    # 成长资格门覆盖决策
-    if not card.is_growth_eligible and card.decision != "一票否决":
-        card.decision = f"周期跟踪(非成长持仓)"
-
-    # P0-3: 生命周期衰退期强制降级
-    if card.lifecycle == LifecycleStage.DECLINE:
-        if not card.pass_l1:
-            pass  # L1 一票否决已是最强约束
-        elif not card.is_growth_eligible:
-            card.decision = "一票否决(衰退期+成长资格未通过)"
-        else:
-            card.decision = "周期跟踪(衰退期)"
-
-    # 商品脉冲标记检测
-    lr = card.lifecycle_reason or ""
-    if "商品脉冲" in lr and card.decision not in ("一票否决",):
-        card.decision = "周期跟踪(商品驱动)"
+    # L5 估值框架标签（供 report.py 使用）
+    # 由 Regime 决定 PEG 是否适用，写入 funnel_result 供下游读取
+    if not route.peg_applicable:
+        l5_label = funnel_result.get("l5_details", {}).get("peg_ratio", {}).get("label", "")
+        if l5_label and "PEG" in str(l5_label):
+            funnel_result["_peg_overridden"] = True
+            funnel_result["_peg_note"] = (
+                f"⛔ PEG框架不适用({route.regime.value}) — "
+                f"建议使用{route.valuation_framework.value}框架"
+            )
 
     return card
 
