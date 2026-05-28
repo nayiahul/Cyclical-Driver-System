@@ -448,6 +448,31 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     except Exception:
         pass
 
+    # 行业领先指标（v3.0 — 产业数据层）
+    try:
+        from growth_os.industry_indicators import (
+            get_industry_cycle_signal, get_industry_momentum, validate_growth_quality,
+        )
+        cycle = get_industry_cycle_signal(t_date)
+        momentum = get_industry_momentum(industry_l3, t_date)
+        rev_yoy = card.revenue_yoy or 0
+        quality = validate_growth_quality(code, industry_l3, rev_yoy, t_date)
+
+        lines.append(f"## 行业领先指标")
+        lines.append(f"")
+        phase_label = {"expansion": "🟢 扩张期", "neutral": "🟡 中性", "contraction": "🔴 收缩期"}
+        lines.append(f"- **产业周期**: {phase_label.get(cycle['phase'], cycle['phase'])} "
+                     f"（热度{cycle['score']}分，PMI={cycle['details'].get('pmi','?')}，"
+                     f"工业增加值+{cycle['details'].get('ip_yoy','?')}%）")
+        if momentum.get("momentum") != "unknown":
+            lines.append(f"- **行业动量**: {momentum['label']}")
+        if quality.get("quality") != "unknown":
+            lines.append(f"- **增长质量**: {quality['label']}")
+        lines.append(f"> 宏观数据来源: akshare，月频更新。产业周期影响成长股策略有效性：扩张期可积极，收缩期需精选。")
+        lines.append(f"")
+    except Exception:
+        pass
+
     # 卖出信号
     lines.append(f"## 卖出信号")
     lines.append(f"{sell_summary}")

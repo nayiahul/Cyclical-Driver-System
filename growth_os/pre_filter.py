@@ -91,11 +91,22 @@ def compute_growth_signals(df: pd.DataFrame) -> pd.DataFrame:
 
     # --- Route A: 行业相对增速突出 ---
     # 营收增速在同行业内排前 60%（不是绝对值，不同行业基准不同）
+    # v3.0: 产业收缩期收紧阈值（60%→70%），减少伪成长标的入池
+    threshold_a = CFG["route_a"]["revenue_pct_threshold"]  # 默认 0.6
+    try:
+        from growth_os.industry_indicators import get_industry_cycle_signal
+        cycle = get_industry_cycle_signal()
+        if cycle.get("phase") == "contraction":
+            threshold_a = 0.7
+            logger.info(f"[Route A] 产业收缩期，阈值收紧: {threshold_a:.0%}")
+    except Exception:
+        pass
+
     if "revenue_yoy" in df.columns and "industry_l3" in df.columns:
         df["rev_yoy_pct_industry"] = df.groupby("industry_l3")["revenue_yoy"].transform(
             lambda x: x.rank(pct=True)
         )
-        df["pass_route_a"] = df["rev_yoy_pct_industry"] > CFG["route_a"]["revenue_pct_threshold"]
+        df["pass_route_a"] = df["rev_yoy_pct_industry"] > threshold_a
     else:
         df["pass_route_a"] = False
 

@@ -64,6 +64,7 @@ class RegimeRoute:
     report_note: str       # 报告附注
     space_b_disabled: list[str] = field(default_factory=list)  # Space B 中禁用的子维度
     capex_alert: str = ""  # CAPEX 周期预警（空=无预警）
+    industry_cycle: str = ""  # 产业周期阶段 expansion/neutral/contraction
 
 
 # ═══════════════════════════════════════════════
