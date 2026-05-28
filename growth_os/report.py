@@ -206,42 +206,38 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
             if s.get("triggered") and s.get("severity") in ("red", "yellow"):
                 risks.append(f"{'🔴' if s['severity'] == 'red' else '🟡'} {s['signal']}")
 
-    # 探针信号
-    probe_green = 0
-    probe_yellow = 0
-    probe_red = 0
-    probe_unknown = 0
+    # v3.0: 增长持续性概率（替代离散探针计数）
+    persistence = {"probability": 50, "label": "⚪ 未计算", "level": "unknown"}
+    probes = []
     try:
+        from growth_os.growth_persistence import compute_persistence_probability
+        persistence = compute_persistence_probability(code, t_date, industry_l3)
         from growth_os.growth_probes import run_all_probes
-        probes = run_all_probes(code, t_date)
-        for p in probes:
-            if p["level"] == "green": probe_green += 1
-            elif p["level"] == "yellow": probe_yellow += 1
-            elif p["level"] == "red": probe_red += 1
-            elif p["level"] == "unknown": probe_unknown += 1
-    except ImportError:
-        probes = []
+        probes = run_all_probes(code, t_date, industry_l3)
+    except Exception:
+        pass
 
     # 探针红色信号纳入风险栏
     for p in probes:
-        if p["level"] == "red":
-            short_name = p.get("name", p["label"][:12])
+        if p.get("level") == "red":
+            short_name = p.get("name", "")
             if "客户集中" in short_name:
                 risks.append(f"🔴 结构性风险-客户集中（可能覆盖所有正面信号）")
             else:
                 risks.append(f"🔴 探针-{short_name}")
+
+    # 持续性分解
+    p_prior = persistence.get("prior", 50)
+    p_probe = persistence.get("probe_adj", 0)
+    p_trend = persistence.get("trend_adj", 0)
+    persist_note = f"先验{p_prior} + 探针{p_probe:+d} + 趋势{p_trend:+d}"
 
     lines.append(f"| | 评估 |")
     lines.append(f"|------|------|")
     advantage_label = "**市场状态**" if not card.is_growth_eligible else "**优势**"
     lines.append(f"| {advantage_label} | {', '.join(positives) if positives else '无明显突出优势'} |")
     lines.append(f"| **风险** | {', '.join(risks) if risks else '未发现明显风险因素'} |")
-    # 探针摘要
-    if probe_unknown > 0:
-        probe_summary = f"✅ {probe_green}🟢 / {probe_yellow}🟡 / {probe_red}🔴 / {probe_unknown}⚠️未知"
-    else:
-        probe_summary = f"✅ {probe_green}🟢 / {probe_yellow}🟡 / {probe_red}🔴"
-    lines.append(f"| **增长持续性** | {probe_summary} |")
+    lines.append(f"| **增长持续性** | {persistence['label']} （{persist_note}） |")
 
     # Regime 状态 + 连续仓位
     try:
@@ -259,9 +255,10 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
         regime_tag = ""
 
     # 综合建议
-    if qs >= 75 and l5_status == "ok" and probe_red == 0:
+    persist_level = persistence.get("level", "unknown")
+    if qs >= 75 and l5_status == "ok" and persist_level == "high":
         suggestion = f"🟢 高质量成长股，估值合理，增长信号健康——可纳入核心持仓考量{regime_tag}"
-    elif qs >= 75 and probe_red > 0:
+    elif qs >= 75 and persist_level != "high":
         suggestion = f"🟡 优质但有隐忧——建议关注探针风险信号，控制单票仓位{regime_tag}"
     elif qs >= 75 and l5_status != "ok":
         suggestion = "🟡 基本面优异但估值状态不明——建议人工确认PE后决策"

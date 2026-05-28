@@ -74,6 +74,7 @@ class GrowthScorecard:
     decision: str = ""
     stock_regime: str = ""         # StockRegime value
     capex_phase: str = ""          # CAPEX cycle phase
+    persistence_score: float = np.nan  # 增长持续性概率 0-100
     is_growth_eligible: bool = True
     block_reason: str = ""
     _saved_weights: dict = field(default_factory=dict)
@@ -121,6 +122,7 @@ class GrowthScorecard:
             "decision": self.decision,
             "stock_regime": self.stock_regime,
             "capex_phase": self.capex_phase,
+            "persistence_score": self.persistence_score,
             "is_growth_eligible": self.is_growth_eligible,
             "block_reason": self.block_reason,
             "_saved_weights": self._saved_weights,
