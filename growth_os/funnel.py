@@ -465,41 +465,55 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
                                  admin_series.iloc[-8:-4].sum()) / old_rev * 100
             expense_delta = recent_expense_ratio - old_expense_ratio
 
-            # v3.0: 高研发豁免收紧 — 需研发转化证据(毛利率升或CAGR>20%)
+            # v3.0: 行业相对费用率 — 绝对值在行业内的位置是主区分力
+            import math
             cagr3_val = row.get("revenue_cagr_3y") or 0
             gm_label = result.get("gross_margin_trend", {}).get("label", "")
             has_rd_conversion = (gm_label == "上升" or (cagr3_val is not None and cagr3_val > 20))
-
             is_high_rd = rd_ratio_val > 8
-            if is_high_rd and has_rd_conversion and rev_yoy_val > 20 and expense_delta < 5:
-                # 高研发+有转化证据+高营收增长+费用率温和 = 正常扩张
-                result["expense_leverage"] = {"score": s["expense_leverage_weight"],
-                                              "label": "扩张中(高研发有效)",
-                                              "recent": round(recent_expense_ratio, 1)}
-            elif is_high_rd and has_rd_conversion and expense_delta < 5:
-                # 高研发+有转化+费用率温和 = 过渡态
-                result["expense_leverage"] = {"score": s["expense_leverage_weight"] * 0.75,
-                                              "label": "扩张中(高研发过渡)",
-                                              "recent": round(recent_expense_ratio, 1)}
-            elif is_high_rd and not has_rd_conversion and expense_delta > 3:
-                # 高研发+无转化证据+费用率上升 = 研发效率存疑
-                result["expense_leverage"] = {"score": 0, "label": "研发效率存疑(无转化)",
-                                              "recent": round(recent_expense_ratio, 1)}
-            elif is_high_rd and rev_yoy_val < 10 and expense_delta > 3:
-                # 高研发+低营收增长+费用率明显上升 = 恶化
-                result["expense_leverage"] = {"score": 0, "label": "研发效率恶化",
-                                              "recent": round(recent_expense_ratio, 1)}
-            elif recent_expense_ratio < old_expense_ratio * 0.95:
-                result["expense_leverage"] = {"score": s["expense_leverage_weight"],
-                                              "label": "释放中",
-                                              "recent": round(recent_expense_ratio, 1)}
-            elif recent_expense_ratio <= old_expense_ratio * 1.05:
-                result["expense_leverage"] = {"score": s["expense_leverage_weight"] / 2,
-                                              "label": "刚性",
-                                              "recent": round(recent_expense_ratio, 1)}
-            else:
-                result["expense_leverage"] = {"score": 0, "label": "恶化",
-                                              "recent": round(recent_expense_ratio, 1)}
+
+            # A: 费用率行业相对水平 (0-1.0) — 行业内费用率越低越好
+            score_a = 0.5  # default
+            exp_label_a = ""
+            try:
+                snap_all = get_financial_snapshot(t_date)
+                same_ind = snap_all[snap_all["code"].apply(
+                    lambda c: get_industry(c) == industry_l3
+                )]
+                if len(same_ind) >= 5:
+                    peers_ratios = []
+                    for _, peer in same_ind.iterrows():
+                        p_sell = peer.get("selling_expense", 0) or 0
+                        p_admin = peer.get("admin_expense", 0) or 0
+                        p_rev = peer.get("revenue", 0) or 1
+                        peers_ratios.append((p_sell + p_admin) / p_rev * 100)
+                    peers_ratios.sort()
+                    n_peers = len(peers_ratios)
+                    rank = sum(1 for r in peers_ratios if r < recent_expense_ratio)
+                    pct = rank / n_peers  # 0=最低费用率(最好), 1=最高(最差)
+                    score_a = round(1.0 * (1 - pct), 1)  # 反转: 低费用率→高分
+                    if pct < 0.2:  exp_label_a = "行业顶尖"
+                    elif pct < 0.4: exp_label_a = "行业领先"
+                    elif pct < 0.6: exp_label_a = "行业中位"
+                    else:           exp_label_a = "行业偏高"
+            except Exception:
+                pass
+
+            # B: 费用率趋势 (0-0.5) — 变化幅度sigmoid
+            adj_delta = expense_delta
+            if is_high_rd and has_rd_conversion and rev_yoy_val > 10:
+                adj_delta = expense_delta - 2.0  # 高研发容忍2pp
+            score_b = round(0.5 / (1 + math.exp(0.5 * adj_delta)), 1)
+
+            # 合并
+            exp_score = min(score_a + score_b, s["expense_leverage_weight"])
+            exp_score = round(max(exp_score, 0.1), 1)
+            exp_label = f"{exp_label_a}({recent_expense_ratio:.0f}%)"
+            if adj_delta < -3: exp_label += "↓改善"
+            elif adj_delta > 3: exp_label += "↑恶化"
+
+            result["expense_leverage"] = {"score": exp_score, "label": exp_label,
+                                          "recent": round(recent_expense_ratio, 1)}
         else:
             result["expense_leverage"] = {"score": 0, "label": "数据不足"}
     else:
