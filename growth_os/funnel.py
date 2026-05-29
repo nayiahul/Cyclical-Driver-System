@@ -422,22 +422,43 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
         return result
     row = row.iloc[0]
 
-    # 1. 毛利率趋势 (0-3)
+    # 1. 毛利率趋势 (0-3) — v3.0: 趋势幅度+行业相对水平双维度
+    import math
     gm_series = get_quarterly_series(
         code, "gross_margin", n_quarters=12, t_date=t_date
     ).dropna()
     if len(gm_series) >= 8:
         recent_gm = gm_series.iloc[-4:].mean()
         old_gm = gm_series.iloc[-8:-4].mean()
-        if recent_gm > old_gm * 1.02:
-            result["gross_margin_trend"] = {"score": s["gross_margin_up_weight"],
-                                            "label": "上升", "recent": round(recent_gm, 1)}
-        elif recent_gm >= old_gm * 0.98:
-            result["gross_margin_trend"] = {"score": s["gross_margin_stable_weight"],
-                                            "label": "稳定", "recent": round(recent_gm, 1)}
+        gm_delta = recent_gm - old_gm
+
+        # A: 趋势幅度 (0-1.5)
+        score_trend = round(1.5 / (1 + math.exp(-0.5 * gm_delta)), 1)
+        if gm_delta > 2:
+            gm_label = "上升"
+        elif gm_delta > -2:
+            gm_label = "稳定"
         else:
-            result["gross_margin_trend"] = {"score": 0, "label": "下降",
-                                            "recent": round(recent_gm, 1)}
+            gm_label = "下降"
+
+        # B: 行业相对水平 (0-1.5) — GM在同行中越高越好
+        score_level = 0.0
+        try:
+            same_ind = snap[snap["code"].apply(lambda c: get_industry(c) == industry_l3)]
+            if len(same_ind) >= 5:
+                gm_vals = [v for v in same_ind["gross_margin"] if not pd.isna(v)]
+                gm_vals.sort()
+                rank = sum(1 for v in gm_vals if v < recent_gm)
+                pct = rank / len(gm_vals)
+                score_level = round(1.5 * pct, 1)
+                if pct > 0.8: gm_label += "(行业顶尖)"
+                elif pct > 0.5: gm_label += "(行业领先)"
+        except Exception:
+            pass
+
+        gm_score = min(score_trend + score_level, s["gross_margin_up_weight"])
+        result["gross_margin_trend"] = {"score": round(gm_score, 1), "label": gm_label,
+                                        "recent": round(recent_gm, 1)}
     else:
         result["gross_margin_trend"] = {"score": 0, "label": "数据不足"}
 
@@ -537,7 +558,7 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
     else:
         result["rd_intensity"] = {"score": 0, "label": "数据不足"}
 
-    # 4. 合同负债领先 (0-2)
+    # 4. 合同负债领先 (0-2) — v3.0: 领先幅度+行业相对增速双维度
     contract_series = get_quarterly_series(
         code, "contract_liabilities", n_quarters=8, t_date=t_date
     ).dropna()
@@ -548,25 +569,40 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
             contract_growth = (recent_contract / old_contract - 1) * 100
             rev_yoy_val = row.get("revenue_yoy") or 0
             adj_contract_weight = s["contract_liab_weight"]
-            # 行业校准: 白酒/军工合同负债权重更高
             adj = INDUSTRY_ADJUSTMENTS.get(industry_l3, {})
             if adj.get("advance_receipts_weight"):
                 adj_contract_weight *= adj["advance_receipts_weight"]
-            if contract_growth > rev_yoy_val:
-                score = min(adj_contract_weight, max_score - result["total"])
-                result["contract_liabilities"] = {
-                    "score": score,
-                    "label": f"领先: 合同负债+{contract_growth:.1f}% > 营收+{rev_yoy_val:.1f}%"
-                }
-            elif contract_growth > 0:
-                result["contract_liabilities"] = {
-                    "score": adj_contract_weight / 2,
-                    "label": f"同步: 合同负债+{contract_growth:.1f}%"
-                }
-            else:
-                result["contract_liabilities"] = {
-                    "score": 0, "label": f"下降: 合同负债{contract_growth:.1f}%"
-                }
+
+            # A: 领先营收幅度 (0-1.0)
+            lead = contract_growth - rev_yoy_val
+            score_lead = round(1.0 / (1 + math.exp(-0.1 * lead)), 1)
+
+            # B: 绝对增速行业分位 (0-1.0)
+            score_magnitude = 0.5
+            try:
+                same_ind = snap[snap["code"].apply(lambda c: get_industry(c) == industry_l3)]
+                if len(same_ind) >= 5:
+                    cl_growths = []
+                    for _, peer in same_ind.iterrows():
+                        p_cl = get_quarterly_series(peer["code"], "contract_liabilities",
+                                                     n_quarters=8, t_date=t_date).dropna()
+                        if len(p_cl) >= 4:
+                            p_growth = (p_cl.iloc[-4:].mean() / p_cl.iloc[-8:-4].mean() - 1) * 100
+                            cl_growths.append(p_growth)
+                    if cl_growths:
+                        cl_growths.sort()
+                        rank = sum(1 for g in cl_growths if g < contract_growth)
+                        pct = rank / len(cl_growths)
+                        score_magnitude = round(1.0 * pct, 1)
+            except Exception:
+                pass
+
+            cl_score = min(score_lead + score_magnitude, adj_contract_weight)
+            cl_score = min(cl_score, max_score - result.get("total", 0))
+            label = f"合同负债+{contract_growth:.1f}%"
+            if score_lead > 0.7: label += "(领先营收)"
+            elif score_lead < 0.3: label += "(落后营收)"
+            result["contract_liabilities"] = {"score": round(cl_score, 1), "label": label}
         else:
             result["contract_liabilities"] = {"score": 0, "label": "数据不足"}
     else:
