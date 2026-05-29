@@ -5,6 +5,7 @@ v3.0 Sprint 6: 解决 L2 行业相对化 O(n²) 性能瓶颈。
 后续评分直接 code→pct 查表。
 """
 from __future__ import annotations
+import numpy as np
 import pandas as pd
 from loguru import logger
 
@@ -52,6 +53,14 @@ def build_percentile_table(df: pd.DataFrame, t_date: str = "") -> dict:
         if "gross_margin" in group.columns:
             ranks = group["gross_margin"].rank(pct=True)
             entry["gross_margin"] = dict(zip(codes, ranks.fillna(0.5)))
+
+        # 1b. expense_ratio: (销售+管理)/营收 (越低越好 → 反向rank)
+        sell = group.get("selling_expense", pd.Series(0, index=group.index)).fillna(0)
+        admin = group.get("admin_expense", pd.Series(0, index=group.index)).fillna(0)
+        rev = group["revenue"].replace(0, np.nan)
+        exp_ratio = (sell + admin) / rev * 100
+        ranks = (-exp_ratio).rank(pct=True)  # 负值排序=越低越好
+        entry["expense_ratio"] = dict(zip(codes, ranks.fillna(0.5)))
 
         # 2. rd_intensity (越高越好)
         if "rd_expense" in group.columns and "revenue" in group.columns:

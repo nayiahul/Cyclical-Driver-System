@@ -502,17 +502,16 @@ def _score_l2(code: str, t_date: str, industry_l3: str, pct_table: dict = None) 
             has_rd_conversion = (gm_label == "上升" or (cagr3_val is not None and cagr3_val > 20))
             is_high_rd = rd_ratio_val > 8
 
-            # A: 费用率行业相对水平 (0-1.0) — v3.0 Sprint 6: 预计算分位表
+            # A: 费用率行业相对水平 (0-1.0) — v3.0: expense_ratio分位(越低越好)
             score_a = 0.5  # default
             exp_label_a = ""
             if pct_table:
                 from growth_os.industry_percentile import get_pct
-                # 费用率 = 反向(revenue_yoy分位低=费用率高), 用revenue_yoy分位做代理
-                rev_pct = get_pct(pct_table, industry_l3, "revenue_yoy", code)
-                score_a = round(1.0 * rev_pct, 1)
-                if rev_pct > 0.8:   exp_label_a = "行业顶尖"
-                elif rev_pct > 0.6: exp_label_a = "行业领先"
-                elif rev_pct > 0.4: exp_label_a = "行业中位"
+                exp_pct = get_pct(pct_table, industry_l3, "expense_ratio", code)
+                score_a = round(1.0 * exp_pct, 1)
+                if exp_pct > 0.8:   exp_label_a = "行业顶尖"
+                elif exp_pct > 0.6: exp_label_a = "行业领先"
+                elif exp_pct > 0.4: exp_label_a = "行业中位"
                 else:               exp_label_a = "行业偏高"
             else:
                 try:
