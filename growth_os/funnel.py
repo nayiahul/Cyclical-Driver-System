@@ -558,7 +558,7 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
     else:
         result["rd_intensity"] = {"score": 0, "label": "数据不足"}
 
-    # 4. 合同负债领先 (0-2) — v3.0: 领先幅度+行业相对增速双维度
+    # 4. 合同负债领先 (0-2)
     contract_series = get_quarterly_series(
         code, "contract_liabilities", n_quarters=8, t_date=t_date
     ).dropna()
@@ -572,37 +572,21 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
             adj = INDUSTRY_ADJUSTMENTS.get(industry_l3, {})
             if adj.get("advance_receipts_weight"):
                 adj_contract_weight *= adj["advance_receipts_weight"]
-
-            # A: 领先营收幅度 (0-1.0)
-            lead = contract_growth - rev_yoy_val
-            score_lead = round(1.0 / (1 + math.exp(-0.1 * lead)), 1)
-
-            # B: 绝对增速行业分位 (0-1.0)
-            score_magnitude = 0.5
-            try:
-                same_ind = snap[snap["code"].apply(lambda c: get_industry(c) == industry_l3)]
-                if len(same_ind) >= 5:
-                    cl_growths = []
-                    for _, peer in same_ind.iterrows():
-                        p_cl = get_quarterly_series(peer["code"], "contract_liabilities",
-                                                     n_quarters=8, t_date=t_date).dropna()
-                        if len(p_cl) >= 4:
-                            p_growth = (p_cl.iloc[-4:].mean() / p_cl.iloc[-8:-4].mean() - 1) * 100
-                            cl_growths.append(p_growth)
-                    if cl_growths:
-                        cl_growths.sort()
-                        rank = sum(1 for g in cl_growths if g < contract_growth)
-                        pct = rank / len(cl_growths)
-                        score_magnitude = round(1.0 * pct, 1)
-            except Exception:
-                pass
-
-            cl_score = min(score_lead + score_magnitude, adj_contract_weight)
-            cl_score = min(cl_score, max_score - result.get("total", 0))
-            label = f"合同负债+{contract_growth:.1f}%"
-            if score_lead > 0.7: label += "(领先营收)"
-            elif score_lead < 0.3: label += "(落后营收)"
-            result["contract_liabilities"] = {"score": round(cl_score, 1), "label": label}
+            if contract_growth > rev_yoy_val:
+                score = min(adj_contract_weight, max_score - result["total"])
+                result["contract_liabilities"] = {
+                    "score": score,
+                    "label": f"领先: 合同负债+{contract_growth:.1f}% > 营收+{rev_yoy_val:.1f}%"
+                }
+            elif contract_growth > 0:
+                result["contract_liabilities"] = {
+                    "score": adj_contract_weight / 2,
+                    "label": f"同步: 合同负债+{contract_growth:.1f}%"
+                }
+            else:
+                result["contract_liabilities"] = {
+                    "score": 0, "label": f"下降: 合同负债{contract_growth:.1f}%"
+                }
         else:
             result["contract_liabilities"] = {"score": 0, "label": "数据不足"}
     else:
