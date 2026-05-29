@@ -22,7 +22,7 @@ from growth_os.data import load_growth_data, get_industry
 from growth_os.scorecard import normalize_pool, recalc_composite_with_ranks
 from growth_os.report import generate_report
 from growth_os.pre_filter import pre_filter, sort_by_relevance
-
+from growth_os.industry_percentile import build_percentile_table
 
 # ── 多进程 worker 函数（必须为顶层函数） ──
 
@@ -111,6 +111,9 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     except Exception:
         pass
     _industry_l1_map = dict(zip(df["code"], df.get("industry_l1", "")))
+
+    # v3.0 Sprint 6: 预计算行业分位表 O(n),后续 L2 评分 O(1) 查表
+    pct_table = build_percentile_table(df, t_date)
 
     # 构建 worker 任务参数
     tasks = [

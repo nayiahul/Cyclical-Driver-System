@@ -47,6 +47,7 @@ def run_funnel(
     code: str, t_date: str, industry_l3: str = None,
     lifecycle: LifecycleStage = None,
     l1_strict: bool = False,
+    pct_table: dict = None,
 ) -> dict:
     """对单只股票执行五层漏斗检查。
 
@@ -120,7 +121,7 @@ def run_funnel(
     # L1 verdict 已在 report 中体现为"一票否决"
 
     # ---- L2: 护城河 ----
-    l2 = _score_l2(code, t_date, industry_l3)
+    l2 = _score_l2(code, t_date, industry_l3, pct_table)
     result["score_l2"] = l2.pop("total")
     result["l2_details"] = l2
 
@@ -412,7 +413,7 @@ def _check_l1(code: str, t_date: str, industry_l3: str) -> dict:
 # L2: 护城河 (0-10)
 # ============================================================
 
-def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
+def _score_l2(code: str, t_date: str, industry_l3: str, pct_table: dict = None) -> dict:
     s = L2_SCORING
     result = {"total": 0.0}
     max_score = s["l2_max_score"]
@@ -442,19 +443,27 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
             gm_label = "下降"
 
         # B: 行业相对水平 (0-1.5) — GM在同行中越高越好
+        # v3.0 Sprint 6: 用预计算分位表替代 O(n²) 循环
         score_level = 0.0
-        try:
-            same_ind = snap[snap["code"].apply(lambda c: get_industry(c) == industry_l3)]
-            if len(same_ind) >= 5:
-                gm_vals = [v for v in same_ind["gross_margin"] if not pd.isna(v)]
-                gm_vals.sort()
-                rank = sum(1 for v in gm_vals if v < recent_gm)
-                pct = rank / len(gm_vals)
-                score_level = round(1.5 * pct, 1)
-                if pct > 0.8: gm_label += "(行业顶尖)"
-                elif pct > 0.5: gm_label += "(行业领先)"
-        except Exception:
-            pass
+        if pct_table:
+            from growth_os.industry_percentile import get_pct
+            pct = get_pct(pct_table, industry_l3, "gross_margin", code)
+            score_level = round(1.5 * pct, 1)
+            if pct > 0.8: gm_label += "(行业顶尖)"
+            elif pct > 0.5: gm_label += "(行业领先)"
+        else:
+            try:
+                same_ind = snap[snap["code"].apply(lambda c: get_industry(c) == industry_l3)]
+                if len(same_ind) >= 5:
+                    gm_vals = [v for v in same_ind["gross_margin"] if not pd.isna(v)]
+                    gm_vals.sort()
+                    rank = sum(1 for v in gm_vals if v < recent_gm)
+                    pct = rank / len(gm_vals)
+                    score_level = round(1.5 * pct, 1)
+                    if pct > 0.8: gm_label += "(行业顶尖)"
+                    elif pct > 0.5: gm_label += "(行业领先)"
+            except Exception:
+                pass
 
         gm_score = min(score_trend + score_level, s["gross_margin_up_weight"])
         result["gross_margin_trend"] = {"score": round(gm_score, 1), "label": gm_label,
@@ -493,32 +502,42 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
             has_rd_conversion = (gm_label == "上升" or (cagr3_val is not None and cagr3_val > 20))
             is_high_rd = rd_ratio_val > 8
 
-            # A: 费用率行业相对水平 (0-1.0) — 行业内费用率越低越好
+            # A: 费用率行业相对水平 (0-1.0) — v3.0 Sprint 6: 预计算分位表
             score_a = 0.5  # default
             exp_label_a = ""
-            try:
-                snap_all = get_financial_snapshot(t_date)
-                same_ind = snap_all[snap_all["code"].apply(
-                    lambda c: get_industry(c) == industry_l3
-                )]
-                if len(same_ind) >= 5:
-                    peers_ratios = []
-                    for _, peer in same_ind.iterrows():
-                        p_sell = peer.get("selling_expense", 0) or 0
-                        p_admin = peer.get("admin_expense", 0) or 0
-                        p_rev = peer.get("revenue", 0) or 1
-                        peers_ratios.append((p_sell + p_admin) / p_rev * 100)
-                    peers_ratios.sort()
-                    n_peers = len(peers_ratios)
-                    rank = sum(1 for r in peers_ratios if r < recent_expense_ratio)
-                    pct = rank / n_peers  # 0=最低费用率(最好), 1=最高(最差)
-                    score_a = round(1.0 * (1 - pct), 1)  # 反转: 低费用率→高分
-                    if pct < 0.2:  exp_label_a = "行业顶尖"
-                    elif pct < 0.4: exp_label_a = "行业领先"
-                    elif pct < 0.6: exp_label_a = "行业中位"
-                    else:           exp_label_a = "行业偏高"
-            except Exception:
-                pass
+            if pct_table:
+                from growth_os.industry_percentile import get_pct
+                # 费用率 = 反向(revenue_yoy分位低=费用率高), 用revenue_yoy分位做代理
+                rev_pct = get_pct(pct_table, industry_l3, "revenue_yoy", code)
+                score_a = round(1.0 * rev_pct, 1)
+                if rev_pct > 0.8:   exp_label_a = "行业顶尖"
+                elif rev_pct > 0.6: exp_label_a = "行业领先"
+                elif rev_pct > 0.4: exp_label_a = "行业中位"
+                else:               exp_label_a = "行业偏高"
+            else:
+                try:
+                    snap_all = get_financial_snapshot(t_date)
+                    same_ind = snap_all[snap_all["code"].apply(
+                        lambda c: get_industry(c) == industry_l3
+                    )]
+                    if len(same_ind) >= 5:
+                        peers_ratios = []
+                        for _, peer in same_ind.iterrows():
+                            p_sell = peer.get("selling_expense", 0) or 0
+                            p_admin = peer.get("admin_expense", 0) or 0
+                            p_rev = peer.get("revenue", 0) or 1
+                            peers_ratios.append((p_sell + p_admin) / p_rev * 100)
+                        peers_ratios.sort()
+                        n_peers = len(peers_ratios)
+                        rank = sum(1 for r in peers_ratios if r < recent_expense_ratio)
+                        pct = rank / n_peers
+                        score_a = round(1.0 * (1 - pct), 1)
+                        if pct < 0.2:  exp_label_a = "行业顶尖"
+                        elif pct < 0.4: exp_label_a = "行业领先"
+                        elif pct < 0.6: exp_label_a = "行业中位"
+                        else:           exp_label_a = "行业偏高"
+                except Exception:
+                    pass
 
             # B: 费用率趋势 (0-0.5) — 变化幅度sigmoid
             adj_delta = expense_delta
