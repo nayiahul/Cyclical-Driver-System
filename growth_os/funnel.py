@@ -620,15 +620,19 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
                           "roic_ttm": roic_ttm is not None},
                 "label": f"ROIC(TTM{roic:.1f}%) vs WACC({wacc:.1f}%)",
             }
-            if spread > s["roic_wacc_spread_excellent"]:
-                result["roic_vs_wacc"]["score"] = 4.0
-                result["roic_vs_wacc"]["label"] += " >> 优秀"
-            elif spread > 0:
-                result["roic_vs_wacc"]["score"] = 2.5
-                result["roic_vs_wacc"]["label"] += " > 及格"
+            # v3.0: WACC锚定Sigmoid — 连续映射替代线性阈值
+            import math
+            ratio = spread / wacc if wacc > 0 else 0
+            sigmoid = 1 + 5.0 / (1 + math.exp(-3.0 * (ratio - 1.0)))
+            result["roic_vs_wacc"]["score"] = round(sigmoid, 1)
+            if sigmoid > 3.5:
+                result["roic_vs_wacc"]["label"] += f" >> 卓越(利差{spread:.1f}%)"
+            elif sigmoid > 2.5:
+                result["roic_vs_wacc"]["label"] += f" > 良好(利差{spread:.1f}%)"
+            elif sigmoid > 1.5:
+                result["roic_vs_wacc"]["label"] += f" > 及格(利差{spread:.1f}%)"
             else:
-                result["roic_vs_wacc"]["score"] = 0
-                result["roic_vs_wacc"]["label"] += " < 毁灭价值"
+                result["roic_vs_wacc"]["label"] += f" < 毁灭价值(利差{spread:.1f}%)"
         else:
             # WACC 不可用，回退到绝对阈值：ROIC > 10% 优秀, > 5% 及格
             result["roic_vs_wacc"] = {
