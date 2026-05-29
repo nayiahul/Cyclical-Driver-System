@@ -402,9 +402,10 @@ def compute_composite(
 
 
 def recalc_composite_with_ranks(r: dict) -> float:
-    """用截面排名分重新计算综合分（供 normalize_pool 后使用）。
+    """混合原始分+排名分重算综合分（v3.0: 保留绝对值信息）。
 
     使用 compute_composite 保存的权重，不重复触发 tracker。
+    50%原始分(保留sigmoid等非线性拉伸) + 50%排名分(保留截面相对性)
     """
     weights = r.get("_saved_weights")
     if weights is None:
@@ -426,14 +427,38 @@ def recalc_composite_with_ranks(r: dict) -> float:
     red_count = len([x for x in red_flags_str.split("|") if x]) if red_flags_str else 0
     l1_risk = max(0, 10 - red_count)
 
+    w1, w2, w3, w4, w5 = (
+        weights.get("L1_risk", 0.2), weights.get("L2_moat", 0.3),
+        weights.get("L3_efficiency", 0.25), weights.get("L4_industry", 0.15),
+        weights.get("L5_expectation", 0.1),
+    )
+
     try:
-        composite = (
-            l1_risk * weights.get("L1_risk", 0.2) * 10 +
-            rank_l2 * 10 * weights.get("L2_moat", 0.3) * 10 +
-            rank_l3 * 10 * weights.get("L3_efficiency", 0.25) * 10 +
-            s4 * weights.get("L4_industry", 0.15) * 10 +
-            rank_l5 * 10 * weights.get("L5_expectation", 0.1) * 10
+        # 排名分 composite（截面相对性）
+        composite_rank = (
+            l1_risk * w1 * 10 +
+            rank_l2 * 10 * w2 * 10 +
+            rank_l3 * 10 * w3 * 10 +
+            s4 * w4 * 10 +
+            rank_l5 * 10 * w5 * 10
         )
+        # 原始分 composite（保留 sigmoid 等非线性拉伸的绝对值信息）
+        s2_raw = r.get("score_l2", 0)
+        s3_raw = r.get("score_l3", 0)
+        s5_raw = r.get("score_l5", 0)
+        if s2_raw is None or np.isnan(s2_raw): s2_raw = 0
+        if s3_raw is None or np.isnan(s3_raw): s3_raw = 0
+        if s5_raw is None or np.isnan(s5_raw): s5_raw = 0
+
+        composite_raw = (
+            l1_risk * w1 * 10 +
+            s2_raw * w2 * 10 +
+            s3_raw * w3 * 10 +
+            s4 * w4 * 10 +
+            s5_raw * w5 * 10
+        )
+        # v3.0: 50/50 混合
+        composite = 0.5 * composite_raw + 0.5 * composite_rank
     except Exception:
         return r.get("composite_score", 0)
     return round(composite, 1)
