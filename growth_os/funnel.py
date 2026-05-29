@@ -633,10 +633,13 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
                           "roic_ttm": roic_ttm is not None},
                 "label": f"ROIC(TTM{roic:.1f}%) vs WACC({wacc:.1f}%)",
             }
-            # v3.0: WACC锚定Sigmoid — 连续映射替代线性阈值
+            # v3.0: 绝对利差Sigmoid(0-4子分制) — 中段3%为拐点,ROIC≤WACC硬地板
+            # spread=0→1.0, 3%→2.5, 6%→3.2, 10%→3.7, 15%+→~4.0
             import math
-            ratio = spread / wacc if wacc > 0 else 0
-            sigmoid = 1 + 5.0 / (1 + math.exp(-3.0 * (ratio - 1.0)))
+            if spread <= 0:
+                sigmoid = 1.0  # ROIC≤WACC: 硬地板
+            else:
+                sigmoid = 1.0 + 3.0 / (1 + math.exp(-0.3 * (spread - 3.0)))
             result["roic_vs_wacc"]["score"] = round(sigmoid, 1)
             if sigmoid > 3.5:
                 result["roic_vs_wacc"]["label"] += f" >> 卓越(利差{spread:.1f}%)"

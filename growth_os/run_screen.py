@@ -183,6 +183,9 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
                 tags.append("L1观察")
         if "周期跟踪" in str(r.get("decision", "")):
             tags.append("非成长")
+        w = r.get("wacc") or 99
+        if isinstance(w, (int, float)) and w < 5.5:
+            tags.append(f"WACC偏低{w:.1f}%")
         r["risk_tags"] = "; ".join(tags) if tags else ""
 
     # 隔离池标的统一标记
