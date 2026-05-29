@@ -465,21 +465,29 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
                                  admin_series.iloc[-8:-4].sum()) / old_rev * 100
             expense_delta = recent_expense_ratio - old_expense_ratio
 
-            # P1-3: 高研发行业放宽阈值
+            # v3.0: 高研发豁免收紧 — 需研发转化证据(毛利率升或CAGR>20%)
+            cagr3_val = row.get("revenue_cagr_3y") or 0
+            gm_label = result.get("gross_margin_trend", {}).get("label", "")
+            has_rd_conversion = (gm_label == "上升" or (cagr3_val is not None and cagr3_val > 20))
+
             is_high_rd = rd_ratio_val > 8
-            if is_high_rd and rev_yoy_val > 20 and expense_delta < 5:
-                # 高研发+高营收增长+费用率温和上升 = 正常扩张
+            if is_high_rd and has_rd_conversion and rev_yoy_val > 20 and expense_delta < 5:
+                # 高研发+有转化证据+高营收增长+费用率温和 = 正常扩张
                 result["expense_leverage"] = {"score": s["expense_leverage_weight"],
-                                              "label": "扩张中(高研发正常)",
+                                              "label": "扩张中(高研发有效)",
+                                              "recent": round(recent_expense_ratio, 1)}
+            elif is_high_rd and has_rd_conversion and expense_delta < 5:
+                # 高研发+有转化+费用率温和 = 过渡态
+                result["expense_leverage"] = {"score": s["expense_leverage_weight"] * 0.75,
+                                              "label": "扩张中(高研发过渡)",
+                                              "recent": round(recent_expense_ratio, 1)}
+            elif is_high_rd and not has_rd_conversion and expense_delta > 3:
+                # 高研发+无转化证据+费用率上升 = 研发效率存疑
+                result["expense_leverage"] = {"score": 0, "label": "研发效率存疑(无转化)",
                                               "recent": round(recent_expense_ratio, 1)}
             elif is_high_rd and rev_yoy_val < 10 and expense_delta > 3:
-                # 高研发+低营收增长+费用率明显上升 = 研发效率恶化
+                # 高研发+低营收增长+费用率明显上升 = 恶化
                 result["expense_leverage"] = {"score": 0, "label": "研发效率恶化",
-                                              "recent": round(recent_expense_ratio, 1)}
-            elif is_high_rd and expense_delta < 5:
-                # 高研发+过渡态(营收增速中等或费用率中等) = 半扣分
-                result["expense_leverage"] = {"score": s["expense_leverage_weight"] / 2,
-                                              "label": "扩张中(高研发过渡)",
                                               "recent": round(recent_expense_ratio, 1)}
             elif recent_expense_ratio < old_expense_ratio * 0.95:
                 result["expense_leverage"] = {"score": s["expense_leverage_weight"],
@@ -589,6 +597,11 @@ def _score_l2(code: str, t_date: str, industry_l3: str) -> dict:
     result["total"] = round(min(
         sum(v["score"] for k, v in result.items() if k != "total"
     ), max_score), 1)
+
+    # v3.0: 高研发无转化→L2封顶8.5 (防止"研发豁免"通胀)
+    if is_high_rd and not has_rd_conversion:
+        result["total"] = min(result["total"], 8.5)
+
     return result
 
 
