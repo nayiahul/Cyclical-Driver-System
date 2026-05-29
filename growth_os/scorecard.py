@@ -234,11 +234,25 @@ def compute_composite(
         card._saved_weights = route.weight_matrix
         return card
 
-    # L0 市场 Regime 权重覆盖（保留，但作用于 Regime 内部权重调整）
+    # v3.0: 范式×生命周期 2D 权重 — 替代 Regime 统一权重
+    from growth_os.config import PARADIGM_WEIGHTS, LifecycleStage
+    _paradigm_key = "generic"
+    try:
+        from growth_os.industry_paradigms import get_industry_paradigm, _INDUSTRY_MAP
+        _pk = _INDUSTRY_MAP.get(card.industry_l3, "generic")
+        _paradigm_key = _pk if _pk in PARADIGM_WEIGHTS or _pk != "generic" else "generic"
+    except Exception:
+        pass
+    _lc_stage = card.lifecycle.value if card.lifecycle else "加速期"
+    _pw_key = (_paradigm_key, _lc_stage)
+    _pw = PARADIGM_WEIGHTS.get(_pw_key, PARADIGM_WEIGHTS.get(("generic", _lc_stage),
+                               PARADIGM_WEIGHTS[("generic", "加速期")]))
+
+    # L0 市场 Regime 权重覆盖（DEFENSE/CAUTION 时覆盖范式权重）
     if weight_mode != "lifecycle" and weight_mode in MARKET_REGIME_WEIGHTS:
         weights = MARKET_REGIME_WEIGHTS[weight_mode]
     else:
-        weights = route.weight_matrix
+        weights = dict(_pw)
 
     card._saved_weights = weights
 
