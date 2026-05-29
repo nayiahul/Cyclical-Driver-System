@@ -28,7 +28,7 @@ from growth_os.industry_percentile import build_percentile_table
 
 def _score_one_stock(args: tuple) -> dict | None:
     """对单只股票完成 漏斗+打分+Regime路由，返回 dict。多进程 worker。"""
-    code, t_date, stock_name, industry_l1 = args
+    code, t_date, stock_name, industry_l1, pct_table = args
     try:
         from growth_os.data import get_industry
         from growth_os.lifecycle import classify_lifecycle
@@ -37,7 +37,7 @@ def _score_one_stock(args: tuple) -> dict | None:
 
         industry_l3 = get_industry(code)
         lifecycle, lc_reason = classify_lifecycle(code, t_date, industry_l3)
-        funnel = run_funnel(code, t_date, industry_l3, lifecycle)
+        funnel = run_funnel(code, t_date, industry_l3, lifecycle, pct_table=pct_table)
 
         card = GrowthScorecard(
             code=code, name=stock_name,
@@ -115,25 +115,34 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     # v3.0 Sprint 6: 预计算行业分位表 O(n),后续 L2 评分 O(1) 查表
     pct_table = build_percentile_table(df, t_date)
 
-    # 构建 worker 任务参数
+    # 构建 worker 任务参数 (含 pct_table 供 L2 行业相对化)
     tasks = [
         (code, t_date, _name_map.get(code, code),
-         _industry_l1_map.get(code, ""))
+         _industry_l1_map.get(code, ""), pct_table)
         for code in codes
     ]
 
     # 多进程并行打分
     n_workers = workers or max(1, cpu_count() - 1)  # 默认留1核
-    logger.info(f"多进程评分: {n_workers} workers × {len(tasks)} stocks")
+    logger.info(f"评分模式: {'串行(无pickle开销)' if n_workers <= 1 else f'{n_workers} workers并行'} × {len(tasks)} stocks")
 
     results = []
-    with Pool(processes=n_workers) as pool:
-        for i, r in enumerate(pool.imap_unordered(_score_one_stock, tasks,
-                                                   chunksize=max(10, len(tasks)//(n_workers*8)))):
+    if n_workers <= 1:
+        # 串行模式：pct_table 直传，无序列化开销，O(1) 行业分位查表生效
+        for i, (code, t_date, name, ind_l1, pt) in enumerate(tasks):
+            r = _score_one_stock((code, t_date, name, ind_l1, pt))
             if r is not None:
                 results.append(r)
-            if (i + 1) % 500 == 0:
-                logger.info(f"收集进度: {i+1}/{len(tasks)}")
+            if (i + 1) % 100 == 0:
+                logger.info(f"进度: {i+1}/{len(tasks)}")
+    else:
+        with Pool(processes=n_workers) as pool:
+            for i, r in enumerate(pool.imap_unordered(_score_one_stock, tasks,
+                                                       chunksize=max(10, len(tasks)//(n_workers*8)))):
+                if r is not None:
+                    results.append(r)
+                if (i + 1) % 500 == 0:
+                    logger.info(f"收集进度: {i+1}/{len(tasks)}")
 
     # P0-1: L1 硬闸 — 分离否决标的到隔离池
     passed = [r for r in results if r.get("pass_l1", True)]
