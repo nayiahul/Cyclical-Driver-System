@@ -55,11 +55,21 @@ def classify(stock: dict, gm_trend_label: str = "") -> GrowthAttribution:
         evidence.append(f"GM{ gm_trend }但研发仅{rd_ratio:.1f}%(非技术迭代)")
         evidence.append(f"营收+{rev_yoy:.0f}%温和,ASP驱动")
 
-    # ── 产能释放 ──: 高负债(>40%) + ROIC改善 + 营收加速
-    if debt > 40 and roic > 8 and rev_yoy > 15:
-        sources.append(("capacity_release", 0.60))
-        evidence.append(f"高负债{debt:.0f}%+ROIC={roic:.1f}%→产能扩张期")
-        evidence.append(f"营收+{rev_yoy:.0f}%,CAPEX转化中")
+    # ── 产能释放 ──: 高固资 + CAPEX扩张 + GM稳
+    fixed_asset_ratio = stock.get("fixed_assets", 0) / max(stock.get("total_assets", 1), 1)
+    if (fixed_asset_ratio > 0.25 or debt > 35) and rev_yoy > 10:
+        if gm_trend not in ("下降",) or roic > 8:  # GM稳或ROIC仍健康
+            sources.append(("capacity_expansion", 0.65))
+            evidence.append(f"固资占比{fixed_asset_ratio:.0%}+营收+{rev_yoy:.0f}%→产能释放")
+            if gm_trend == "下降":
+                evidence.append("⚠️ GM下滑→产能过剩风险(可能失效中)")
+
+    # ── 品牌溢价 ──: 超高GM+极低销售费率+极低研发+温和增长
+    selling_ratio = (stock.get("selling_expense", 0) or 0) / max(stock.get("revenue", 1), 1) * 100
+    if gm > 60 and selling_ratio < 15 and rd_ratio < 5 and 5 < rev_yoy < 30:
+        sources.append(("brand_premium", 0.85))
+        evidence.append(f"GM={gm:.0f}%极稳+销售费率仅{selling_ratio:.0f}%+研发{rd_ratio:.1f}%")
+        evidence.append(f"营收+{rev_yoy:.0f}%温和→品牌定价权驱动")
 
     # ── 价格周期 ──: GM波动大 + 低研发 + 高资产周转
     if gm_trend in ("下降",) and rd_ratio < 3 and roic < 10 and abs(rev_yoy) < 50:
@@ -88,15 +98,17 @@ def classify(stock: dict, gm_trend_label: str = "") -> GrowthAttribution:
     # 持续性评分
     persistence_map = {
         "tech_penetration": 5, "share_gain": 4, "product_upgrade": 4,
+        "capacity_expansion": 3, "brand_premium": 5,
         "capacity_release": 3, "price_cycle": 2, "low_base_recovery": 1,
     }
     persistence = persistence_map.get(primary, 3)
 
-    # 风险点
     risk_map = {
         "tech_penetration": "渗透率接近天花板或技术路线切换",
         "share_gain": "份额争夺导致费用率失控",
         "product_upgrade": "ASP提升不可持续,消费降级风险",
+        "capacity_expansion": "产能过剩导致ROIC下滑(GM趋势恶化→失效信号)",
+        "brand_premium": "品牌老化或渠道堰塞湖(库存>年销2x)",
         "capacity_release": "产能过剩导致ROIC下滑",
         "price_cycle": "价格回落至周期底部,利润崩塌",
         "low_base_recovery": "基数效应消退后增速断崖",
@@ -107,7 +119,9 @@ def classify(stock: dict, gm_trend_label: str = "") -> GrowthAttribution:
         "tech_penetration": f"技术渗透驱动(GM上升+高研发{rd_ratio:.1f}%)，增长来自新产品/新技术渗透率提升，可持续性强。",
         "share_gain": f"份额提升驱动(营收+{rev_yoy:.0f}%+ROIC={roic:.1f}%)，增长来自抢占竞争对手份额，可持续性取决于护城河深度。",
         "product_upgrade": f"产品升级驱动(GM上升+营收+{rev_yoy:.0f}%)，增长来自ASP提升/结构优化，需关注升级天花板。",
+        "capacity_expansion": f"产能释放驱动(固资占比高+营收+{rev_yoy:.0f}%)，增长来自前期CAPEX转化为收入，需跟踪产能利用率。",
         "capacity_release": f"产能释放驱动(负债{debt:.0f}%+ROIC={roic:.1f}%)，增长来自前期CAPEX转化为收入，需跟踪产能利用率。",
+        "brand_premium": f"品牌溢价驱动(GM={gm:.0f}%极稳+低费率)，增长来自品牌定价权+温和提价，可预测性极高。",
         "price_cycle": f"价格周期驱动(GM{ gm_trend }+零研发)，增长来自商品/服务价格上涨，不可持续。需用周期底部利润重估。",
         "low_base_recovery": f"低基数修复驱动(营收+{rev_yoy:.0f}%)，增长来自前期低基数反弹，不可持续。关注增速回归常态后的真实水平。",
     }
