@@ -221,6 +221,28 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     # 打印摘要
     _print_summary(result_df, quarantine_df)
 
+    # v4.0 Growth Source: 归因卡片输出
+    try:
+        from growth_source.classifier import classify
+        cards = []
+        for _, r in result_df.head(top_n).iterrows():
+            stock = {"revenue_yoy": r.get("revenue_yoy"), "gross_margin": r.get("roic"),
+                     "rd_expense": None, "revenue": None, "roic": r.get("roic"),
+                     "debt_to_assets": r.get("debt_ratio"), "deducted_profit_yoy": r.get("deducted_yoy")}
+            gm_label = str(r.get("gross_margin_trend", ""))
+            attr = classify(stock, gm_label)
+            cards.append(f"## {r.get('name', r['code'])} ({r['code']})\n\n"
+                        f"**驱动力**: `{attr.source}` | **置信度**: {attr.confidence:.0%} | **持续性**: {attr.persistence}/5\n\n"
+                        f"> {attr.narrative}\n\n"
+                        f"**风险**: {attr.risk_point}\n")
+        gs_path = os.path.join(DATA_PATHS["output_dir"], f"growth_source_{t_date}.md")
+        with open(gs_path, "w", encoding="utf-8") as f:
+            f.write(f"# Growth Source 归因卡片 — {t_date}\n\n")
+            f.write("---\n\n".join(cards))
+        logger.info(f"归因卡片已保存: {gs_path}")
+    except Exception as e:
+        logger.debug(f"Growth Source 输出异常: {e}")
+
     return result_df
 
 
