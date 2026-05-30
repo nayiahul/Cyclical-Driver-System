@@ -2,11 +2,25 @@
 
 识别增长来源: 技术渗透/份额提升/产品升级/产能释放/价格周期/低基数修复。
 原则: 只做定性归因,不修改 Composite 分数。
+
+Sprint 14: 新增ROIC历史波动率→周期顶部伪装检测。
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 import math
+
+
+def get_roic_volatility(code: str, t_date: str) -> float:
+    """计算ROIC近5年max-min极差(pp)。>30pp→强周期信号。"""
+    try:
+        from growth_os.data import get_quarterly_series
+        roic_q = get_quarterly_series(code, "roic", n_quarters=20, t_date=t_date).dropna()
+        if len(roic_q) >= 8:
+            return float(roic_q.max() - roic_q.min())
+    except Exception:
+        pass
+    return 0.0
 
 
 @dataclass
@@ -20,8 +34,11 @@ class GrowthAttribution:
     narrative: str        # 一句话归因
 
 
-def classify(stock: dict, gm_trend_label: str = "") -> GrowthAttribution:
-    """六维驱动力分类器。输入财务快照行 + 毛利率趋势标签。"""
+def classify(stock: dict, gm_trend_label: str = "", roic_volatility: float = 0) -> GrowthAttribution:
+    """六维驱动力分类器。输入财务快照行 + 毛利率趋势标签 + 可选ROIC波动率。
+
+    roic_volatility: ROIC近5年max-min极差(pp), >30pp触发强周期信号。
+    """
     rev_yoy = stock.get("revenue_yoy") or 0
     gm = stock.get("gross_margin") or 0
     rd = stock.get("rd_expense", 0) or 0
@@ -30,10 +47,25 @@ def classify(stock: dict, gm_trend_label: str = "") -> GrowthAttribution:
     roic = stock.get("roic") or 0
     debt = stock.get("debt_to_assets") or 0
 
-    gm_trend = gm_trend_label  # "上升"/"稳定"/"下降"
-
+    gm_trend = gm_trend_label
     evidence = []
     sources = []
+
+    # ── Sprint 14: 周期状态检测(最优先) ──
+    # ROIC历史极差>30pp + 低研发 → 强周期信号,覆盖其他标签
+    if roic_volatility > 30 and rd_ratio < 5:
+        sources.append(("price_cycle", 0.92))
+        evidence.append(f"ROIC 5年极差{roic_volatility:.0f}pp(>30pp)→强周期波动")
+        evidence.append(f"研发仅{rd_ratio:.1f}%→非技术/产品驱动")
+        # 直接返回,不再跑其他规则
+        return GrowthAttribution(
+            source="price_cycle", confidence=0.92, persistence=2,
+            evidence=evidence,
+            risk_point="价格回落至周期底部,利润崩塌(ROIC历史极差大,当前可能处于周期高位)",
+            narrative=f"价格周期驱动(ROIC 5年极差{roic_volatility:.0f}pp+研发{rd_ratio:.1f}%)。"
+                      f"增长来自价格波动,非结构性优势。当前ROIC={roic:.1f}%,"
+                      f"需对照历史极差判断周期位置。"
+        )
 
     # ── 技术渗透 ──: GM扩张 + 高研发 + 高ROIC
     if gm_trend == "上升" and rd_ratio > 3 and roic > 10:

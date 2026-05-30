@@ -223,15 +223,17 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
 
     # v4.0 Growth Source + Sprint 12: 归因卡片 + 仓位建议输出
     try:
-        from growth_source.classifier import classify
+        from growth_source.classifier import classify, get_roic_volatility
         from growth_source.position import recommend
         cards = []
         for _, r in result_df.head(top_n).iterrows():
+            code = str(r.get("code", ""))
             stock = {"revenue_yoy": r.get("revenue_yoy"), "gross_margin": r.get("roic"),
                      "rd_expense": None, "revenue": None, "roic": r.get("roic"),
                      "debt_to_assets": r.get("debt_ratio"), "deducted_profit_yoy": r.get("deducted_yoy")}
             gm_label = str(r.get("gross_margin_trend", ""))
-            attr = classify(stock, gm_label)
+            roic_vol = get_roic_volatility(code, t_date) if code else 0.0
+            attr = classify(stock, gm_label, roic_vol)
             pos = recommend(r.get("composite_score", 80), attr.persistence)
             cards.append(f"## {r.get('name', r['code'])} ({r['code']})\n\n"
                         f"**驱动力**: `{attr.source}` | **置信度**: {attr.confidence:.0%} | **持续性**: {attr.persistence}/5\n\n"
