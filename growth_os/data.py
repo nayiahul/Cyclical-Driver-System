@@ -315,6 +315,17 @@ def _code_to_filename(code: str) -> str:
     return f"bj.{code}.csv"
 
 
+def _to_tx_symbol(code: str) -> str:
+    """纯数字代码 → 腾讯格式 symbol。'000001'→'sz000001', '600519'→'sh600519'。"""
+    if code.startswith(("0", "3")):
+        return f"sz{code}"
+    if code.startswith("6"):
+        return f"sh{code}"
+    if code.startswith(("4", "8", "9")):
+        return f"bj{code}"
+    return f"sz{code}"
+
+
 def get_price_data(code: str) -> pd.DataFrame | None:
     """获取单只股票的日线行情 DataFrame。
 
