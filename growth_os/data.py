@@ -345,8 +345,13 @@ def get_price_data(code: str) -> pd.DataFrame | None:
         try:
             df = pd.read_csv(cache_path, dtype={"date": str})
             df["date"] = pd.to_datetime(df["date"])
-            _price_cache[code] = df
-            return df
+            # 若最新日期滞后超过7天，删除过期缓存触发akshare重下载
+            max_date = df["date"].max()
+            if (pd.Timestamp.now() - max_date).days > 7:
+                os.remove(cache_path)
+            else:
+                _price_cache[code] = df
+                return df
         except Exception:
             pass
 
