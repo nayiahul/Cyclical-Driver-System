@@ -39,13 +39,17 @@ def classify(stock: dict, gm_trend_label: str = "", roic_volatility: float = 0) 
 
     roic_volatility: ROIC近5年max-min极差(pp), >30pp触发强周期信号。
     """
-    rev_yoy = stock.get("revenue_yoy") or 0
-    gm = stock.get("gross_margin") or 0
-    rd = stock.get("rd_expense", 0) or 0
-    revenue = stock.get("revenue", 0) or 1
+    rev_yoy = (stock.get("revenue_yoy") or 0) if stock.get("revenue_yoy") is not None else 0
+    gm = (stock.get("gross_margin") or 0) if stock.get("gross_margin") is not None else 0
+    rd = stock.get("rd_expense") or 0
+    revenue = stock.get("revenue") or 1
     rd_ratio = rd / revenue * 100 if revenue > 0 else 0
-    roic = stock.get("roic") or 0
-    debt = stock.get("debt_to_assets") or 0
+    roic = (stock.get("roic") or 0) if stock.get("roic") is not None else 0
+    debt = (stock.get("debt_to_assets") or 0) if stock.get("debt_to_assets") is not None else 0
+    fixed_asset_ratio_val = (stock.get("fixed_assets") or 0) if stock.get("fixed_assets") is not None else 0
+    total_assets_val = (stock.get("total_assets") or 1) if stock.get("total_assets") is not None else 1
+    fixed_asset_ratio = fixed_asset_ratio_val / total_assets_val if total_assets_val > 0 else 0
+    selling_ratio = ((stock.get("selling_expense") or 0) / max(revenue, 1)) * 100
 
     gm_trend = gm_trend_label
     evidence = []
@@ -88,7 +92,6 @@ def classify(stock: dict, gm_trend_label: str = "", roic_volatility: float = 0) 
         evidence.append(f"营收+{rev_yoy:.0f}%温和,ASP驱动")
 
     # ── 产能释放 ──: 高固资 + CAPEX扩张 + GM稳
-    fixed_asset_ratio = stock.get("fixed_assets", 0) / max(stock.get("total_assets", 1), 1)
     if (fixed_asset_ratio > 0.25 or debt > 35) and rev_yoy > 10:
         if gm_trend not in ("下降",) or roic > 8:  # GM稳或ROIC仍健康
             sources.append(("capacity_expansion", 0.65))
@@ -97,7 +100,6 @@ def classify(stock: dict, gm_trend_label: str = "", roic_volatility: float = 0) 
                 evidence.append("⚠️ GM下滑→产能过剩风险(可能失效中)")
 
     # ── 品牌溢价 ──: 超高GM+极低销售费率+极低研发+温和增长
-    selling_ratio = (stock.get("selling_expense", 0) or 0) / max(stock.get("revenue", 1), 1) * 100
     if gm > 60 and selling_ratio < 15 and rd_ratio < 5 and 5 < rev_yoy < 30:
         sources.append(("brand_premium", 0.85))
         evidence.append(f"GM={gm:.0f}%极稳+销售费率仅{selling_ratio:.0f}%+研发{rd_ratio:.1f}%")
