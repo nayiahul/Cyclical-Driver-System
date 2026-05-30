@@ -249,11 +249,25 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             gm_label = str(r.get("gross_margin_trend", ""))
             roic_vol = get_roic_volatility(code, t_date) if code else 0.0
             attr = classify(stock, gm_label, roic_vol)
-            _persist_map[code] = attr.persistence  # Sprint 16: 存储供决策层使用
+            _persist_map[code] = attr.persistence
             pos = recommend(r.get("composite_score", 80), attr.persistence)
+
+            # Sprint 16: Cycle State Engine
+            cycle_note = ""
+            try:
+                from growth_source.cycle_state import classify_cycle_state
+                roic_val = stock.get("roic") or 0
+                roic_mom = 1 if gm_label == "上升" else (-1 if gm_label == "下降" else 0)
+                rev_yoy_val = stock.get("revenue_yoy") or 0
+                cs = classify_cycle_state(roic_val, roic_vol, gm_label, rev_yoy_val, roic_mom)
+                cycle_note = f"**周期状态**: {cs.label} ({cs.confidence:.0%}) | {cs.action}\n\n"
+            except Exception:
+                pass
+
             cards.append(f"## {r.get('name', r['code'])} ({r['code']})\n\n"
                         f"**驱动力**: `{attr.source}` | **置信度**: {attr.confidence:.0%} | **持续性**: {attr.persistence}/5\n\n"
                         f"> {attr.narrative}\n\n"
+                        f"{cycle_note}"
                         f"**仓位**: **{pos['position']}** | 权重{pos['weight']} | 持有{pos['hold']} | {pos['action']}\n\n"
                         f"**风险**: {attr.risk_point}\n")
         gs_path = os.path.join(DATA_PATHS["output_dir"], f"growth_source_{t_date}.md")

@@ -547,6 +547,9 @@ def _score_l2(code: str, t_date: str, industry_l3: str, pct_table: dict = None) 
             # 合并
             exp_score = min(score_a + score_b, s["expense_leverage_weight"])
             exp_score = round(max(exp_score, 0.1), 1)
+            # v3.0: 低费率地板 — 费用率绝对值<10%时,无论行业分位如何,至少给1.0
+            if recent_expense_ratio < 10:
+                exp_score = max(exp_score, 1.0)
             exp_label = f"{exp_label_a}({recent_expense_ratio:.0f}%)"
             if adj_delta < -3: exp_label += "↓改善"
             elif adj_delta > 3: exp_label += "↑恶化"
