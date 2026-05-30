@@ -817,6 +817,11 @@ def _score_l3(code: str, t_date: str, industry_l3: str) -> dict:
         # 降权：高杠杆驱动
         if equity_mult is not None and not pd.isna(equity_mult) and equity_mult > 5:
             roe_score *= 0.5
+        # v3.0: 低杠杆豁免 — equity_mult<2(几乎零负债),ROE>5%即给基础分
+        if equity_mult is not None and not pd.isna(equity_mult) and equity_mult < 2:
+            if roe > 10: roe_score = max(roe_score, 1.5)
+            elif roe > 5: roe_score = max(roe_score, 1.0)
+            roe_label += "(低杠杆)"
             roe_label += " [高杠杆]"
         result["roe_quality"] = {"score": roe_score, "label": roe_label,
                                  "value": round(roe, 1)}

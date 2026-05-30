@@ -143,9 +143,24 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     from growth_os.config import COMMODITY_INDUSTRIES, LifecycleStage
 
     # 用标准化后的排名重新计算综合分 + Regime 决策重评
+    # v3.0: Growth Source persistence→决策联动（归因反哺评分层）
+    _persist_map = {}
+    try:
+        from growth_source.classifier import classify, get_roic_volatility
+        for r in passed:
+            code = str(r.get("code", ""))
+            stock = {"revenue_yoy": r.get("revenue_yoy"), "gross_margin": r.get("roic"),
+                     "rd_expense": None, "revenue": None, "roic": r.get("roic"),
+                     "debt_to_assets": r.get("debt_ratio")}
+            roic_vol = get_roic_volatility(code, t_date) if code else 0.0
+            attr = classify(stock, str(r.get("gross_margin_trend", "")), roic_vol)
+            _persist_map[code] = attr.persistence
+    except Exception:
+        pass
+
     for r in passed:
         r["composite_score"] = recalc_composite_with_ranks(r)
-        # v2.5: CAGR<0封顶再确认（recalc_composite_with_ranks会用排名分覆盖）
+        # v2.5: CAGR<0封顶再确认
         cagr3 = r.get("revenue_cagr_3y")
         if cagr3 is not None and cagr3 < 0:
             r["composite_score"] = min(r["composite_score"], 75)
@@ -153,13 +168,16 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             r["is_growth_eligible"] = False
             continue
         existing = r.get("decision", "")
-        # 保留不入池 Regime 的决策（VETO / HIGH_RISK / CYCLE_TRACK）
         if any(kw in existing for kw in ["高风险观察池", "一票否决"]):
             continue
         if "周期跟踪" in existing or "利润承压" in existing:
             continue
-        # 可入池 Regime：用标准化后的综合分重新判定决策层级
-        if r["composite_score"] >= 70:
+        # v3.0: persistence→决策 — 低持续性(≤2)标的至少降级
+        code = str(r.get("code", ""))
+        persist = _persist_map.get(code, 3)
+        if persist <= 2 and r["composite_score"] >= 70:
+            r["decision"] = "深度研究(低持续性)"
+        elif r["composite_score"] >= 70:
             r["decision"] = "深度研究"
         elif r["composite_score"] >= 50:
             r["decision"] = "加入观察池"
