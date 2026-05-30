@@ -248,6 +248,14 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     except Exception as e:
         logger.debug(f"Growth Source 输出异常: {e}")
 
+    # Sprint A: 每日预测快照 — 供后续市场反馈对账
+    try:
+        from growth_feedback.snapshot import save_snapshot
+        sp_path = save_snapshot(result_df.head(top_n), t_date)
+        logger.info(f"预测快照已保存: {sp_path}")
+    except Exception as e:
+        logger.debug(f"快照保存异常: {e}")
+
     return result_df
 
 
