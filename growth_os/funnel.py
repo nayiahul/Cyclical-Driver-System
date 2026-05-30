@@ -1205,24 +1205,34 @@ def _score_l5(code: str, t_date: str, industry_l3: str) -> dict:
             "g_source": g_source,
             "g_trusted": g_trusted,
         }
-        # g* 不可信时用条件语态替代确定性标签（"低估/合理/高估"不可直接采信）
+        # v3.0: PEG Sigmoid — log(PEG)连续映射,极值压分
+        import math
         if not g_trusted:
-            result["peg_ratio"]["score"] = 1.0
+            result["peg_ratio"]["score"] = 0.5
             result["peg_ratio"]["label"] = (
-                f"⚠️ PEG={peg:.1f} (g*={g_proxy*100:.0f}%与近期增速{rev_yoy_latest:.0f}%背离→可信度低，不可直接采信)"
+                f"⚠️ PEG={peg:.1f} (g*={g_proxy*100:.0f}%与近期增速{rev_yoy_latest:.0f}%背离→不可采信)"
             )
-        elif peg < s["peg_undervalued"]:
-            result["peg_ratio"]["score"] = 4.0
-            result["peg_ratio"]["label"] = f"低估(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
-        elif peg < s["peg_fair"]:
-            result["peg_ratio"]["score"] = 2.5
-            result["peg_ratio"]["label"] = f"合理(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
-        elif peg < s["peg_overvalued"]:
-            result["peg_ratio"]["score"] = 1.0
-            result["peg_ratio"]["label"] = f"偏贵(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
-        else:
+        elif peg <= 0 or peg > 20:
             result["peg_ratio"]["score"] = 0
-            result["peg_ratio"]["label"] = f"高估(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
+            result["peg_ratio"]["label"] = f"PEG异常({peg:.1f})"
+        else:
+            # Sigmoid on log(PEG): center=log(0.5), k=1.5
+            # PEG=0.17→3.3, PEG=0.5→2.0, PEG=1.0→1.4, PEG=2.0→0.5
+            log_peg = math.log(max(peg, 0.01))
+            log_center = math.log(0.5)
+            sig = 4.0 / (1 + math.exp(1.5 * (log_peg - log_center)))
+            # PEG<0.3 cap: 极低PEG可能是数据异常
+            if peg < 0.3:
+                sig = min(sig, 3.0)
+            result["peg_ratio"]["score"] = round(sig, 1)
+            if sig > 3.5:
+                result["peg_ratio"]["label"] = f"估值洼地(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
+            elif sig > 2.0:
+                result["peg_ratio"]["label"] = f"合理偏低(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
+            elif sig > 1.0:
+                result["peg_ratio"]["label"] = f"合理(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
+            else:
+                result["peg_ratio"]["label"] = f"偏贵(PEG={peg:.1f}, g={g_proxy*100:.0f}%)"
     else:
         result["peg_ratio"] = {"score": 0, "label": "数据不足", "g_proxy": None, "g_source": g_source if g_proxy else "insufficient_data", "g_trusted": False}
 
