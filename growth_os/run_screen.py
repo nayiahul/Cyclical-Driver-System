@@ -237,12 +237,20 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             srow = _snap[_snap["code"]==code]
             if not srow.empty:
                 sr = srow.iloc[0]
+                # v3.0: 优先使用TTM ROIC(与漏斗一致),避免snapshot单季ROIC导致波动率误判
+                try:
+                    from growth_os.data import compute_roic_ttm
+                    _ttm = compute_roic_ttm(code, t_date)
+                except Exception:
+                    _ttm = None
+                _roic = _ttm if _ttm is not None else sr.get("roic")
                 stock = {"revenue_yoy": sr.get("revenue_yoy"), "gross_margin": sr.get("gross_margin"),
                          "rd_expense": sr.get("rd_expense"), "revenue": sr.get("revenue"),
-                         "roic": sr.get("roic"), "debt_to_assets": sr.get("debt_to_assets"),
+                         "roic": _roic, "debt_to_assets": sr.get("debt_to_assets"),
                          "deducted_profit_yoy": sr.get("deducted_profit_yoy"),
                          "fixed_assets": sr.get("fixed_assets"), "total_assets": sr.get("total_assets"),
-                         "selling_expense": sr.get("selling_expense")}
+                         "selling_expense": sr.get("selling_expense"),
+                         "revenue_cagr_3y": sr.get("revenue_cagr_3y")}
             else:
                 stock = {"revenue_yoy": r.get("revenue_yoy"), "roic": r.get("roic"),
                          "debt_to_assets": r.get("debt_ratio")}

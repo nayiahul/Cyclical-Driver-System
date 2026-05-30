@@ -55,21 +55,23 @@ def classify(stock: dict, gm_trend_label: str = "", roic_volatility: float = 0) 
     evidence = []
     sources = []
 
-    # ── Sprint 14: 周期状态检测(最优先) ──
-    # ROIC历史极差>30pp + 低研发 → 强周期信号,覆盖其他标签
-    if roic_volatility > 30 and rd_ratio < 5:
+    # ── Sprint 14+16.1: 周期检测(高波动+低研发+GM下降→价格周期) ──
+    # 成长性豁免: 高研发(>3%)+高增速(CAGR>30%)→爆发式成长,非周期
+    cagr3_val = stock.get("revenue_cagr_3y") or rev_yoy
+    is_growth_exempt = (rd_ratio > 3 and (cagr3_val > 30 or rev_yoy > 50))
+    if roic_volatility > 30 and rd_ratio < 5 and not is_growth_exempt:
         sources.append(("price_cycle", 0.92))
         evidence.append(f"ROIC 5年极差{roic_volatility:.0f}pp(>30pp)→强周期波动")
         evidence.append(f"研发仅{rd_ratio:.1f}%→非技术/产品驱动")
-        # 直接返回,不再跑其他规则
         return GrowthAttribution(
             source="price_cycle", confidence=0.92, persistence=2,
             evidence=evidence,
-            risk_point="价格回落至周期底部,利润崩塌(ROIC历史极差大,当前可能处于周期高位)",
-            narrative=f"价格周期驱动(ROIC 5年极差{roic_volatility:.0f}pp+研发{rd_ratio:.1f}%)。"
-                      f"增长来自价格波动,非结构性优势。当前ROIC={roic:.1f}%,"
-                      f"需对照历史极差判断周期位置。"
+            risk_point="价格回落至周期底部,利润崩塌",
+            narrative=f"价格周期(ROIC极差{roic_volatility:.0f}pp+研发{rd_ratio:.1f}%)。增长来自价格波动,非结构优势。"
         )
+    # 高波动但有研发豁免 → 标记但不强判
+    if roic_volatility > 30 and is_growth_exempt:
+        evidence.append(f"ROIC极差{roic_volatility:.0f}pp但研发{rd_ratio:.1f}%→爆发成长,非周期")
 
     # ── 技术渗透 ──: GM扩张 + 高研发 + 高ROIC
     if gm_trend == "上升" and rd_ratio > 3 and roic > 10:
