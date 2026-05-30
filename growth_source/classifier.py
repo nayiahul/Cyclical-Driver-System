@@ -74,14 +74,16 @@ def classify(stock: dict, gm_trend_label: str = "", roic_volatility: float = 0) 
         evidence.append(f"ROIC极差{roic_volatility:.0f}pp但研发{rd_ratio:.1f}%→爆发成长,非周期")
 
     # ── 技术渗透 ──: GM扩张 + 高研发 + 高ROIC
-    if gm_trend == "上升" and rd_ratio > 3 and roic > 10:
+    gm_rising = "上升" in str(gm_trend)
+    gm_falling = "下降" in str(gm_trend)
+    if gm_rising and rd_ratio > 3 and roic > 10:
         sources.append(("tech_penetration", 0.85))
         evidence.append(f"毛利率{ gm_trend }(+{gm:.0f}%)")
         evidence.append(f"研发强度{rd_ratio:.1f}%")
         evidence.append(f"ROIC={roic:.1f}%")
 
     # ── 份额提升 ──: 营收高增 + GM稳定 + 销售费用率可能偏高
-    if rev_yoy > 20 and gm_trend in ("上升", "稳定") and roic > 8:
+    if rev_yoy > 20 and (gm_rising or "稳定" in str(gm_trend)) and roic > 8:
         if "tech_penetration" not in dict(sources):
             sources.append(("share_gain", 0.70))
             evidence.append(f"营收+{rev_yoy:.0f}%但GM{ gm_trend }(非价格驱动)")
@@ -98,7 +100,7 @@ def classify(stock: dict, gm_trend_label: str = "", roic_volatility: float = 0) 
         if gm_trend not in ("下降",) or roic > 8:  # GM稳或ROIC仍健康
             sources.append(("capacity_expansion", 0.65))
             evidence.append(f"固资占比{fixed_asset_ratio:.0%}+营收+{rev_yoy:.0f}%→产能释放")
-            if gm_trend == "下降":
+            if gm_falling:
                 evidence.append("⚠️ GM下滑→产能过剩风险(可能失效中)")
 
     # ── 品牌溢价 ──: 超高GM+极低销售费率+极低研发+温和增长
@@ -108,9 +110,9 @@ def classify(stock: dict, gm_trend_label: str = "", roic_volatility: float = 0) 
         evidence.append(f"营收+{rev_yoy:.0f}%温和→品牌定价权驱动")
 
     # ── 价格周期 ──: GM波动大 + 低研发 + 高资产周转
-    if gm_trend in ("下降",) and rd_ratio < 3 and roic < 10 and abs(rev_yoy) < 50:
+    if gm_falling and rd_ratio < 3 and roic < 10 and abs(rev_yoy) < 50:
         sources.append(("price_cycle", 0.90))
-        evidence.append(f"GM{ gm_trend }+研发{rd_ratio:.1f}%→非产品驱动")
+        evidence.append(f"GM{'上升' if gm_rising else '下降' if gm_falling else '稳定'}+研发{rd_ratio:.1f}%→非产品驱动")
         evidence.append(f"ROIC仅{roic:.1f}%→周期底部")
 
     # ── 低基数修复 ──: 极高增速 + GM不稳定 + 历史增速低
