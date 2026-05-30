@@ -224,8 +224,8 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     # 打印摘要
     _print_summary(result_df, quarantine_df)
 
+    _persist_map = {}  # Sprint 16: persistence映射,默认3
     # v4.0 Growth Source + Sprint 12+16: 归因卡片 + 仓位建议 + persistence存储
-    _persist_map = {}
     try:
         from growth_source.classifier import classify, get_roic_volatility
         from growth_source.position import recommend
