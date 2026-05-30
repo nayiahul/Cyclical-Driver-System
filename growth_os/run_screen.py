@@ -143,21 +143,6 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     from growth_os.config import COMMODITY_INDUSTRIES, LifecycleStage
 
     # 用标准化后的排名重新计算综合分 + Regime 决策重评
-    # v3.0: Growth Source persistence→决策联动（归因反哺评分层）
-    _persist_map = {}
-    try:
-        from growth_source.classifier import classify, get_roic_volatility
-        for r in passed:
-            code = str(r.get("code", ""))
-            stock = {"revenue_yoy": r.get("revenue_yoy"), "gross_margin": r.get("roic"),
-                     "rd_expense": None, "revenue": None, "roic": r.get("roic"),
-                     "debt_to_assets": r.get("debt_ratio")}
-            roic_vol = get_roic_volatility(code, t_date) if code else 0.0
-            attr = classify(stock, str(r.get("gross_margin_trend", "")), roic_vol)
-            _persist_map[code] = attr.persistence
-    except Exception:
-        pass
-
     for r in passed:
         r["composite_score"] = recalc_composite_with_ranks(r)
         # v2.5: CAGR<0封顶再确认
@@ -239,19 +224,32 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     # 打印摘要
     _print_summary(result_df, quarantine_df)
 
-    # v4.0 Growth Source + Sprint 12: 归因卡片 + 仓位建议输出
+    # v4.0 Growth Source + Sprint 12+16: 归因卡片 + 仓位建议 + persistence存储
+    _persist_map = {}
     try:
         from growth_source.classifier import classify, get_roic_volatility
         from growth_source.position import recommend
+        from growth_os.data import get_financial_snapshot
+        _snap = get_financial_snapshot(t_date)
         cards = []
         for _, r in result_df.head(top_n).iterrows():
             code = str(r.get("code", ""))
-            stock = {"revenue_yoy": r.get("revenue_yoy"), "gross_margin": r.get("roic"),
-                     "rd_expense": None, "revenue": None, "roic": r.get("roic"),
-                     "debt_to_assets": r.get("debt_ratio"), "deducted_profit_yoy": r.get("deducted_yoy")}
+            srow = _snap[_snap["code"]==code]
+            if not srow.empty:
+                sr = srow.iloc[0]
+                stock = {"revenue_yoy": sr.get("revenue_yoy"), "gross_margin": sr.get("gross_margin"),
+                         "rd_expense": sr.get("rd_expense"), "revenue": sr.get("revenue"),
+                         "roic": sr.get("roic"), "debt_to_assets": sr.get("debt_to_assets"),
+                         "deducted_profit_yoy": sr.get("deducted_profit_yoy"),
+                         "fixed_assets": sr.get("fixed_assets"), "total_assets": sr.get("total_assets"),
+                         "selling_expense": sr.get("selling_expense")}
+            else:
+                stock = {"revenue_yoy": r.get("revenue_yoy"), "roic": r.get("roic"),
+                         "debt_to_assets": r.get("debt_ratio")}
             gm_label = str(r.get("gross_margin_trend", ""))
             roic_vol = get_roic_volatility(code, t_date) if code else 0.0
             attr = classify(stock, gm_label, roic_vol)
+            _persist_map[code] = attr.persistence  # Sprint 16: 存储供决策层使用
             pos = recommend(r.get("composite_score", 80), attr.persistence)
             cards.append(f"## {r.get('name', r['code'])} ({r['code']})\n\n"
                         f"**驱动力**: `{attr.source}` | **置信度**: {attr.confidence:.0%} | **持续性**: {attr.persistence}/5\n\n"
