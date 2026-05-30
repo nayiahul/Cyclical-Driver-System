@@ -249,7 +249,9 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             roic_vol = get_roic_volatility(code, t_date) if code else 0.0
             attr = classify(stock, gm_label, roic_vol)
             _persist_map[code] = attr.persistence
-            pos = recommend(r.get("composite_score", 80), attr.persistence)
+            l1_status = str(r.get("l1_verdict", "pass"))
+            pos = recommend(r.get("composite_score", 80), attr.persistence,
+                           l1_verdict=l1_status, source=attr.source)
 
             # Sprint 16: Cycle State Engine
             cycle_note = ""
@@ -258,7 +260,8 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
                 roic_val = stock.get("roic_ttm") or stock.get("roic") or 0
                 roic_mom = 1 if "上升" in gm_label else (-1 if "下降" in gm_label else 0)
                 rev_yoy_val = stock.get("revenue_yoy") or 0
-                cs = classify_cycle_state(roic_val, roic_vol, gm_label, rev_yoy_val, roic_mom)
+                cs = classify_cycle_state(roic_val, roic_vol, gm_label, rev_yoy_val, roic_mom,
+                                         growth_source=attr.source)
                 cycle_note = f"**周期状态**: {cs.label} ({cs.confidence:.0%}) | {cs.action}\n\n"
             except Exception:
                 pass
