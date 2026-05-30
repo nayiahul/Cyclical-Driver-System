@@ -143,6 +143,7 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     from growth_os.config import COMMODITY_INDUSTRIES, LifecycleStage
 
     # 用标准化后的排名重新计算综合分 + Regime 决策重评
+    _persist_map = {}  # Sprint 16: persist lookup,默认3
     for r in passed:
         r["composite_score"] = recalc_composite_with_ranks(r)
         # v2.5: CAGR<0封顶再确认
@@ -224,7 +225,6 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     # 打印摘要
     _print_summary(result_df, quarantine_df)
 
-    _persist_map = {}  # Sprint 16: persistence映射,默认3
     # v4.0 Growth Source + Sprint 12+16: 归因卡片 + 仓位建议 + persistence存储
     try:
         from growth_source.classifier import classify, get_roic_volatility
