@@ -225,7 +225,7 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     # 打印摘要
     _print_summary(result_df, quarantine_df)
 
-    # v4.0 Growth Source + Sprint 12+16: 归因卡片 + 仓位建议 + persistence存储
+    # v4.0 Growth Source + Sprint 12+17: 归因卡片 + 仓位建议 + persistence存储
     try:
         from growth_source.classifier import classify, get_roic_volatility
         from growth_source.position import recommend
@@ -234,26 +234,17 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
         cards = []
         for _, r in result_df.head(top_n).iterrows():
             code = str(r.get("code", ""))
+            # Sprint 17: 漏斗行已有 rd_ratio/roic_ttm/gross_margin_trend/debt_ratio,
+            # 仅补充快照原始字段(gross_margin/fixed_assets/selling_expense/revenue等展示用)
+            stock = r.to_dict()
             srow = _snap[_snap["code"]==code]
             if not srow.empty:
                 sr = srow.iloc[0]
-                # v3.0: 优先使用TTM ROIC(与漏斗一致),避免snapshot单季ROIC导致波动率误判
-                try:
-                    from growth_os.data import compute_roic_ttm
-                    _ttm = compute_roic_ttm(code, t_date)
-                except Exception:
-                    _ttm = None
-                _roic = _ttm if _ttm is not None else sr.get("roic")
-                stock = {"revenue_yoy": sr.get("revenue_yoy"), "gross_margin": sr.get("gross_margin"),
-                         "rd_expense": sr.get("rd_expense"), "revenue": sr.get("revenue"),
-                         "roic": _roic, "debt_to_assets": sr.get("debt_to_assets"),
-                         "deducted_profit_yoy": sr.get("deducted_profit_yoy"),
-                         "fixed_assets": sr.get("fixed_assets"), "total_assets": sr.get("total_assets"),
-                         "selling_expense": sr.get("selling_expense"),
-                         "revenue_cagr_3y": sr.get("revenue_cagr_3y")}
-            else:
-                stock = {"revenue_yoy": r.get("revenue_yoy"), "roic": r.get("roic"),
-                         "debt_to_assets": r.get("debt_ratio")}
+                stock["gross_margin"] = sr.get("gross_margin")
+                stock["fixed_assets"] = sr.get("fixed_assets")
+                stock["total_assets"] = sr.get("total_assets")
+                stock["selling_expense"] = sr.get("selling_expense")
+                stock["revenue"] = sr.get("revenue")
             gm_label = str(r.get("gross_margin_trend", ""))
             roic_vol = get_roic_volatility(code, t_date) if code else 0.0
             attr = classify(stock, gm_label, roic_vol)
@@ -264,8 +255,8 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             cycle_note = ""
             try:
                 from growth_source.cycle_state import classify_cycle_state
-                roic_val = stock.get("roic") or 0
-                roic_mom = 1 if gm_label == "上升" else (-1 if gm_label == "下降" else 0)
+                roic_val = stock.get("roic_ttm") or stock.get("roic") or 0
+                roic_mom = 1 if "上升" in gm_label else (-1 if "下降" in gm_label else 0)
                 rev_yoy_val = stock.get("revenue_yoy") or 0
                 cs = classify_cycle_state(roic_val, roic_vol, gm_label, rev_yoy_val, roic_mom)
                 cycle_note = f"**周期状态**: {cs.label} ({cs.confidence:.0%}) | {cs.action}\n\n"

@@ -1,16 +1,19 @@
-"""Sprint 12: Persistence → 仓位建议。
+"""Sprint 12+18: Persistence → 仓位建议。
 
 双维度矩阵: Composite(漏斗质量) × Persistence(增长持续性)
 不替代Composite,只做独立信息层叠加。
-"""
-from typing import Tuple
 
-POSITION_MAP = {
-    5: {"label": "核心持仓", "weight": "8-15%", "hold": "18-24个月", "action": "越跌越买"},
-    4: {"label": "标配",     "weight": "4-8%",  "hold": "12-18个月", "action": "持有为主"},
-    3: {"label": "标配谨慎",  "weight": "2-4%",  "hold": "6-12个月",  "action": "右侧交易"},
-    2: {"label": "轻仓交易",  "weight": "<2%",   "hold": "1-3个月",   "action": "快进快出"},
-    1: {"label": "规避",     "weight": "0%",    "hold": "N/A",       "action": "禁止左侧"},
+Sprint 18: 修复映射矛盾 — weight/hold/action 由 MATRIX label 统一派生,
+消除"标配 | 权重0%"这种双源冲突。
+"""
+
+# Sprint 18: 仓位标签 → 执行参数自洽映射
+LABEL_CONFIG = {
+    "核心": {"weight": "8-15%", "hold": "18-24个月", "action": "越跌越买"},
+    "标配": {"weight": "4-8%",  "hold": "12-18个月", "action": "持有为主"},
+    "轻仓": {"weight": "<2%",   "hold": "1-3个月",   "action": "快进快出"},
+    "观察": {"weight": "<2%",   "hold": "3-6个月",   "action": "跟踪待确认"},
+    "规避": {"weight": "0%",    "hold": "N/A",       "action": "不参与"},
 }
 
 # 双维度矩阵: rows=Composite档(1-5), cols=Persistence档(1-5)
@@ -24,14 +27,15 @@ MATRIX = [
     [("标配",""),("标配",""),("核心","高质高持"),("核心","高质高持"),("核心","高质高持")],   # C5
 ]
 
+
 def recommend(composite: float, persistence: int, max_composite: float = 95.0) -> dict:
     c = min(5, max(1, int(composite / max_composite * 5) + 1)) if max_composite > 0 else 3
     p = max(1, min(5, persistence))
     label, rationale = MATRIX[c - 1][p - 1]
-    pos = POSITION_MAP[p]
+    cfg = LABEL_CONFIG[label]
     return {
         "composite_bucket": c, "persistence": p,
-        "position": label, "weight": pos["weight"],
-        "hold": pos["hold"], "action": pos["action"],
+        "position": label, "weight": cfg["weight"],
+        "hold": cfg["hold"], "action": cfg["action"],
         "rationale": rationale or f"Composite{c}/Persist{p}",
     }

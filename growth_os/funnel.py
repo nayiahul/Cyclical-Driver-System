@@ -570,26 +570,28 @@ def _score_l2(code: str, t_date: str, industry_l3: str, pct_table: dict = None) 
             from growth_os.industry_percentile import get_pct
             rd_pct = get_pct(pct_table, industry_l3, "rd_intensity", code)
             if rd_pct > 0.8:
-                result["rd_intensity"] = {"score": s["rd_intensity_weight"],
+                result["rd_intensity"] = {"score": s["rd_intensity_weight"], "value": rd_ratio,
                                           "label": f"高研发({rd_ratio:.1f}%,p{rd_pct:.0%})"}
             elif rd_pct > 0.5:
-                result["rd_intensity"] = {"score": s["rd_intensity_weight"] / 2,
+                result["rd_intensity"] = {"score": s["rd_intensity_weight"] / 2, "value": rd_ratio,
                                           "label": f"中等研发({rd_ratio:.1f}%,p{rd_pct:.0%})"}
             else:
-                result["rd_intensity"] = {"score": 0, "label": f"低研发({rd_ratio:.1f}%,p{rd_pct:.0%})"}
+                result["rd_intensity"] = {"score": 0, "value": rd_ratio,
+                                          "label": f"低研发({rd_ratio:.1f}%,p{rd_pct:.0%})"}
         else:
             adj = INDUSTRY_ADJUSTMENTS.get(industry_l3, {})
             rd_high = adj.get("rd_intensity_high", 8.0)
             if rd_ratio > rd_high:
-                result["rd_intensity"] = {"score": s["rd_intensity_weight"],
+                result["rd_intensity"] = {"score": s["rd_intensity_weight"], "value": rd_ratio,
                                           "label": f"高研发({rd_ratio:.1f}%)"}
             elif rd_ratio > rd_high * 0.5:
-                result["rd_intensity"] = {"score": s["rd_intensity_weight"] / 2,
+                result["rd_intensity"] = {"score": s["rd_intensity_weight"] / 2, "value": rd_ratio,
                                           "label": f"中等研发({rd_ratio:.1f}%)"}
             else:
-                result["rd_intensity"] = {"score": 0, "label": f"低研发({rd_ratio:.1f}%)"}
+                result["rd_intensity"] = {"score": 0, "value": rd_ratio,
+                                          "label": f"低研发({rd_ratio:.1f}%)"}
     else:
-        result["rd_intensity"] = {"score": 0, "label": "数据不足"}
+        result["rd_intensity"] = {"score": 0, "value": 0, "label": "数据不足"}
 
     # 4. 合同负债领先 (0-2) — v3.0: 行业分位增强
     contract_series = get_quarterly_series(
