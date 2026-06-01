@@ -302,14 +302,15 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     except Exception as e:
         logger.debug(f"快照保存异常: {e}")
 
-    # Sprint 20: 归因熵监控（Meta Monitor）
-    _log_gene_entropy(result_df, passed, quarantined)
+    # Sprint 20: 归因熵监控（Meta Monitor）+ Telemetry Dump
+    _log_gene_entropy(result_df, passed, quarantined, t_date)
 
     return result_df
 
 
-def _log_gene_entropy(passed_df: pd.DataFrame, passed: list, quarantined: list):
-    """Sprint 20: 归因熵监控 — 双阈值报警（熵<1.7 + 单基因占比>45%）。"""
+def _log_gene_entropy(passed_df: pd.DataFrame, passed: list, quarantined: list,
+                      t_date: str = ""):
+    """Sprint 20: 归因熵监控 — 双阈值报警 + Telemetry JSON 存档。"""
     try:
         sources = [r.get("source", "") for r in passed if r.get("source")]
         if len(sources) < 5:
@@ -321,18 +322,41 @@ def _log_gene_entropy(passed_df: pd.DataFrame, passed: list, quarantined: list):
 
         max_gene, max_count = cnt.most_common(1)[0]
         max_pct = max_count / total
+        quality_ratio = cnt.get("quality_growth", 0) / total
 
         logger.info(f"归因分布 (n={total}): {dict(cnt)}")
         logger.info(f"归因熵: {entropy:.2f} bits | 最大基因: {max_gene} ({max_pct:.0%})")
+        logger.info(f"quality_growth 占比: {quality_ratio:.0%}")
 
         warnings = []
         if max_pct > 0.45:
             warnings.append(f"基因集中度过高: {max_gene} 占比 {max_pct:.0%}")
         if entropy < 1.7:
             warnings.append(f"归因熵过低: {entropy:.2f} bits — 分类器可能正在坍缩")
+        if quality_ratio > 0.30:
+            warnings.append(f"quality_growth 占比过高: {quality_ratio:.0%} — 分类器可能失效")
 
         if warnings:
             logger.warning(" | ".join(warnings))
+
+        # Sprint 20 Telemetry Layer 1: 落盘 JSON
+        if t_date:
+            import json
+            telemetry_dir = os.path.join(DATA_PATHS["output_dir"], "telemetry")
+            os.makedirs(telemetry_dir, exist_ok=True)
+            record = {
+                "date": t_date,
+                "entropy": round(entropy, 3),
+                "quality_growth_ratio": round(quality_ratio, 3),
+                "gene_distribution": dict(cnt),
+                "max_gene": max_gene,
+                "max_gene_pct": round(max_pct, 3),
+                "warnings": warnings,
+            }
+            path = os.path.join(telemetry_dir, f"{t_date}.json")
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(record, f, ensure_ascii=False, indent=2)
+            logger.info(f"Telemetry 已保存: {path}")
     except Exception:
         pass
 
