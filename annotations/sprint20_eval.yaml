@@ -1,0 +1,65 @@
+# Growth OS 标注评估集 v0.1
+# Sprint 20.1 — 初始5例边界case标注
+# 用途: 每次classifier变更后跑回归测试，检测归因退化
+# 格式: entries[].model_gene 留空, 由自动化脚本填充后与 gene_human 对比
+
+entries:
+  - ticker: "002517"
+    name: "恺英网络"
+    date: "2026-06-01"
+    gene_human: "hit_game"
+    sub_gene_human: "hit_game"
+    confidence_human: 0.85
+    reason: "《石器时代：觉醒》等爆款驱动，rd=4.8%虽低于5%阈值但游戏内容投入显著"
+    model_version: "sprint-20.1"
+    model_gene: ""
+    model_sub_gene: ""
+    mismatch: false
+
+  - ticker: "688615"
+    name: "合合信息"
+    date: "2026-06-01"
+    gene_human: "quality_growth"
+    sub_gene_human: "ai_tool"
+    confidence_human: 0.60
+    reason: "AI OCR/文档处理工具，不存在平台网络效应。走通用规则quality_growth更诚实"
+    model_version: "sprint-20.1"
+    model_gene: ""
+    model_sub_gene: ""
+    mismatch: false
+
+  - ticker: "688336"
+    name: "三生国健"
+    date: "2026-06-01"
+    gene_human: "drug_ramp"
+    sub_gene_human: "biologic_launch"
+    confidence_human: 0.90
+    reason: "抗IL-17单抗上市放量，药品商业化爬坡。周期状态应为结构性高位，非周期顶部"
+    model_version: "sprint-20.1"
+    model_gene: ""
+    model_sub_gene: ""
+    mismatch: false
+
+  - ticker: "002811"
+    name: "郑中设计"
+    date: "2026-06-01"
+    gene_human: "project_cycle"
+    sub_gene_human: "project_cycle"
+    confidence_human: 0.70
+    reason: "装修装饰行业不存在典型份额战争，增长来自项目交付/地产后周期"
+    model_version: "sprint-20.1"
+    model_gene: ""
+    model_sub_gene: ""
+    mismatch: false
+
+  - ticker: "300308"
+    name: "中际旭创"
+    date: "2026-06-01"
+    gene_human: "tech_penetration"
+    sub_gene_human: "ai_optical_upgrade"
+    confidence_human: 0.90
+    reason: "AI算力驱动的800G/1.6T光模块升级周期，结构性需求"
+    model_version: "sprint-20.1"
+    model_gene: ""
+    model_sub_gene: ""
+    mismatch: false

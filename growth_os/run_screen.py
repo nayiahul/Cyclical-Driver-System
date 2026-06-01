@@ -10,6 +10,8 @@ v3.0: 多进程并行（--workers N）+ 批量模式跳过探针。
 import os
 import sys
 import argparse
+import math
+from collections import Counter
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
 
@@ -248,6 +250,8 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             gm_label = str(r.get("gross_margin_trend", ""))
             roic_vol = get_roic_volatility(code, t_date) if code else 0.0
             attr = classify(stock, gm_label, roic_vol)
+            r["source"] = attr.source        # Sprint 20: 存储归因标签供熵监控
+            r["sub_gene"] = attr.sub_gene
             _persist_map[code] = attr.persistence
             l1_status = str(r.get("l1_verdict", "pass"))
             pos = recommend(r.get("composite_score", 80), attr.persistence,
@@ -266,11 +270,21 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             except Exception:
                 pass
 
+            source_display = f"`{attr.source}`"
+            if getattr(attr, "sub_gene", ""):
+                source_display += f" → `{attr.sub_gene}`"
+
+            # Sprint 20.1: 双轨冲突标记 — Composite高分但Gene低持续性时提醒
+            conflict = ""
+            if pos.get("composite_bucket", 0) >= 4 and attr.persistence <= 2:
+                conflict = " ⚠️ 双轨冲突: Composite高分但Gene低持续性→以Gene为准\n\n"
+
             cards.append(f"## {r.get('name', r['code'])} ({r['code']})\n\n"
-                        f"**驱动力**: `{attr.source}` | **置信度**: {attr.confidence:.0%} | **持续性**: {attr.persistence}/5\n\n"
+                        f"**驱动力**: {source_display} | **置信度**: {attr.confidence:.0%} | **持续性**: {attr.persistence}/5\n\n"
                         f"> {attr.narrative}\n\n"
                         f"{cycle_note}"
                         f"**仓位**: **{pos['position']}** | 权重{pos['weight']} | 持有{pos['hold']} | {pos['action']}\n\n"
+                        f"{conflict}"
                         f"**风险**: {attr.risk_point}\n")
         gs_path = os.path.join(DATA_PATHS["output_dir"], f"growth_source_{t_date}.md")
         with open(gs_path, "w", encoding="utf-8") as f:
@@ -288,7 +302,39 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     except Exception as e:
         logger.debug(f"快照保存异常: {e}")
 
+    # Sprint 20: 归因熵监控（Meta Monitor）
+    _log_gene_entropy(result_df, passed, quarantined)
+
     return result_df
+
+
+def _log_gene_entropy(passed_df: pd.DataFrame, passed: list, quarantined: list):
+    """Sprint 20: 归因熵监控 — 双阈值报警（熵<1.7 + 单基因占比>45%）。"""
+    try:
+        sources = [r.get("source", "") for r in passed if r.get("source")]
+        if len(sources) < 5:
+            return
+        cnt = Counter(sources)
+        total = len(sources)
+        probs = [c / total for c in cnt.values()]
+        entropy = -sum(p * math.log2(p) for p in probs if p > 0)
+
+        max_gene, max_count = cnt.most_common(1)[0]
+        max_pct = max_count / total
+
+        logger.info(f"归因分布 (n={total}): {dict(cnt)}")
+        logger.info(f"归因熵: {entropy:.2f} bits | 最大基因: {max_gene} ({max_pct:.0%})")
+
+        warnings = []
+        if max_pct > 0.45:
+            warnings.append(f"基因集中度过高: {max_gene} 占比 {max_pct:.0%}")
+        if entropy < 1.7:
+            warnings.append(f"归因熵过低: {entropy:.2f} bits — 分类器可能正在坍缩")
+
+        if warnings:
+            logger.warning(" | ".join(warnings))
+    except Exception:
+        pass
 
 
 def _print_summary(df: pd.DataFrame, quarantine_df: pd.DataFrame = None, n: int = 30):

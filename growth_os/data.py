@@ -307,12 +307,8 @@ def get_industry(code: str) -> str:
 # ============================================================
 
 def _code_to_filename(code: str) -> str:
-    """将纯数字代码转为 /Desktop/stocks/ 文件名格式。"""
-    if code.startswith("6") or code.startswith("5"):
-        return f"sh.{code}.csv"
-    elif code.startswith("0") or code.startswith("1") or code.startswith("3") or code.startswith("8"):
-        return f"sz.{code}.csv"
-    return f"bj.{code}.csv"
+    """将纯数字代码转为缓存文件名。"""
+    return f"{code}.csv"
 
 
 def _to_tx_symbol(code: str) -> str:
@@ -344,6 +340,10 @@ def get_price_data(code: str) -> pd.DataFrame | None:
     if os.path.exists(fpath):
         try:
             df = pd.read_csv(fpath, parse_dates=["date"])
+            max_date = df["date"].max()
+            staleness = (pd.Timestamp.now() - max_date).days
+            if staleness > 3:
+                logger.warning(f"Desktop 行情缓存过期 {code}: 最新 {max_date.date()}, 已 {staleness} 天")
             _price_cache[code] = df
             return df
         except Exception:

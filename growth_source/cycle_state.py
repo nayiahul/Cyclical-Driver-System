@@ -3,11 +3,18 @@
 从"是什么类型"升级到"在周期哪个位置"。
 ROIC波动率 + 动量 + GM趋势 → BOTTOM/UP_TREND/TOP/DOWN
 
-Sprint 19: 范式感知 — tech_penetration/brand_premium 的高ROIC是结构性的,
+Sprint 19: 范式感知 — 结构性成长的高ROIC是结构性的,
 不是周期顶部。新增 STRUCTURAL_HIGH 状态。
+Sprint 20.1: 保护列表扩展至 drug_ramp/import_substitution/platform_network。
 """
 from __future__ import annotations
 from dataclasses import dataclass
+
+# Sprint 20.1: 结构性成长基因保护列表
+STRUCTURAL_SOURCES = {
+    "tech_penetration", "brand_premium",
+    "drug_ramp", "import_substitution", "platform_network",
+}
 
 
 @dataclass
@@ -31,7 +38,7 @@ def classify_cycle_state(
     ROIC波动率>30pp → 周期股,需要状态判定
     ROIC波动率<15pp → 结构性公司,标为STABLE
 
-    growth_source: 增长驱动力标签。tech_penetration/brand_premium 的高ROIC
+    growth_source: 增长驱动力标签。STRUCTURAL_SOURCES 中的高ROIC
                    是结构性壁垒而非周期顶部,判定为 STRUCTURAL_HIGH。
     """
     # 低波动 → 结构性公司,不需要周期状态
@@ -61,7 +68,7 @@ def classify_cycle_state(
         result = CycleState("UP_TREND", 0.65, "周期上行(趋势确认中)", "标配持有")
 
     # ── Sprint 19: 范式感知 — 结构性高位 ≠ 周期顶部 ──
-    if growth_source in ("tech_penetration", "brand_premium") and result.state == "TOP":
+    if growth_source in STRUCTURAL_SOURCES and result.state == "TOP":
         return CycleState(
             state="STRUCTURAL_HIGH",
             confidence=0.80,

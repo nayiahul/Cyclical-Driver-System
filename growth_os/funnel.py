@@ -417,6 +417,8 @@ def _score_l2(code: str, t_date: str, industry_l3: str, pct_table: dict = None) 
     s = L2_SCORING
     result = {"total": 0.0}
     max_score = s["l2_max_score"]
+    is_high_rd = False
+    has_rd_conversion = False
     snap = get_financial_snapshot(t_date)
     row = snap[snap["code"] == code]
     if row.empty:
