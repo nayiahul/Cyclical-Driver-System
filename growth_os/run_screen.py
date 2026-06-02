@@ -361,6 +361,24 @@ def _log_gene_entropy(passed_df: pd.DataFrame, passed: list, quarantined: list,
         pass
 
 
+def _display_width(s: str) -> int:
+    """计算字符串在终端中的显示宽度（CJK 字符占 2 列）。"""
+    import unicodedata
+    w = 0
+    for ch in s:
+        w += 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
+    return w
+
+
+def _pad_cjk(s: str, width: int, align: str = "<") -> str:
+    """按终端显示宽度填充字符串。"""
+    dw = _display_width(s)
+    pad = max(0, width - dw)
+    if align == ">":
+        return " " * pad + s
+    return s + " " * pad
+
+
 def _print_summary(df: pd.DataFrame, quarantine_df: pd.DataFrame = None, n: int = 30):
     """打印筛选摘要。"""
     print(f"\n{'='*80}")
@@ -368,16 +386,24 @@ def _print_summary(df: pd.DataFrame, quarantine_df: pd.DataFrame = None, n: int 
     print(f"{'='*80}")
     print(f"  L2=护城河 L3=资本效率 L4=行业校准 L5=预期差 | 综合=L1-L5加权")
     print(f"{'='*80}")
-    print(f"{'代码':<8} {'名称':<10} {'行业':<14} {'阶段':<6} {'L1判定':<6} {'综合':>5} {'L2':>5} {'L3':>5} {'L4':>5} {'L5':>5} {'决策'}")
+    header = (f"{_pad_cjk('代码', 8)} {_pad_cjk('名称', 8)} {_pad_cjk('行业', 14)} "
+              f"{_pad_cjk('阶段', 6)} {_pad_cjk('L1判定', 6)} "
+              f"{'综合':>5} {'L2':>4} {'L3':>4} {'L4':>4} {'L5':>4} {'决策'}")
+    print(header)
     print(f"{'-'*100}")
     for _, r in df.head(n).iterrows():
         l1_short = {"pass": "通过", "review": "观察", "kill_absolute": "淘汰", "kill_conditional": "淘汰"}.get(r.get("l1_verdict", ""), "?")
         l1_review = " ⚠️" if r.get("l1_verdict") == "review" else ""
-        print(f"{r['code']:<8} {str(r['name'])[:10]:<10} "
-              f"{str(r['industry_l3'])[:14]:<14} {str(r['lifecycle'])[:6]:<6} {l1_short:<6} "
-              f"{r['composite_score']:>5.1f} {r['score_l2']:>5.1f} "
-              f"{r['score_l3']:>5.1f} {r['score_l4']:>5.1f} {r['score_l5']:>5.1f} "
-              f"{str(r['decision'])[:8]}{l1_review}")
+        name = str(r.get("name", ""))[:6]
+        ind = str(r.get("industry_l3", ""))[:12]
+        lc = str(r.get("lifecycle", ""))[:4]
+        dec = str(r.get("decision", ""))[:8]
+        line = (f"{_pad_cjk(str(r['code']), 8)} {_pad_cjk(name, 8)} "
+                f"{_pad_cjk(ind, 14)} {_pad_cjk(lc, 6)} {_pad_cjk(l1_short, 6)} "
+                f"{r['composite_score']:>5.1f} {r['score_l2']:>4.1f} "
+                f"{r['score_l3']:>4.1f} {r['score_l4']:>4.1f} {r['score_l5']:>4.1f} "
+                f"{dec}{l1_review}")
+        print(line)
 
     print(f"\n生命周期分布:")
     for stage in df["lifecycle"].value_counts().index:
