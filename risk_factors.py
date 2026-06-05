@@ -4,15 +4,27 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 from scipy import stats
+from config.params import STOCKS_DIR
+
+_PRICE_MEM_CACHE: dict[str, pd.DataFrame] = {}
 
 
 def _load_price_data(code: str) -> pd.DataFrame:
-    path = f"data/cache/daily_prices/{code}.csv"
+    if code in _PRICE_MEM_CACHE:
+        return _PRICE_MEM_CACHE[code]
+    path = os.path.join(STOCKS_DIR, f"{code}.csv")
     if os.path.exists(path):
-        df = pd.read_csv(path, dtype={"date": str})
-        df["date"] = pd.to_datetime(df["date"])
-        return df.set_index("date").sort_index()
-    return pd.DataFrame()
+        try:
+            df = pd.read_csv(path, dtype={"code": str})
+            df["date"] = pd.to_datetime(df["date"])
+            result = df.set_index("date").sort_index()
+            _PRICE_MEM_CACHE[code] = result
+            return result
+        except Exception:
+            pass
+    empty = pd.DataFrame()
+    _PRICE_MEM_CACHE[code] = empty
+    return empty
 
 
 def _load_index_data() -> pd.Series:

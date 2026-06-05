@@ -16,6 +16,9 @@ MAX_SINGLE_WEIGHT = 0.08   # 单票上限 8%
 MIN_HOLDINGS = 15          # 最少持仓数
 IPO_LOCK_DAYS = 20         # 新股上市后跳过交易日数
 
+# 日线数据目录
+STOCKS_DIR = "/Users/nayiahlu/Desktop/stocks"
+
 # 缓存
 CACHE_DIR = "data/cache"
 TRADE_CALENDAR_CACHE = "data/cache/trade_calendar.csv"

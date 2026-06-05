@@ -14,6 +14,7 @@ from config.params import (
     MAX_SINGLE_WEIGHT,
     MIN_HOLDINGS,
     START_DATE,
+    STOCKS_DIR,
     TOP_N_STOCKS,
     TOTAL_COST_RATE,
 )
@@ -55,42 +56,24 @@ def _to_tx_symbol(code: str) -> str:
 
 
 def _load_price_cache(code: str) -> pd.Series:
-    """Load daily close prices for a stock, caching to CSV and in-memory.
-
-    Uses Tencent data source (akshare stock_zh_a_hist_tx) which is
-    more accessible from non-mainland networks.
-    """
+    """Load daily close prices from local stocks directory."""
     if code in _PRICE_CACHE:
         return _PRICE_CACHE[code]
 
-    cache_path = f"data/cache/daily_prices/{code}.csv"
-    if os.path.exists(cache_path):
-        try:
-            df = pd.read_csv(cache_path, dtype={"date": str})
-            prices = df.set_index("date")["close"]
-            _PRICE_CACHE[code] = prices
-            return prices
-        except Exception:
-            logger.warning(f"{code} 缓存文件损坏，重新下载")
+    path = os.path.join(STOCKS_DIR, f"{code}.csv")
+    if not os.path.exists(path):
+        empty = pd.Series(dtype=float)
+        _PRICE_CACHE[code] = empty
+        return empty
 
     try:
-        symbol = _to_tx_symbol(code)
-        hist = ak.stock_zh_a_hist_tx(
-            symbol=symbol,
-            start_date="20140101",
-            end_date="20251231",
-            adjust="qfq",
-        )
-        df = hist[["date", "close"]].copy()
+        df = pd.read_csv(path, dtype={"code": str})
         df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y%m%d")
-        df["close"] = df["close"].astype(float)
-        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-        df.to_csv(cache_path, index=False)
-        prices = df.set_index("date")["close"]
+        prices = df.set_index("date")["close"].astype(float)
         _PRICE_CACHE[code] = prices
         return prices
     except Exception:
-        logger.warning(f"获取 {code} 价格数据失败")
+        logger.warning(f"{code} 价格数据读取失败")
         empty = pd.Series(dtype=float)
         _PRICE_CACHE[code] = empty
         return empty
@@ -161,6 +144,7 @@ def run_backtest(
     start: str = START_DATE,
     end: str = END_DATE,
     initial_capital: float = INITIAL_CAPITAL,
+    use_neutralization: bool = True,
 ) -> BacktestResult:
     """Run equal-weight monthly rebalance backtest.
 
@@ -168,6 +152,7 @@ def run_backtest(
         start: Start date "YYYYMMDD".
         end: End date "YYYYMMDD".
         initial_capital: Starting cash.
+        use_neutralization: Enable Slice 5 risk neutralization.
 
     Returns:
         BacktestResult with NAV series, daily returns, trade log, and stats.
@@ -222,7 +207,7 @@ def run_backtest(
                 composite, pure_alpha, regime, bull_streak = compute_composite(
                     t_date, target_codes, industry_map,
                     prev_regime=prev_regime, bull_streak=bull_streak,
-                    top_n=TOP_N_STOCKS)
+                    top_n=TOP_N_STOCKS, use_neutralization=use_neutralization)
                 prev_regime = regime
                 ranked = sorted(
                     composite.items(), key=lambda x: x[1], reverse=True

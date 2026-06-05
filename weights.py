@@ -82,7 +82,6 @@ class CycleIRWeightManager:
 
     def update(self, factor_values: dict[str, np.ndarray], forward_returns: np.ndarray, regime: str):
         """记录一个月IC，按Regime分层"""
-        from weights import compute_rank_ic
         for name in self.factor_names:
             if name in factor_values:
                 ic = compute_rank_ic(factor_values[name], forward_returns)
@@ -92,8 +91,6 @@ class CycleIRWeightManager:
 
     def get_weights(self, regime: str) -> dict[str, float]:
         """当前Regime对应的IR权重，样本不足回退全周期"""
-        from weights import compute_factor_weights
-
         if self.months_elapsed < self.window:
             n = len(self.factor_names)
             return {name: 1.0 / n for name in self.factor_names}

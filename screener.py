@@ -140,12 +140,14 @@ def compute_composite(t_date: str, codes: list[str],
                       industry_map: dict, l3_map: dict = None,
                       prev_regime: str = None,
                       bull_streak: int = 0,
-                      top_n: int = 200) -> tuple[dict[str, float], str, int]:
+                      top_n: int = 200,
+                      use_neutralization: bool = True) -> tuple[dict[str, float], str, int]:
     """
     计算主筛选路径的 composite 得分。
 
     因子集: RPS60 + 行业动量 + S1 + S2 + S5 + S7 + PE
     合成: Regime 动态权重 (BULL/STRUCT/BEAR) + 滞回
+    use_neutralization: Slice 5 风险中性化开关
 
     回测引擎和 screen() 共用此函数，确保验证路径与使用路径一致。
 
@@ -159,6 +161,35 @@ def compute_composite(t_date: str, codes: list[str],
     s2 = compute_S2(t_date, codes, industry_map)
     s5 = compute_S5(t_date, codes, industry_map)
     s7 = compute_S7(t_date, codes, industry_map)
+
+    # === Slice 5: 风险中性化 ===
+    _risk_neutralized = {}
+    if use_neutralization:
+        try:
+            from risk_factors import compute_risk_factors
+            from neutralizer import neutralize
+            risk_df = compute_risk_factors(t_date, codes)
+            if len(risk_df) >= 30:
+                _build_arr = lambda s: np.array(
+                    [s.get(c, np.nan) if c in s.index else np.nan for c in codes])
+                _sig_arrays = {
+                    "S1": _build_arr(s1), "S2": _build_arr(s2),
+                    "S5": _build_arr(s5), "S7": _build_arr(s7),
+                }
+                _rf_codes = set(risk_df.index)
+                _rf_code_order = [c for c in codes if c in _rf_codes]
+                if len(_rf_code_order) >= 30:
+                    _rf_subset = risk_df.loc[_rf_code_order]
+                    _sig_subset = {
+                        k: np.array([v[i] for i, c in enumerate(codes) if c in _rf_codes])
+                        for k, v in _sig_arrays.items()}
+                    _neut = neutralize(_sig_subset, _rf_subset)
+                    for k, arr in _neut.items():
+                        _risk_neutralized[k] = dict(zip(_rf_code_order, arr))
+                    logger.info(f"风险中性化完成: {len(_rf_code_order)} stocks, "
+                                f"signals={list(_neut.keys())}")
+        except Exception as e:
+            logger.warning(f"风险中性化失败: {e}，使用原始信号")
 
     # PE TTM: 近4季单季度EPS之和
     fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
@@ -194,8 +225,14 @@ def compute_composite(t_date: str, codes: list[str],
         # 景气度
         rps = rps_scores.get(code, 50)
         ind_mom = ind_scores.get(code, 0)
-        s1_val = s1.get(code, np.nan) if code in s1.index else np.nan
-        s2_val = s2.get(code, np.nan) if code in s2.index else np.nan
+
+        # Slice 5: 优先使用风险中性化后的信号
+        s1_val = (_risk_neutralized.get("S1", {}).get(code)
+                  if code in _risk_neutralized.get("S1", {})
+                  else (s1.get(code, np.nan) if code in s1.index else np.nan))
+        s2_val = (_risk_neutralized.get("S2", {}).get(code)
+                  if code in _risk_neutralized.get("S2", {})
+                  else (s2.get(code, np.nan) if code in s2.index else np.nan))
 
         rps_z = (rps - 50) / 20
         ind_z = ind_mom / 0.15
@@ -207,9 +244,13 @@ def compute_composite(t_date: str, codes: list[str],
         else:
             momentum = rps_z * 0.6 + ind_z * 0.4
 
-        # 壁垒
-        s5_val = s5.get(code, np.nan) if code in s5.index else np.nan
-        s7_val = s7.get(code, np.nan) if code in s7.index else np.nan
+        # 壁垒 (Slice 5: 优先中性化信号)
+        s5_val = (_risk_neutralized.get("S5", {}).get(code)
+                  if code in _risk_neutralized.get("S5", {})
+                  else (s5.get(code, np.nan) if code in s5.index else np.nan))
+        s7_val = (_risk_neutralized.get("S7", {}).get(code)
+                  if code in _risk_neutralized.get("S7", {})
+                  else (s7.get(code, np.nan) if code in s7.index else np.nan))
         if not np.isnan(s5_val): s5_val = max(-3.0, min(3.0, s5_val))
         if not np.isnan(s7_val): s7_val = max(-3.0, min(3.0, s7_val))
         moat_vals = [v for v in [s5_val, s7_val] if not np.isnan(v)]

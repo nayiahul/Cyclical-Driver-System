@@ -9,28 +9,31 @@ import pandas as pd
 from loguru import logger
 
 from orthogonalizer import symmetric_orthogonalize
-from weights import IRWeightManager
+from weights import CycleIRWeightManager
+from risk_factors import compute_risk_factors
+from neutralizer import neutralize
+from regime.detector import detect_regime
 from data_governance import filter_available_reports, filter_available_reports_dash
 
 from config.params import (
     FIN_START_YEAR, MOMENTUM_DAYS_ABOVE_MA, ROE_MIN_QUARTERS,
-    RPS60_MIN, SECTOR_BREADTH_MIN, SECTOR_TOP_PCT,
+    RPS60_MIN, SECTOR_BREADTH_MIN, SECTOR_TOP_PCT, STOCKS_DIR,
 )
 from industry import get_sw_industry
 from trade_calendar import get_trade_calendar
 
 FIN_CACHE = "data/cache/financial_data.csv"
-_ir_manager = IRWeightManager(["S3", "S4", "S5", "S7"], window=36)
+_ir_manager = CycleIRWeightManager(["S3", "S4", "S5", "S7"], window=36)
 _PRICE_MEM_CACHE: dict[str, pd.DataFrame] = {}
 
 
 def _load_price_data(code: str) -> pd.DataFrame:
-    """Load cached daily OHLCV data for a stock (memory + disk cache)."""
+    """Load daily OHLCV data for a stock (memory + disk cache)."""
     if code in _PRICE_MEM_CACHE:
         return _PRICE_MEM_CACHE[code]
-    path = f"data/cache/daily_prices/{code}.csv"
+    path = os.path.join(STOCKS_DIR, f"{code}.csv")
     if os.path.exists(path):
-        df = pd.read_csv(path, dtype={"date": str})
+        df = pd.read_csv(path, dtype={"code": str})
         df["date"] = pd.to_datetime(df["date"])
         result = df.set_index("date").sort_index()
     else:
@@ -565,12 +568,26 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
                 arr[i] = s_series[code]
         signal_arrays[s_name] = arr
 
+    # 风险中性化
+    try:
+        risk_df = compute_risk_factors(t_date, codes)
+        if len(risk_df) >= 30:
+            neutralized = neutralize(signal_arrays, risk_df)
+        else:
+            logger.warning(f"风险因子覆盖率不足 ({len(risk_df)}), 跳过中性化")
+            neutralized = signal_arrays
+    except Exception:
+        logger.warning(f"风险中性化失败，使用原始信号")
+        neutralized = signal_arrays
+
     # Block symmetric orthogonalization
     blocks = [["S3", "S4"], ["S5", "S7"]]
-    orthogonal = symmetric_orthogonalize(signal_arrays, blocks)
+    orthogonal = symmetric_orthogonalize(neutralized, blocks)
 
-    # IR weights
-    weights = _ir_manager.get_weights()
+    # 周期分层IR权重
+    regime_result = detect_regime(t_date)
+    weights = _ir_manager.get_weights(regime_result.regime)
+    logger.info(f"Regime={regime_result.regime} IR weights: {weights}")
 
     # Composite Alpha
     alpha = {}
@@ -589,10 +606,10 @@ def compute_alpha(t_date: str, codes: list[str]) -> dict[str, float]:
     return alpha
 
 
-def update_ir(factor_values: dict[str, np.ndarray], forward_returns: np.ndarray):
+def update_ir(factor_values: dict[str, np.ndarray], forward_returns: np.ndarray, regime: str = "STRUCT"):
     """Record monthly IC for next period weight calculation."""
     global _ir_manager
-    _ir_manager.update(factor_values, forward_returns)
+    _ir_manager.update(factor_values, forward_returns, regime)
 
 
 def get_current_weights() -> dict[str, float]:
