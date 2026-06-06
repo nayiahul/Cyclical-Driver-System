@@ -20,6 +20,7 @@ from regime.detector import detect_regime
 from config.strategic_industries import get_strategic_tags, get_strategic_bonus
 from data_governance import filter_available_reports
 from industry import get_sw_industry_l3
+from utils.disclosure import get_season_label
 
 
 def compute_rps60(codes: list[str], t_date: str, industry_map: dict) -> dict[str, float]:
@@ -513,6 +514,14 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     df["moat_level"] = pd.cut(df["moat"],
         bins=[-99, -0.3, 0.3, 99], labels=["低", "中", "高"])
 
+    # 6.1 披露周期感知
+    season = get_season_label(date_str)
+    df["season"] = season
+    if season == "DISCLOSURE":
+        logger.info(f"📅 财报披露期 → 重点关察 S1(利润加速度) 跳升 + 利润拐点标的")
+    else:
+        logger.info(f"📅 业绩真空期 → 更多依赖 RPS60(动量)+估值分位, 警惕动量过热")
+
     # 7. 因子相关性诊断
     from diagnostics.factor_corr import compute_factor_correlation, save_correlation, highlight_concentration
     factor_scores = {
@@ -639,6 +648,19 @@ def screen_growth(date_str: str = None, top_n: int = 50) -> pd.DataFrame:
     df["inflection_tags"] = df.apply(_tag, axis=1)
     df["inflection_score"] = df["inflection_score"].round(4)
     df["PEG"] = df["PEG"].round(1)
+
+    # 披露周期上下文
+    season = df["season"].iloc[0] if "season" in df.columns else get_season_label(date_str)
+    if season == "DISCLOSURE":
+        logger.info("📅 披露期 → 利润拐点信号信噪比高，S1跳升标的优先")
+    else:
+        logger.info("📅 真空期 → 警惕纯动量驱动，用合同负债/存货交叉验证")
+        # 真空期对 RPS60 > 90 但 S2 合同负债 < 0 的标的额外标记
+        overheat_mask = (df["RPS60"] > 90) & (df["S2"] < 0)
+        if overheat_mask.any():
+            logger.warning(
+                f"⚠️ 真空期动量过热: {overheat_mask.sum()} 只 RPS60>90 且 S2<0"
+            )
 
     return df
 

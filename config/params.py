@@ -74,6 +74,10 @@ TOP_N_STOCKS = 100           # 入选股票数
 # 估值排雷
 PEG_MAX = 2.5                # PEG上限(越小越严格)
 
+# 财报披露周期
+DISCLOSURE_MONTHS = [4, 8, 10]  # 季报密集披露月
+DATA_FRESHNESS_DAYS = 90        # 财报超过N天视为陈旧
+
 # 财务数据
 FIN_START_YEAR = 2012        # 财务数据起始年份(2015-3=2012)
 ROE_MIN_QUARTERS = 8         # ROE最少季度数

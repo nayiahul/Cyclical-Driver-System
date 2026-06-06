@@ -482,6 +482,48 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
     except Exception:
         pass
 
+    # 披露周期感知
+    from utils.disclosure import get_season_label, is_disclosure_season
+    season = get_season_label(t_date)
+    is_disclosure = is_disclosure_season(t_date)
+    lines.append(f"## 财报季节与数据新鲜度")
+    lines.append(f"- 当前季节：**{season}**")
+    lines.append(f"- 数据截止日期：{t_date}")
+
+    # 找最近报告期
+    try:
+        from growth_os.data import get_financial_snapshot
+        snap = get_financial_snapshot(t_date)
+        row = snap[snap["code"] == code]
+        if not row.empty:
+            last_report = str(row.iloc[0].get("report_date", t_date))[:8]
+            lines.append(f"- 最近报告期：{last_report}")
+            # 财报新鲜度
+            try:
+                r_dt = datetime.strptime(str(last_report)[:8], "%Y%m%d")
+                t_dt = datetime.strptime(t_date, "%Y%m%d")
+                days = (t_dt - r_dt).days
+                if days > 90:
+                    lines.append(f"- 数据新鲜度：⚠️ 陈旧（{days}天），建议关注下一期季报")
+                else:
+                    lines.append(f"- 数据新鲜度：✅ 新鲜（{days}天）")
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    if is_disclosure:
+        lines.append(f"- ⚠️ **财报披露期**：重点关注 S1（利润加速度）跳升变化，信噪比最高")
+        # 检查是否有利润拐点信号
+        try:
+            if card.score_l1 > 7:
+                lines.append(f"- 🟢 排雷通过（L1={card.score_l1:.0f}/10），披露期业绩确定性高")
+        except Exception:
+            pass
+    else:
+        lines.append(f"- 📅 **业绩真空期**：更多依赖 RPS60（动量）+ 估值分位，需用合同负债/存货交叉验证")
+    lines.append(f"")
+
     # 卖出信号
     lines.append(f"## 卖出信号")
     lines.append(f"{sell_summary}")
