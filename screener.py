@@ -522,6 +522,16 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     else:
         logger.info(f"📅 业绩真空期 → 更多依赖 RPS60(动量)+估值分位, 警惕动量过热")
 
+    # 6.2 披露告警标记
+    is_disclosure = season == "DISCLOSURE"
+    df["disclosure_alert"] = df.apply(
+        lambda row: "HIGH" if is_disclosure and row["S1"] > 0.3 else "NORMAL",
+        axis=1,
+    )
+    high_count = (df["disclosure_alert"] == "HIGH").sum()
+    if high_count > 0:
+        logger.info(f"🔔 披露期高优先级: {high_count} 只 (S1>0.3)")
+
     # 7. 因子相关性诊断
     from diagnostics.factor_corr import compute_factor_correlation, save_correlation, highlight_concentration
     factor_scores = {

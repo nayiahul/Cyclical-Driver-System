@@ -522,6 +522,19 @@ def generate_report(code: str, t_date: str, output_dir: str = "output") -> str:
             pass
     else:
         lines.append(f"- 📅 **业绩真空期**：更多依赖 RPS60（动量）+ 估值分位，需用合同负债/存货交叉验证")
+
+        # 真空期 RPS60 过热检
+        try:
+            price_df = get_price_data(code)
+            if price_df is not None and len(price_df) >= 60:
+                close = price_df["close"]
+                ret_60d = (close.iloc[-1] / close.iloc[-60] - 1) * 100
+                if ret_60d > 30:
+                    lines.append(f"- ⚠️ **动量过热**（60日涨幅={ret_60d:.0f}%），建议交叉验证合同负债/存货是否同步改善")
+                elif ret_60d > 15:
+                    lines.append(f"- 🟡 60日涨幅={ret_60d:.0f}%，动量偏强，关注基本面跟进")
+        except Exception:
+            pass
     lines.append(f"")
 
     # 卖出信号
