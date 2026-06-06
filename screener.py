@@ -569,6 +569,12 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         + STRATEGIC_COMPOSITE_BONUS
     )
 
+    # TTM 盈利缺失降权: PE无效(亏损/无数据)的标的 composite×0.95
+    loss_mask = df["val_ratio"] <= 0
+    if loss_mask.any():
+        df.loc[loss_mask, "composite"] *= 0.95
+        logger.info(f"PE缺失降权: {loss_mask.sum()} 只 (亏损/无TTM盈利数据)")
+
     # 行业暴露约束: 先取 top_n 检测分布，再对超标行业施加惩罚
     scores = dict(zip(df["code"], df["composite"]))
     constrained = _apply_industry_constraint(scores, industry_map, r, top_n)
@@ -865,7 +871,7 @@ def main():
             elif k == "close_price":
                 s = f"{float(v):.2f}"
             elif k == "val_ratio":
-                s = f"{float(v):.1f}"
+                s = "-" if float(v) <= 0 else f"{float(v):.1f}"
             else:
                 s = str(v)
             parts.append(_pad_cjk(s, w, a))

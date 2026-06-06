@@ -48,6 +48,7 @@ STRATEGIC_INDUSTRIES = {
     # 光模块/光通信
     "通信网络设备及器件":  ["核心战略", "国产替代"],
     "通信线缆及配套":      ["国产替代"],
+    "通信终端及配件":      ["数字经济"],  # IoT模组/企业通信终端
     # PCB/被动元件
     "印制电路板":         ["国产替代"],
     "被动元件":           ["国产替代"],
@@ -165,6 +166,12 @@ STRATEGIC_INDUSTRIES = {
     "工程机械器件":        ["国产替代"],
 }
 
+# 已人工审查、确认不需加入映射的 SW3（"其他"兜底分类等）
+# 在 validate_strategic_mapping 中会被跳过，不再重复告警
+KNOWN_FALSE_POSITIVES: set[str] = {
+    "其他通信设备",  # "其他"兜底分类，成分混杂
+}
+
 # 标签权重加成 (加到 inflection_score)
 TAG_BONUS = {
     "核心战略": 0.15,
@@ -260,10 +267,11 @@ def validate_strategic_mapping(candidate_sw3: set[str] = None,
         result["total_count"] = len(candidate_sw3)
 
         if verbose and unmapped:
-            # 只报告可能重要但未映射的（非冷门行业）
+            # 过滤已知排除项后，报告可能重要但未映射的
             suspicious = [
                 n for n in unmapped
-                if any(kw in n for kw in [
+                if n not in KNOWN_FALSE_POSITIVES
+                and any(kw in n for kw in [
                     "芯片", "半导体", "集成电路", "光模块",
                     "软件", "通信", "电子",
                     "医药", "生物", "制药",
@@ -283,7 +291,8 @@ def validate_strategic_mapping(candidate_sw3: set[str] = None,
                 )
             _logger.info(
                 f"战略映射覆盖率: {coverage:.0f}% "
-                f"({result['mapped_count']}/{result['total_count']} 个 SW3 已映射)"
+                f"({result['mapped_count']}/{result['total_count']} 个 SW3 已映射) "
+                f"→ config/strategic_industries.py"
             )
 
     # 3. 映射完备性: 所有已映射 SW3 的标签分布
@@ -292,7 +301,8 @@ def validate_strategic_mapping(candidate_sw3: set[str] = None,
         all_tags = [t for tags in STRATEGIC_INDUSTRIES.values() for t in tags]
         tag_dist = _Counter(all_tags)
         _logger.info(
-            f"战略映射: {len(STRATEGIC_INDUSTRIES)} 个 SW3, "
+            f"config/strategic_industries.py — "
+            f"{len(STRATEGIC_INDUSTRIES)} 个 SW3, "
             f"{len(STRATEGIC_CORE_SW3)} 个核心 | "
             f"标签分布: {dict(tag_dist)}"
         )
