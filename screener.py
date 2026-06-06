@@ -17,7 +17,10 @@ from universe import get_universe
 from valuation_filter import apply_valuation_filter
 from signals import compute_S1, compute_S2, compute_S5, compute_S7, _load_price_data
 from regime.detector import detect_regime
-from config.strategic_industries import get_strategic_tags, get_strategic_bonus
+from config.strategic_industries import (
+    get_strategic_tags, get_strategic_bonus,
+    is_strategic_core, STRATEGIC_COMPOSITE_BONUS,
+)
 from data_governance import filter_available_reports
 from industry import get_sw_industry_l3
 from utils.disclosure import get_season_label
@@ -102,6 +105,53 @@ def compute_industry_momentum(codes: list[str], t_date: str, industry_map: dict)
     return scores
 
 
+def compute_theme_rps(codes: list[str], t_date: str, industry_map: dict) -> dict[str, float]:
+    """
+    行业指数 RPS：计算每个 SW1 行业的 60 日收益率在全体行业中的百分位。
+
+    用于真空期补充个股 RPS60，避免纯价格动量选出周期陷阱。
+    返回 {code: theme_rps (0-100)}。
+    """
+    cal = get_trade_calendar("20140101", t_date)
+    all_dates = cal["trade_date"].tolist()
+    if len(all_dates) < 200:
+        return {}
+
+    t_idx = all_dates.index(t_date) if t_date in all_dates else len(all_dates) - 1
+    date_60d_ago = all_dates[max(0, t_idx - 60)]
+
+    # 每行业聚合 60 日收益率（等权平均）
+    ind_rets = {}
+    for ind in set(industry_map.values()):
+        ind_codes = [c for c in codes if industry_map.get(c) == ind]
+        rets = []
+        for code in ind_codes:
+            df = _load_price_data(code)
+            if len(df) < 200:
+                continue
+            close = df["close"]
+            p60 = close[close.index <= pd.to_datetime(date_60d_ago, format="%Y%m%d")]
+            if len(p60) == 0:
+                continue
+            rets.append(close.iloc[-1] / p60.iloc[-1] - 1)
+        if len(rets) >= 3:
+            ind_rets[ind] = np.mean(rets)
+
+    if len(ind_rets) < 5:
+        return {}
+
+    # 行业间百分位排名
+    ret_series = pd.Series(ind_rets)
+    theme_scores = {}
+    for ind, ret in ind_rets.items():
+        pct = (ret_series <= ret).sum() / len(ret_series) * 100
+        ind_codes = [c for c in codes if industry_map.get(c) == ind]
+        for code in ind_codes:
+            theme_scores[code] = pct
+
+    return theme_scores
+
+
 def _apply_industry_constraint(scores: dict[str, float],
                                 industry_map: dict, regime: str,
                                 top_n: int) -> dict[str, float]:
@@ -158,7 +208,7 @@ def compute_composite(t_date: str, codes: list[str],
     # 信号计算
     rps_scores = compute_rps60(codes, t_date, industry_map)
     ind_scores = compute_industry_momentum(codes, t_date, industry_map)
-    s1, s1_raw = compute_S1(t_date, codes, industry_map, return_raw=True)
+    s1, s1_raw = compute_S1(t_date, codes, industry_map, return_raw=True, l3_map=l3_map)
     s2 = compute_S2(t_date, codes, industry_map)
     s5 = compute_S5(t_date, codes, industry_map)
     s7 = compute_S7(t_date, codes, industry_map)
@@ -360,6 +410,11 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     filtered = apply_valuation_filter(t_date, codes_all, industry_map)
     logger.info(f"估值排雷后: {len(filtered)} 只")
 
+    # 2.5 战略映射自检: 确保 STRATEGIC_INDUSTRIES 与数据一致
+    from config.strategic_industries import validate_strategic_mapping
+    candidate_sw3 = {l3_map.get(c, "") for c in filtered if l3_map.get(c, "")}
+    validate_strategic_mapping(candidate_sw3, verbose=True)
+
     # 3. 信号计算
     logger.info("计算信号...")
     rps_scores = compute_rps60(filtered, t_date, industry_map)
@@ -368,6 +423,11 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     s2 = compute_S2(t_date, filtered, industry_map)
     s5 = compute_S5(t_date, filtered, industry_map)
     s7 = compute_S7(t_date, filtered, industry_map)
+
+    # 行业指数RPS: 真空期补充个股RPS60
+    theme_rps = compute_theme_rps(filtered, t_date, industry_map)
+    season = get_season_label(date_str)
+    is_vacuum = season != "DISCLOSURE"
 
     # PE TTM: 近4季单季度EPS之和
     fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
@@ -402,6 +462,12 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         s2_z = s2_val if not np.isnan(s2_val) else 0.0
         s1_z = max(-3.0, min(3.0, s1_z))
         s2_z = max(-3.0, min(3.0, s2_z))
+
+        # 真空期: 个股RPS60 混入行业指数RPS，降低纯价格动量依赖
+        t_rps = theme_rps.get(code, 50) if is_vacuum else None
+        if is_vacuum and t_rps is not None:
+            t_rps_z = (t_rps - 50) / 20
+            rps_z = rps_z * 0.7 + t_rps_z * 0.3
 
         # S1/S2均有效时→4子因子等权；否则→RPS+行业动量
         if not np.isnan(s1_val) and not np.isnan(s2_val):
@@ -461,6 +527,7 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
             "S5": round(s5_val, 3) if not np.isnan(s5_val) else 0.0,
             "S7": round(s7_val, 3) if not np.isnan(s7_val) else 0.0,
             "val_ratio": round(val_ratio, 1) if not np.isnan(val_ratio) else 0.0,
+            "close_price": round(close_price, 2) if not np.isnan(close_price) else 0.0,
             "momentum": round(momentum, 3),
             "moat": round(moat, 3),
             "valuation": round(valuation, 3),
@@ -488,6 +555,20 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         df["momentum"] * w_m + df["moat"] * w_b + df["valuation"] * w_v
     )
 
+    # 战略行业轻量加成 + 池内权重调整
+    # 科技股壁垒体现在技术领先而非ROE稳定性 → 降moat、提momentum
+    df["is_strategic"] = df["sw3_name"].apply(
+        lambda x: is_strategic_core(x) if isinstance(x, str) else False
+    )
+    w_m_s, w_b_s, w_v_s = w_m + 0.05, w_b - 0.10, w_v + 0.05  # 战略权重
+    strat_mask = df["is_strategic"]
+    df.loc[strat_mask, "composite"] = (
+        df.loc[strat_mask, "momentum"] * w_m_s
+        + df.loc[strat_mask, "moat"] * w_b_s
+        + df.loc[strat_mask, "valuation"] * w_v_s
+        + STRATEGIC_COMPOSITE_BONUS
+    )
+
     # 行业暴露约束: 先取 top_n 检测分布，再对超标行业施加惩罚
     scores = dict(zip(df["code"], df["composite"]))
     constrained = _apply_industry_constraint(scores, industry_map, r, top_n)
@@ -502,7 +583,19 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         if vol_penalty.get(row["code"], 1.0) < 1.0 else row["composite"],
         axis=1)
 
-    df = df.sort_values("composite", ascending=False).head(top_n)
+    # 分层筛选: 战略池≥40%，确保科技主线不被防御股淹没
+    df_strategic = df[df["is_strategic"]].sort_values("composite", ascending=False)
+    df_other = df[~df["is_strategic"]].sort_values("composite", ascending=False)
+    n_strategic = max(int(top_n * 0.40), min(len(df_strategic), top_n))
+    n_other = top_n - n_strategic
+    df = pd.concat([
+        df_strategic.head(n_strategic),
+        df_other.head(n_other),
+    ]).sort_values("composite", ascending=False).head(top_n)
+    logger.info(
+        f"分层筛选: 战略池 {n_strategic} 只 (共{len(df_strategic)}), "
+        f"全市场 {n_other} 只 (共{len(df_other)})"
+    )
 
     logger.info(f"当前市场状态: {r}({style}) → 权重: 景气度={w_m:.2f} 壁垒={w_b:.2f} 估值={w_v:.2f}")
     logger.info(f"筛选完成: {len(df)} 只")
@@ -515,7 +608,6 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
         bins=[-99, -0.3, 0.3, 99], labels=["低", "中", "高"])
 
     # 6.1 披露周期感知
-    season = get_season_label(date_str)
     df["season"] = season
     if season == "DISCLOSURE":
         logger.info(f"📅 财报披露期 → 重点关察 S1(利润加速度) 跳升 + 利润拐点标的")
@@ -675,6 +767,24 @@ def screen_growth(date_str: str = None, top_n: int = 50) -> pd.DataFrame:
     return df
 
 
+def _display_width(s: str) -> int:
+    """计算字符串终端显示宽度（CJK 字符占 2 列）。"""
+    import unicodedata
+    w = 0
+    for ch in str(s):
+        w += 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
+    return w
+
+
+def _pad_cjk(s: str, width: int, align: str = "<") -> str:
+    """按终端显示宽度填充字符串。"""
+    dw = _display_width(s)
+    pad = max(0, width - dw)
+    if align == ">":
+        return " " * pad + s
+    return s + " " * pad
+
+
 def main():
     import sys
     mode = sys.argv[1] if len(sys.argv) > 1 else "default"
@@ -685,9 +795,39 @@ def main():
         os.makedirs("output", exist_ok=True)
         df.to_csv(out_path, index=False, encoding="utf-8-sig")
         print(f"\n已保存: {out_path}")
-        print(f"\nTop 20 (景气成长):")
-        print(df.head(20)[["code", "name", "industry", "RPS60", "val_ratio",
-              "strategic_tags", "inflection_tags", "inflection_score"]].to_string(index=False))
+
+        top20 = df.head(20)
+        gcols = [
+            ("code",      "代码",    6,  "<"),
+            ("name",      "名称",    8,  "<"),
+            ("industry",  "行业",   10,  "<"),
+            ("close_price", "最新价", 8,  ">"),
+            ("val_ratio", "PE_TTM",  8,  ">"),
+            ("RPS60",     "RPS60",   6,  ">"),
+            ("strategic_tags", "战略标签", 12, "<"),
+            ("inflection_tags", "拐点信号", 16, "<"),
+            ("inflection_score", "拐点分", 10, ">"),
+        ]
+        header = " ".join(_pad_cjk(label, w, a) for _, label, w, a in gcols)
+        print(f"\n{'='*90}")
+        print(f"  Top 20 (拐点爆发)")
+        print(f"{'='*90}")
+        print(header)
+        print("-" * 90)
+        for _, row in top20.iterrows():
+            parts = []
+            for k, _, w, a in gcols:
+                v = row.get(k, "")
+                if k == "inflection_score":
+                    s = f"{float(v):.4f}"
+                elif k == "close_price":
+                    s = f"{float(v):.2f}"
+                elif k == "val_ratio":
+                    s = f"{float(v):.1f}"
+                else:
+                    s = str(v)
+                parts.append(_pad_cjk(s, w, a))
+            print(" ".join(parts))
         return
 
     df = screen()
@@ -695,8 +835,42 @@ def main():
     os.makedirs("output", exist_ok=True)
     df.to_csv(out_path, index=False, encoding="utf-8-sig")
     print(f"\n已保存: {out_path}")
-    print(f"\nTop 20:")
-    print(df.head(20)[["code", "name", "industry", "RPS60", "ind_momentum", "momentum_level", "moat_level", "composite"]].to_string(index=False))
+
+    # CJK 对齐输出 Top 20
+    top20 = df.head(20)
+    cols = [
+        ("code",      "代码",    6,  "<"),
+        ("name",      "名称",    8,  "<"),
+        ("industry",  "行业",   10,  "<"),
+        ("close_price", "最新价", 8,  ">"),
+        ("val_ratio", "PE_TTM",  8,  ">"),
+        ("RPS60",     "RPS60",   6,  ">"),
+        ("ind_momentum", "行业动量", 8, ">"),
+        ("momentum_level", "景气度", 5, "<"),
+        ("moat_level", "壁垒",    5,  "<"),
+        ("composite", "综合分",  10,  ">"),
+    ]
+    header = " ".join(_pad_cjk(label, w, a) for _, label, w, a in cols)
+    print(f"\n{'='*90}")
+    print(f"  Top 20")
+    print(f"{'='*90}")
+    print(header)
+    print("-" * 90)
+    for _, row in top20.iterrows():
+        parts = []
+        for k, _, w, a in cols:
+            v = row.get(k, "")
+            if k == "composite":
+                s = f"{float(v):.4f}"
+            elif k == "close_price":
+                s = f"{float(v):.2f}"
+            elif k == "val_ratio":
+                s = f"{float(v):.1f}"
+            else:
+                s = str(v)
+            parts.append(_pad_cjk(s, w, a))
+        print(" ".join(parts))
+
     return df
 
 

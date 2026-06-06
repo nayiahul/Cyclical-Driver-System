@@ -20,6 +20,7 @@ from config.params import (
     RPS60_MIN, SECTOR_BREADTH_MIN, SECTOR_TOP_PCT, STOCKS_DIR,
 )
 from industry import get_sw_industry
+from config.strategic_industries import is_strategic_core
 from trade_calendar import get_trade_calendar
 
 FIN_CACHE = "data/cache/financial_data.csv"
@@ -328,7 +329,7 @@ def compute_S7(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
 
 
 def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str],
-               return_raw: bool = False):
+               return_raw: bool = False, l3_map: dict[str, str] = None):
     """
     S1 利润加速度（简化版）。
 
@@ -388,7 +389,14 @@ def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str],
         ss_res = np.sum((yoy - y_pred) ** 2)
         ss_tot = np.sum((yoy - np.mean(yoy)) ** 2)
         r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 0
-        if slope <= 0 or r2 < 0.6:
+        # 六大战略方向核心行业放宽 R² 阈值 (0.6→0.4)
+        sw3 = l3_map.get(code, "") if l3_map else ""
+        is_core = is_strategic_core(sw3)
+        r2_threshold = 0.4 if is_core else 0.6
+        s1_confidence = 1.0
+        if is_core and 0.4 <= r2 < 0.6:
+            s1_confidence = 0.8  # 低置信度降权
+        if slope <= 0 or r2 < r2_threshold:
             continue
 
         # Bath check: operating profit not diverging from deducted profit
@@ -402,9 +410,9 @@ def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str],
         ocf = code_fin["operating_cash_flow"].values[-2:].astype(float)
         if len(ocf) == 2 and np.nansum(ocf) < 0:
             # Downgrade but don't fully exclude — S1 *= 0.5 via lower score
-            scores[code] = yoy[-1] * 0.5
+            scores[code] = yoy[-1] * 0.5 * s1_confidence
         else:
-            scores[code] = yoy[-1]
+            scores[code] = yoy[-1] * s1_confidence
 
     if not scores:
         if return_raw:
