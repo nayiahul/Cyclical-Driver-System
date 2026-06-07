@@ -160,11 +160,11 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             continue
         if "周期跟踪" in existing or "利润承压" in existing:
             continue
-        # v3.0: persistence→决策 — 低持续性(≤2)标的至少降级
+        # v3.0: persistence→决策 — 低持续性(≤2)标的降级为深度复核
         code = str(r.get("code", ""))
         persist = _persist_map.get(code, 3)
         if persist <= 2 and r["composite_score"] >= 70:
-            r["decision"] = "深度研究(低持续性)"
+            r["decision"] = "深度复核"  # 高分但Gene存疑，需确认是否该回避
         elif r["composite_score"] >= 70:
             r["decision"] = "深度研究"
         elif r["composite_score"] >= 50:
@@ -255,7 +255,8 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             _persist_map[code] = attr.persistence
             l1_status = str(r.get("l1_verdict", "pass"))
             pos = recommend(r.get("composite_score", 80), attr.persistence,
-                           l1_verdict=l1_status, source=attr.source)
+                           l1_verdict=l1_status, source=attr.source,
+                           confidence=attr.confidence)
 
             # Sprint 16: Cycle State Engine
             cycle_note = ""
@@ -279,13 +280,24 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
             if pos.get("composite_bucket", 0) >= 4 and attr.persistence <= 2:
                 conflict = " ⚠️ 双轨冲突: Composite高分但Gene低持续性→以Gene为准\n\n"
 
+            # 减速注脚: 增速斜率回落但绝对增速仍高 → 非基本面走弱
+            decel_note = ""
+            rev_yoy = stock.get("revenue_yoy") or 0
+            l5 = r.get("score_l5") or 10
+            if l5 < 8 and rev_yoy > 50:
+                decel_note = (
+                    f"\n*注: L5={l5:.0f}因增速斜率环比回落，"
+                    f"但营收YoY {rev_yoy:.0f}%仍属超高速增长，非基本面走弱*\n"
+                )
+
             cards.append(f"## {r.get('name', r['code'])} ({r['code']})\n\n"
                         f"**驱动力**: {source_display} | **置信度**: {attr.confidence:.0%} | **持续性**: {attr.persistence}/5\n\n"
                         f"> {attr.narrative}\n\n"
                         f"{cycle_note}"
                         f"**仓位**: **{pos['position']}** | 权重{pos['weight']} | 持有{pos['hold']} | {pos['action']}\n\n"
                         f"{conflict}"
-                        f"**风险**: {attr.risk_point}\n")
+                        f"**风险**: {attr.risk_point}\n"
+                        f"{decel_note}")
         gs_path = os.path.join(DATA_PATHS["output_dir"], f"growth_source_{t_date}.md")
         with open(gs_path, "w", encoding="utf-8") as f:
             f.write(f"# Growth Source 归因卡片 — {t_date}\n\n")

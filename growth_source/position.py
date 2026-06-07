@@ -39,7 +39,7 @@ MATRIX = [
 
 def recommend(composite: float, persistence: int,
               l1_verdict: str = "pass", source: str = "",
-              max_composite: float = 95.0) -> dict:
+              max_composite: float = 95.0, confidence: float = 0.5) -> dict:
     """双因子仓位建议。新增 L1 排雷层 + Growth Source 驱动力校验。
 
     Args:
@@ -47,6 +47,7 @@ def recommend(composite: float, persistence: int,
         persistence: 增长持续性 1-5
         l1_verdict: L1 排雷判定 ("pass" / "review")
         source: 增长驱动力标签 (tech_penetration / price_cycle / ...)
+        confidence: Gene 分类置信度 0-1
     """
     c = min(5, max(1, int(composite / max_composite * 5) + 1)) if max_composite > 0 else 3
     p = max(1, min(5, persistence))
@@ -62,6 +63,11 @@ def recommend(composite: float, persistence: int,
     if source == "price_cycle" and label not in ("观察", "规避"):
         label = "轻仓"
         tags.append("price_cycle封顶轻仓")
+
+    # ── 规则 D: quality_growth 低置信度封顶 → max "标配" ──
+    if source == "quality_growth" and confidence < 0.60 and label == "核心":
+        label = "标配"
+        tags.append(f"quality_growth低置信({confidence:.0%})→标配")
 
     # ── 规则 A: L1 review 降一级 ──
     if l1_verdict == "review":
