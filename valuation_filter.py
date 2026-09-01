@@ -37,9 +37,14 @@ def _load_fin_data() -> pd.DataFrame:
 
 
 def apply_valuation_filter(t_date: str, codes: list[str],
-                          industry_map: dict = None) -> list[str]:
+                          industry_map: dict = None,
+                          disable_deviation_liquidity: bool = False) -> list[str]:
     """
     估值排雷硬约束。返回通过过滤的股票列表。
+
+    disable_deviation_liquidity: A1 baseline 专用开关（默认 False）。
+        为 True 时跳过乖离率/流动性两条规则，模拟 Gate 3 前状态（P2-001 未修复）。
+        仅用于泄漏归因实验，不改变默认行为。
 
     规则:
     1. PE负且近两季ROE未改善 → 剔除
@@ -106,14 +111,15 @@ def apply_valuation_filter(t_date: str, codes: list[str],
                 continue
 
         # 规则3: 乖离率 > 120%（Gate 3: PIT 截断 + 数据源修复，规则恢复生效）
-        df = _MARKET.as_of(code, t_date)
-        if len(df) >= 200:
-            close = df["close"]
-            ma200 = close.rolling(200).mean().iloc[-1]
-            last_close = close.iloc[-1]
-            if ma200 > 0 and (last_close - ma200) / ma200 > 1.20:
-                removed["deviation"] += 1
-                continue
+        if not disable_deviation_liquidity:
+            df = _MARKET.as_of(code, t_date)
+            if len(df) >= 200:
+                close = df["close"]
+                ma200 = close.rolling(200).mean().iloc[-1]
+                last_close = close.iloc[-1]
+                if ma200 > 0 and (last_close - ma200) / ma200 > 1.20:
+                    removed["deviation"] += 1
+                    continue
 
         # 规则4: PEG > PEG_MAX
         # v1.1: 仅当 ROE 改善时判断 (roe_recent > roe_past)
@@ -171,12 +177,13 @@ def apply_valuation_filter(t_date: str, codes: list[str],
 
     # 规则5: 流动性后20%（Gate 3: PIT 截断 + 数据源修复，规则恢复生效）
     market_caps = {}
-    for code in passed:
-        df = _MARKET.as_of(code, t_date)
-        if len(df) >= 20:
-            close = df["close"].iloc[-1]
-            volume = df["volume"].mean() if "volume" in df.columns else 1e6
-            market_caps[code] = close * volume
+    if not disable_deviation_liquidity:
+        for code in passed:
+            df = _MARKET.as_of(code, t_date)
+            if len(df) >= 20:
+                close = df["close"].iloc[-1]
+                volume = df["volume"].mean() if "volume" in df.columns else 1e6
+                market_caps[code] = close * volume
 
     if len(market_caps) > 0:
         cap_series = pd.Series(market_caps)
