@@ -1,0 +1,1257 @@
+# Cyclical-Driver-System 完整 PDR 评审
+
+我按附件规定的 6 个维度，对当前 GitHub `main` 分支做了源码级 PDR：**架构完整性、数据治理、因子有效性、风控、代码质量、Known Limitations/路线图**。附件本身要求 PDR 最终验证的就是这些项目。
+
+先给结论：
+
+> **PDR 结论：NO-GO。当前不建议进入 v4.0 因子/权重继续优化阶段。**
+>
+> 不是因为这套系统的投资思想有问题，而是当前发现了几处足以污染历史回测结果的 **P0 时间完整性问题**。
+>
+> 在这些问题修复并重新回测以前，仓库中已有的年化收益、Calmar、最大回撤以及后续任何“哪个因子有效”的结论，都不能作为正式验收依据。
+
+当前更准确的系统定位是：
+
+**较成熟的投资研究原型 + 有价值的选股研究工具，但还不是经过可信回测验证的系统化投资引擎。**
+
+---
+
+# 一、PDR 总体结果
+
+| 评审领域     | 结论       | 核心判断                             |
+| -------- | -------- | -------------------------------- |
+| 1. 架构完整性 | 不通过      | 两套主链路并存，部分高级模块存在但没有进入实际主路径       |
+| 2. 数据治理  | 不通过 / P0 | 发现明确价格前视和财报披露前视                  |
+| 3. 因子有效性 | 暂停验收     | 回测数据受到污染，IC/IR/VIF/Decay 也没有完整实证 |
+| 4. 风控完备性 | 部分通过     | Regime/DEFENSE设计不错，但实际链路接入不完整    |
+| 5. 代码质量  | 不通过      | 缺正式测试体系、异常吞噬、模块过大、存在顺序/字段问题      |
+| 6. 路线图   | 暂缓 v4.0  | 必须先做“回测可信度修复层”，再谈 L2/L3 等升级      |
+
+附件要求例如“所有财务查询经过治理层”“极端行情正确触发 DEFENSE”“最大回撤≤35%”“IR≥0.3 因子≥4个”等作为 PDR 验收项。当前其中多项不能被源码和现有结果证明。
+
+---
+
+# 二、三个 P0：必须先解决
+
+## P0-1：历史行情存在明确 Look-ahead Bias
+
+这是目前最严重的问题。
+
+主回测入口：
+
+`main.py`
+→ `backtest/engine.py`
+→ `screener.compute_composite()`
+
+`main.py` 明确执行 2015-2024 回测。
+
+而 `backtest/engine.py` 实际并不是调用 `signals.compute_alpha()` 选股，而是调用：
+
+```text
+screener.compute_composite()
+```
+
+进行排序。
+
+问题恰恰就在 `screener.py`。
+
+例如 RPS60 的逻辑实际上相当于：
+
+```python
+close = df["close"]
+
+p60 = close[close.index <= date_60d_ago]
+
+ret = close.iloc[-1] / p60.iloc[-1] - 1
+```
+
+60 日前价格被正确限制到了历史日期。
+
+但是：
+
+```python
+close.iloc[-1]
+```
+
+没有限制：
+
+```python
+date <= t_date
+```
+
+行业动量也存在同样结构，PE 计算再次直接拿：
+
+```python
+df_price["close"].iloc[-1]
+```
+
+作为历史日期的“当前价格”。
+
+这意味着例如：
+
+> 回测日期 = 2022-03-31
+> 本地行情 CSV 已经更新到 2026-06-01
+
+系统可能实际计算：
+
+**2026 收盘价 / 2022 年 60 日前收盘价**
+
+再把它作为“2022年的 RPS60”。
+
+这就是典型的未来函数。
+
+而且不仅 `screener.py`。
+
+`valuation_filter.py` 中“乖离率”和“流动性”也直接使用完整行情：
+
+```python
+close.iloc[-1]
+```
+
+没有先按照 `t_date` 截断。
+
+### PDR 判定
+
+**致命。**
+
+当前：
+
+* RPS
+* 行业动量
+* PE
+* 乖离率
+* 流动性过滤
+
+均可能受到未来行情影响。
+
+所以之前的：
+
+* 年化 73.41%
+* Calmar 3.26
+* 最大回撤 -22.52%
+* 其他 Slice 结果
+
+现在都不能继续作为系统有效性的证明。
+
+旧架构文档确实记录了这些历史结果，但在发现这个问题后，需要全部重新验证。
+
+---
+
+# 三、P0-2：Growth OS 财务数据绕过披露日期治理
+
+你其实已经写了一套很正确的数据治理层。
+
+`data_governance.py` 有：
+
+```text
+实际公告日期
+      ↓
+如果缺失
+      ↓
+法定披露截止日期
+```
+
+例如：
+
+* Q1 → 4月30日
+* Q2 → 8月31日
+* Q3 → 10月31日
+* 年报 → 次年4月30日
+
+而且有：
+
+```python
+filter_available_reports()
+```
+
+专门避免前视偏差。
+
+旧 `signals.py` 事实上正确调用了这一治理层。
+
+S1/S2 使用：
+
+```python
+fin = filter_available_reports(fin, t_date)
+```
+
+S5/S7 也经过对应的 disclosure cutoff。
+
+问题出在新版 Growth OS。
+
+`growth_os/data.py` 明确把自己定义成：
+
+> Growth OS 的数据唯一入口
+
+但：
+
+```python
+get_financial_snapshot(t_date)
+```
+
+实际只是：
+
+```python
+df = df[df["report_date_str"] <= t_date]
+```
+
+`get_quarterly_series()` 同样只判断：
+
+```text
+report_date <= t_date
+```
+
+没有调用 `filter_available_reports()`。
+
+这是两个完全不同的概念。
+
+假设：
+
+```text
+报告期：2026-03-31
+实际公告：2026-04-25
+研究日期：2026-04-01
+```
+
+Growth OS 现在会判断：
+
+```text
+2026-03-31 <= 2026-04-01
+```
+
+所以数据可用。
+
+实际上 4 月 1 日投资者还没有看到这份季报。
+
+因此：
+
+> `growth_os/funnel.py`
+> → Lifecycle
+> → L1
+> → L2
+> → L3
+> → L5
+> → WACC
+> → ROIC
+
+大量计算都会间接继承这个问题。
+
+而 `funnel.py` 的大量财务指标正是从 `growth_os.data` 进入。
+
+### PDR 判定
+
+**致命。**
+
+附件要求：
+
+> 所有财务查询必须经过治理层。
+
+当前明显没有达到这个标准。
+
+---
+
+# 四、P0-3：历史股票池不是完整 Point-in-Time Universe
+
+`universe.py` 当前首先获得的是一份股票列表，然后按照：
+
+```text
+上市日期 <= 历史日期
+```
+
+重建股票池。
+
+这个思路只解决了：
+
+**未来上市公司不能进入过去股票池。**
+
+但是没有解决另外两个问题。
+
+### 1. 退市公司
+
+如果现在的股票列表里已经没有历史退市股，它们自然不会进入历史 Universe。
+
+这就是幸存者偏差。
+
+其实旧架构自己已经承认：
+
+> L1 幸存者偏差（退市股不完整）
+
+以及：
+
+> L8 深市退市股 API 返回空。
+
+### 2. 历史 ST 状态
+
+代码是：
+
+```python
+~listed["name"].str.contains("ST")
+```
+
+但这是股票列表中的名称。
+
+并不是：
+
+```text
+该股票在历史 t_date 当时是不是 ST
+```
+
+所以历史 ST 状态不是 Point-in-Time 状态。
+
+### PDR 判定
+
+对于普通扫描影响有限。
+
+对于“2015-2024历史绩效证明”属于重大问题。
+
+因此也必须进入回测可信度修复。
+
+---
+
+# 五、架构评审：存在明显的“双系统”
+
+这是当前架构层第二重要的问题。
+
+现在实际上有两套投资系统。
+
+## A 路径：Legacy / Portfolio Engine
+
+```text
+main.py
+ ↓
+backtest/engine.py
+ ↓
+valuation_filter.py
+ ↓
+screener.compute_composite()
+ ↓
+BULL / STRUCT / BEAR
+ ↓
+Top N
+ ↓
+真实日度 NAV
+```
+
+这是 `main.py` 真正在运行的组合回测。
+
+---
+
+## B 路径：Growth OS
+
+```text
+growth_os/run_screen.py
+ ↓
+pre_filter
+ ↓
+lifecycle
+ ↓
+L1-L5 funnel
+ ↓
+scorecard
+ ↓
+Stock Regime
+ ↓
+Growth Source
+ ↓
+position
+```
+
+README 自己也承认现在有两条筛选链：
+
+`screener.py` 是轻量扫描；
+
+`growth_os/run_screen.py` 是深度诊断。
+
+两套研究入口本身没问题。
+
+真正的问题是：
+
+**现在有两个不同的“真相源”。**
+
+---
+
+# 六、文档声明的高级因子流水线没有进入主回测
+
+附件中的架构写的是：
+
+```text
+signals.py
+ ├─ orthogonalizer
+ ├─ weights
+ ├─ risk_factors
+ └─ neutralizer
+```
+
+并把：
+
+**分块对称正交化**
+
+列为系统创新。
+
+代码里也确实存在。
+
+`signals.compute_alpha()`：
+
+```text
+S3/S4
+S5/S7
+   ↓
+risk neutralization
+   ↓
+block symmetric orthogonalization
+   ↓
+CycleIRWeightManager
+```
+
+`weights.py` 也确实实现了：
+
+```text
+Rank IC
+IR
+rolling 36 months
+BULL/STRUCT/BEAR 分层权重
+```
+
+但是主回测 `backtest/engine.py`：
+
+虽然 import 了：
+
+```python
+compute_alpha
+```
+
+旁边甚至写着：
+
+> 保留：内部 alpha 分解参考路径
+
+真正选股却调用：
+
+```python
+screener.compute_composite()
+```
+
+所以：
+
+> **有实现 ≠ 主链路正在使用。**
+
+目前不能宣称主回测已经验证了：
+
+* 分块正交化
+* Cycle IR 权重
+* S3/S4/S5/S7 动态 IR
+
+这些能力。
+
+### PDR 判定
+
+架构完整性：**不通过。**
+
+---
+
+# 七、L0 Regime 也存在“有模块，但日常主扫描没接上”
+
+`growth_os/regime.py` 的设计其实很好。
+
+它实现：
+
+```text
+Channel A：创业板 / 沪深300
+Channel B：10Y 国债
+Channel C：创业板回撤
+
+→ GROWTH_OK
+→ CAUTION
+→ DEFENSE
+```
+
+并定义：
+
+```text
+TopK = 30 / 15 / 8
+L1 strict
+weight_mode
+g_proxy_discount
+```
+
+而且通道计算都明确：
+
+```python
+date <= t_date
+```
+
+这部分时间完整性设计是正确的。
+
+但日常主入口：
+
+```text
+growth_os/run_screen.py
+```
+
+并没有调用 `compute_regime()`。
+
+它直接：
+
+```python
+run_funnel(...)
+compute_composite(...)
+```
+
+而 `compute_composite()` 默认：
+
+```python
+weight_mode="lifecycle"
+```
+
+所以附件描述的：
+
+> L0 控制 TopK、权重模式、L1严格度、L5折扣
+
+并没有完整进入日常 `run_screen` 链路。
+
+反而是另一个：
+
+```text
+growth_os/backtest.py
+```
+
+接入了 `compute_regime()` 和 DEFENSE。
+
+### 结果
+
+当前形成：
+
+```text
+日常扫描
+        ↘
+          一套 Regime
+
+GrowthOS 回测
+        ↗
+          另一套状态控制
+
+main.py 回测
+        →
+          又是 legacy BULL/STRUCT/BEAR
+```
+
+这是典型的架构漂移。
+
+---
+
+# 八、Growth OS 回测本身不能用来证明 Calmar
+
+这一点很重要。
+
+`growth_os/backtest.py` 并不是一个真正连续持仓的组合 NAV 回测。
+
+它的主要逻辑是：
+
+```text
+季度筛选
+ ↓
+Top N
+ ↓
+分别计算未来3个月
+未来6个月
+未来12个月
+ ↓
+求平均收益
+```
+
+然后把这些不同筛选日期的未来收益依次复合起来计算 Calmar。
+
+问题在于：
+
+例如：
+
+```text
+2022-03-31 → 未来12个月
+2022-06-30 → 未来12个月
+2022-09-30 → 未来12个月
+```
+
+这些收益区间大量重叠。
+
+不能直接作为连续组合净值：
+
+```text
+R1 → R2 → R3
+```
+
+进行复合。
+
+所以 Growth OS 的这个 Calmar 更应该叫：
+
+**筛选点前瞻收益诊断指标**
+
+而不能用来证明：
+
+> 实际策略最大回撤 ≤35%。
+
+真正的 Calmar 必须来自：
+
+```text
+每日组合 NAV
+```
+
+---
+
+# 九、Regime 风控：设计较强，但尚未通过验收
+
+有值得保留的部分。
+
+### 已实现
+
+Legacy Regime 有：
+
+* 指数趋势
+* 市场广度
+* 新高
+* 风险偏好
+* 融资流动性
+* 20日暴跌快速通道
+
+Growth OS 又有：
+
+* GROWTH_OK
+* CAUTION
+* DEFENSE
+* 非对称滞回
+* DEFENSE 快速进入
+
+DEFENSE 篮子也真正实现为：
+
+```text
+中证红利 40%
+国债ETF 40%
+现金 20%
+```
+
+### 但没有通过 PDR 的部分
+
+附件要求验证：
+
+```text
+2015 股灾
+2018 熊市
+2020 疫情
+2024 春节
+```
+
+必须正确触发 DEFENSE。
+
+同时要求：
+
+```text
+最大回撤 ≤35%
+快速通道延迟 ≤1交易日
+```
+
+
+
+当前仓库没有足够的自动化压力测试结果证明这些条件。
+
+所以评级是：
+
+**设计通过，实证未验收。**
+
+---
+
+# 十、交易现实性仍不足
+
+旧 Known Limitations 已经明确记录：
+
+* 停牌未接入；
+* 涨跌停未接入。
+
+当前 `backtest/engine.py` 已经处理：
+
+* 交易成本；
+* 现金；
+* 持仓；
+* 调仓；
+* 找不到价格则保留持仓；
+* 每日 NAV。
+
+这些是好的。
+
+但仍没有看到完整的：
+
+```text
+涨停买不进去
+跌停卖不出去
+停牌不能交易
+一字板
+滑点
+成交量容量
+```
+
+执行模型。
+
+所以即使修复前视偏差，回测也还需要一次“可交易性修复”。
+
+---
+
+# 十一、因子 PDR：目前不能判定“有效”
+
+这与“因子不好”是两个概念。
+
+附件的验收标准要求：
+
+| 项目           |              要求 |
+| ------------ | --------------: |
+| Rank IC / IR | IR ≥0.3 的因子至少4个 |
+| IC稳定性        |   std(IC) ≤0.15 |
+| VIF          |              ≤3 |
+| 因子衰减         |      6个月 IC 仍为正 |
+
+
+
+目前仓库有：
+
+`diagnostics/factor_corr.py`
+
+可以做 Spearman 因子相关性分析。
+
+`weights.py`
+
+也有 IC/IR 数学实现。
+
+但是目前没有足够仓库证据证明已经完成：
+
+```text
+S1 IC历史
+S2 IC历史
+S3 IC历史
+S4 IC历史
+S5 IC历史
+S7 IC历史
+
+×
+1M / 3M / 6M / 12M
+
+×
+BULL / STRUCT / BEAR
+
+×
+IC均值
+IC标准差
+IR
+Decay
+VIF
+```
+
+现有 `output/` 主要还是 Slice4/Slice5 的 NAV/trades。
+
+因此：
+
+> **因子验收状态 = 未完成，而不是失败。**
+
+而且由于前面已经发现价格/财务前视，正确顺序必须是：
+
+**先修数据 → 再审因子。**
+
+否则做 IC 也是污染 IC。
+
+---
+
+# 十二、Growth OS 内部又发现三个 P1 代码问题
+
+## P1-1：Persistence 决策顺序错误
+
+`run_screen.py` 先创建：
+
+```python
+_persist_map = {}
+```
+
+然后根据：
+
+```python
+persist = _persist_map.get(code, 3)
+```
+
+决定：
+
+```text
+低持续性 → 深度复核
+```
+
+但是 `attr.persistence` 是在后面的 Growth Source 分类过程中才写入 `_persist_map`。
+
+所以前面的：
+
+> persistence ≤2 → 深度复核
+
+这一轮实际上大多数时候拿的是默认值 3。
+
+后面的仓位推荐又使用了真正的 persistence。
+
+于是可能出现：
+
+```text
+decision：深度研究
+position：因为低 persistence 被降级
+```
+
+两个表达层再次不一致。
+
+---
+
+## P1-2：ROIC TTM 字段赋值高度可疑
+
+`scorecard.py`：
+
+```python
+card.roic = roic_wacc.get("roic")
+
+card.roic_ttm = (
+    roic_wacc.get("roic")
+    if roic_wacc.get("roic_ttm")
+    else None
+)
+```
+
+如果 `roic_ttm` 存在，它写进去的却还是：
+
+```text
+roic
+```
+
+而不是：
+
+```text
+roic_ttm
+```
+
+这是一个明确应该修正或至少单元测试锁死的数据语义问题。
+
+---
+
+## P1-3：负经营利润季度被压成 0
+
+`growth_os/data.py` 的 `de_cumulate_series()` 对拆出来的单季度值采用了：
+
+```text
+q > 0 → q
+q <= 0 → 0
+```
+
+而 `compute_roic_ttm()` 正是用这个函数处理 `operating_profit`。
+
+意味着：
+
+```text
+Q1 +10
+Q2 -5
+Q3 +10
+Q4 +10
+```
+
+有可能进入 ROIC 计算时变成：
+
+```text
+10
+0
+10
+10
+```
+
+从而系统性抬高 TTM NOPAT 和 ROIC。
+
+对于：
+
+* 周期底部
+* 亏损企业
+* 导入期公司
+* 利润剧烈波动公司
+
+影响尤其明显。
+
+---
+
+# 十三、测试体系不满足系统级要求
+
+PDR 预备材料自己已经明确写了：
+
+> 无测试套件，通过 diagnostics/ 诊断脚本验证。
+
+现在确实有：
+
+```text
+tools/run_regression_test.py
+```
+
+但它主要测试：
+
+**Growth Source 分类结果是否和人工标注一致。**
+
+它不是：
+
+* Point-in-Time 测试；
+* 回测不变量测试；
+* 因子 IC 回归测试；
+* NAV 测试；
+* Regime 压力测试；
+* 交易执行测试。
+
+所以对一个投资系统来说，当前测试体系明显不够。
+
+---
+
+# 十四、文档版本已经发生漂移
+
+目前至少有三个架构版本同时存在。
+
+### ARCHITECTURE.md
+
+```text
+v2.0
+六层漏斗
+BULL / STRUCT / BEAR
+```
+
+### STATUS_20260531.md
+
+```text
+v2.5
+7 Regime
+6范式
+Growth Source Engine
+```
+
+### 2026-08-05 PDR Analysis
+
+```text
+v3.0
+L0
+Paradigm × Lifecycle
+CAPEX
+Continuous Regime
+```
+
+因此现在不能再说：
+
+> “ARCHITECTURE.md 就是系统真实架构”。
+
+应该改为：
+
+> **代码是事实源，Architecture 自动从 Canonical Pipeline 派生。**
+
+---
+
+# 十五、完整 PDR 准入判定
+
+按照附件原来的验收标准，我给出的正式结果是：
+
+### Agent 1 — 架构完整性
+
+**FAIL**
+
+主要原因：
+
+* 两套主要评分系统；
+* 三套 Regime 语义；
+* L0 未进入日常 Growth OS 主路径；
+* `compute_alpha` 高级因子流水线未进入主回测；
+* 文档与实现版本漂移。
+
+---
+
+### Agent 2 — 数据治理
+
+**FAIL / BLOCKER**
+
+原因：
+
+* Growth OS 绕过 disclosure governance；
+* screener 历史价格前视；
+* valuation_filter 历史价格前视；
+* 历史 Universe 有幸存者偏差；
+* 历史 ST 状态不完整；
+* 部分 snapshot 数据没有明确 PIT 约束。
+
+这是本次 PDR 最大的问题。
+
+---
+
+### Agent 3 — 因子有效性
+
+**NOT ACCEPTED**
+
+不是证明因子失效。
+
+而是：
+
+> 当前没有资格进行有效性验收。
+
+必须等 P0 数据修复以后重新计算：
+
+```text
+IC
+IR
+IC Decay
+VIF
+Quantile monotonicity
+Ablation
+Regime-conditioned IC
+```
+
+---
+
+### Agent 4 — 风控完备性
+
+**PARTIAL**
+
+设计层较完整。
+
+但：
+
+* 三种市场状态系统没有统一；
+* DEFENSE 没有进入唯一主组合引擎；
+* 压力场景缺正式验收结果；
+* Growth OS 的 Calmar 不是连续 NAV Calmar；
+* 停牌/涨跌停执行约束未完成。
+
+---
+
+### Agent 5 — 代码质量
+
+**FAIL**
+
+不是“代码很差”，而是达不到投资系统 PDR Gate。
+
+核心问题：
+
+* 缺系统级 test suite；
+* `funnel.py`、`run_screen.py` 职责过重；
+* 大量宽泛 `except Exception` 静默降级；
+* Persistence 顺序错误；
+* ROIC TTM 字段问题；
+* ROIC 负值处理问题；
+* 存在“实现但主路径不使用”的代码。
+
+---
+
+### Agent 6 — Known Limitations / Roadmap
+
+**FAIL FOR v4.0 ENTRY**
+
+原计划主要关注：
+
+* L2费用率
+* WACC
+* PEG
+* Growth Gene
+* 行业模板
+
+这些当然值得继续做。
+
+但现在优先级必须全部下移。
+
+因为新发现的：
+
+> **Point-in-Time Integrity**
+
+优先级远高于：
+
+> 再优化一个评分函数。
+
+---
+
+# 十六、我建议重新定义 v4.0 的准入 Gate
+
+不要现在直接开发原计划的 v4.0。
+
+正确顺序应该变成：
+
+```text
+──────────────
+Gate 0
+冻结历史绩效结论
+──────────────
+      ↓
+Gate 1
+Point-in-Time Data Layer
+──────────────
+      ↓
+Gate 2
+Canonical Pipeline
+──────────────
+      ↓
+Gate 3
+可信回测引擎
+──────────────
+      ↓
+Gate 4
+完整因子审计
+──────────────
+      ↓
+Gate 5
+Regime / 风控压力测试
+──────────────
+      ↓
+Gate 6
+Out-of-Sample / Walk Forward
+──────────────
+      ↓
+v4.0
+```
+
+其中最关键的是 Gate 1。
+
+建议建立统一接口：
+
+```text
+MarketData.as_of(t_date)
+FinancialData.as_of(t_date)
+Universe.as_of(t_date)
+Industry.as_of(t_date)
+```
+
+然后建立系统级硬不变量：
+
+```text
+price.date <= t_date
+
+financial.disclosure_date <= t_date
+
+universe.list_date <= t_date
+
+delist_date > t_date
+
+ST_status.date <= t_date
+```
+
+任何一条违反：
+
+```text
+RAISE ERROR
+```
+
+而不是 fallback。
+
+---
+
+# 十七、最终架构应该收敛成一条
+
+我建议最终不要保留现在这种三套逻辑平行运行。
+
+目标应该是：
+
+```text
+                   Point-in-Time Data Layer
+                            │
+                            ▼
+                     Market Regime L0
+                            │
+                            ▼
+                        Universe
+                            │
+                            ▼
+                       Pre Filter
+                            │
+                            ▼
+                         L1 Gate
+                            │
+                            ▼
+                ┌──── L2 Quality
+                ├──── L3 Capital Efficiency
+                ├──── L4 Industry
+                └──── L5 Expectation
+                            │
+                            ▼
+                  Canonical Score Engine
+                            │
+                            ▼
+                  Growth Source / Gene
+                            │
+                            ▼
+                    Position / Risk
+                            │
+                            ▼
+                     Portfolio Engine
+                            │
+                            ▼
+                       Execution
+                            │
+                            ▼
+                        Daily NAV
+```
+
+然后：
+
+```text
+screener.py
+```
+
+和：
+
+```text
+growth_os/run_screen.py
+```
+
+不再自己实现第二套计算逻辑。
+
+它们应该只是同一个 Engine 的不同视图：
+
+```text
+Quick View
+Deep View
+Backtest View
+Report View
+```
+
+**数据和评分真相只有一份。**
+
+---
+
+# 十八、PDR 最终结论
+
+这个项目最有价值的地方不是过去那些很高的回测数字。
+
+真正有价值的是已经形成了：
+
+* Eligibility / Quality / Expectation 分层；
+* L1 Hard Gate；
+* 生命周期；
+* 行业范式；
+* CAPEX 周期；
+* Regime；
+* Growth Source；
+* 预期差；
+* 可解释性；
+* 数据披露治理思想；
+* 防御资产切换；
+* 诊断和反馈体系。
+
+这些说明系统已经具备了一个不错的“投资研究操作系统”雏形。
+
+但本次源码 PDR 发现了一个比继续调 L2/L3/L5 更基础的问题：
+
+> **系统现在还没有真正建立“一切数据必须是 As-Of-T 可获得”的不可破坏边界。**
+
+而量化/系统投资里：
+
+**时间完整性 > 因子设计 > 参数优化。**
+
+因此本次正式 PDR 状态定为：
+
+```text
+PDR STATUS
+===============================
+
+Architecture       FAIL
+Data Integrity     BLOCKED
+Factor Validation  BLOCKED
+Risk Control       PARTIAL
+Code Quality       FAIL
+Roadmap Readiness  BLOCKED
+
+v4.0 ENTRY         NO-GO
+===============================
+```
+
+**第一优先级不是做因子审计，也不是继续优化模型，而是建立 `Point-in-Time Integrity Layer`，修掉价格前视、财报前视和历史 Universe 问题；随后把两套筛选/回测链路收敛为唯一 Canonical Pipeline。**
+
+完成这一步后再重新跑 2015–2026 回测，届时得到的新 NAV 才值得进入下一阶段的完整因子审计。
+

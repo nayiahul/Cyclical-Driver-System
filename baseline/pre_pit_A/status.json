@@ -1,0 +1,37 @@
+{
+  "baseline_id": "pre_pit_A",
+  "baseline_commit": "b47e4c0",
+  "data_snapshot_id": "snapshot_20260901_001",
+  "generated_at": "2026-09-01T11:44:00",
+  "validation_status": "INVALID_FOR_VALIDATION",
+  "reason": [
+    "market look-ahead unresolved (P0-1: screener/valuation_filter iloc[-1])",
+    "financial disclosure PIT unresolved (P0-2: growth_os/data.py bypass)",
+    "universe PIT unresolved (P0-3A: no delist master, survivorship bias)",
+    "valuation_filter price source invalid, deviation/liquidity rules inactive (P2-001)"
+  ],
+  "pit_status": {
+    "market": "FAIL",
+    "financial": "FAIL",
+    "universe": "UNKNOWN (U0: current-listed reconstruction)"
+  },
+  "window": {"start": "20220101", "end": "20251231"},
+  "parameters": {
+    "use_neutralization": false,
+    "top_n": 100,
+    "cost_rate": 0.003,
+    "rebalance": "monthly first trading day"
+  },
+  "results": {
+    "total_return": 1.3241,
+    "annual_return": 0.2455,
+    "max_drawdown": -0.2215,
+    "calmar": 1.1084,
+    "sharpe": 1.0427,
+    "win_rate": 0.5558,
+    "avg_turnover": 0.3746,
+    "annual_turnover": 4.5
+  },
+  "audit": "audit/audit_log.json (48 rebalance + 48 trades + 969 nav hash)",
+  "manifest": "manifest.json"
+}

@@ -1,0 +1,190 @@
+2026-09-01 13:10:32.957 | INFO     | backtest.engine:run_backtest:172 - 回测区间: 20220101 ~ 20251231, 969 个交易日, 48 个调仓日
+2026-09-01 13:10:32.967 | INFO     | universe:get_universe:201 - universe @ 20211231: 4214 stocks (removed: 1009 unlisted, 251 ST, 41 IPO-locked)
+2026-09-01 13:10:32.979 | INFO     | industry:_load_maps:29 - 申万行业映射已加载: 5467 只股票 (L1/L2/L3)
+2026-09-01 13:10:59.375 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20211231: 4214→1720 (剔除: {'neg_pe': 312, 'nonrecurring': 336, 'deviation': 4, 'peg': 149, 'liquidity': 413, 'cash_burn': 833, 'goodwill': 56, 'double_high': 391})
+2026-09-01 13:10:59.375 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 833 只
+2026-09-01 13:11:21.494 | INFO     | universe:get_universe:201 - universe @ 20220128: 4254 stocks (removed: 977 unlisted, 252 ST, 32 IPO-locked)
+2026-09-01 13:11:25.858 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20220128: 4254→1748 (剔除: {'neg_pe': 312, 'nonrecurring': 336, 'deviation': 2, 'peg': 149, 'liquidity': 420, 'cash_burn': 838, 'goodwill': 56, 'double_high': 393})
+2026-09-01 13:11:25.858 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 838 只
+2026-09-01 13:12:16.581 | INFO     | universe:get_universe:201 - universe @ 20220228: 4277 stocks (removed: 960 unlisted, 252 ST, 26 IPO-locked)
+2026-09-01 13:12:21.790 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20220228: 4277→1761 (剔除: {'neg_pe': 312, 'nonrecurring': 337, 'deviation': 5, 'peg': 149, 'liquidity': 423, 'cash_burn': 840, 'goodwill': 56, 'double_high': 394})
+2026-09-01 13:12:21.790 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 840 只
+2026-09-01 13:12:51.881 | INFO     | universe:get_universe:201 - universe @ 20220331: 4303 stocks (removed: 923 unlisted, 253 ST, 36 IPO-locked)
+2026-09-01 13:12:56.600 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20220331: 4303→1781 (剔除: {'neg_pe': 312, 'nonrecurring': 337, 'deviation': 5, 'peg': 149, 'liquidity': 427, 'cash_burn': 842, 'goodwill': 56, 'double_high': 394})
+2026-09-01 13:12:56.600 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 842 只
+2026-09-01 13:13:29.521 | INFO     | universe:get_universe:201 - universe @ 20220429: 4338 stocks (removed: 887 unlisted, 253 ST, 37 IPO-locked)
+2026-09-01 13:13:39.842 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20220429: 4338→1807 (剔除: {'neg_pe': 312, 'nonrecurring': 337, 'deviation': 2, 'peg': 149, 'liquidity': 433, 'cash_burn': 844, 'goodwill': 57, 'double_high': 397})
+2026-09-01 13:13:39.842 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 844 只
+2026-09-01 13:14:28.907 | INFO     | universe:get_universe:201 - universe @ 20220531: 4371 stocks (removed: 869 unlisted, 255 ST, 20 IPO-locked)
+2026-09-01 13:14:40.752 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20220531: 4371→2158 (剔除: {'neg_pe': 437, 'nonrecurring': 99, 'deviation': 3, 'peg': 154, 'liquidity': 520, 'cash_burn': 441, 'goodwill': 72, 'double_high': 487})
+2026-09-01 13:14:40.752 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 441 只
+2026-09-01 13:15:18.003 | INFO     | universe:get_universe:201 - universe @ 20220630: 4391 stocks (removed: 838 unlisted, 256 ST, 30 IPO-locked)
+2026-09-01 13:15:27.767 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20220630: 4391→2171 (剔除: {'neg_pe': 438, 'nonrecurring': 99, 'deviation': 3, 'peg': 155, 'liquidity': 522, 'cash_burn': 442, 'goodwill': 72, 'double_high': 489})
+2026-09-01 13:15:27.767 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 442 只
+2026-09-01 13:16:48.591 | INFO     | universe:get_universe:201 - universe @ 20220729: 4423 stocks (removed: 804 unlisted, 258 ST, 30 IPO-locked)
+2026-09-01 13:17:02.302 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20220729: 4423→2193 (剔除: {'neg_pe': 438, 'nonrecurring': 99, 'deviation': 6, 'peg': 155, 'liquidity': 526, 'cash_burn': 446, 'goodwill': 72, 'double_high': 488})
+2026-09-01 13:17:02.302 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 446 只
+2026-09-01 13:18:08.401 | INFO     | universe:get_universe:201 - universe @ 20220831: 4456 stocks (removed: 755 unlisted, 258 ST, 46 IPO-locked)
+2026-09-01 13:18:22.169 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20220831: 4456→2244 (剔除: {'neg_pe': 330, 'nonrecurring': 235, 'deviation': 3, 'peg': 165, 'liquidity': 537, 'cash_burn': 380, 'goodwill': 69, 'double_high': 493})
+2026-09-01 13:18:22.169 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 380 只
+2026-09-01 13:19:20.416 | INFO     | universe:get_universe:201 - universe @ 20220930: 4504 stocks (removed: 705 unlisted, 259 ST, 47 IPO-locked)
+2026-09-01 13:19:28.357 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20220930: 4504→2280 (剔除: {'neg_pe': 330, 'nonrecurring': 235, 'deviation': 0, 'peg': 165, 'liquidity': 545, 'cash_burn': 383, 'goodwill': 69, 'double_high': 497})
+2026-09-01 13:19:28.357 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 383 只
+2026-09-01 13:20:17.973 | INFO     | universe:get_universe:201 - universe @ 20221031: 4538 stocks (removed: 674 unlisted, 259 ST, 44 IPO-locked)
+2026-09-01 13:20:24.782 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20221031: 4538→1801 (剔除: {'neg_pe': 458, 'nonrecurring': 415, 'deviation': 2, 'peg': 158, 'liquidity': 426, 'cash_burn': 827, 'goodwill': 55, 'double_high': 396})
+2026-09-01 13:20:24.782 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 827 只
+2026-09-01 13:21:04.993 | INFO     | universe:get_universe:201 - universe @ 20221130: 4585 stocks (removed: 641 unlisted, 259 ST, 30 IPO-locked)
+2026-09-01 13:21:11.820 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20221130: 4585→1834 (剔除: {'neg_pe': 458, 'nonrecurring': 416, 'deviation': 4, 'peg': 158, 'liquidity': 432, 'cash_burn': 831, 'goodwill': 56, 'double_high': 396})
+2026-09-01 13:21:11.820 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 831 只
+2026-09-01 13:21:53.197 | INFO     | universe:get_universe:201 - universe @ 20221230: 4619 stocks (removed: 581 unlisted, 260 ST, 55 IPO-locked)
+2026-09-01 13:21:59.742 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20221230: 4619→1866 (剔除: {'neg_pe': 458, 'nonrecurring': 416, 'deviation': 0, 'peg': 158, 'liquidity': 437, 'cash_burn': 831, 'goodwill': 56, 'double_high': 397})
+2026-09-01 13:21:59.743 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 831 只
+2026-09-01 13:22:39.950 | INFO     | universe:get_universe:201 - universe @ 20230131: 4660 stocks (removed: 571 unlisted, 260 ST, 24 IPO-locked)
+2026-09-01 13:22:47.009 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20230131: 4660→1898 (剔除: {'neg_pe': 458, 'nonrecurring': 418, 'deviation': 1, 'peg': 158, 'liquidity': 440, 'cash_burn': 834, 'goodwill': 56, 'double_high': 397})
+2026-09-01 13:22:47.009 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 834 只
+2026-09-01 13:23:31.359 | INFO     | universe:get_universe:201 - universe @ 20230228: 4684 stocks (removed: 547 unlisted, 261 ST, 23 IPO-locked)
+2026-09-01 13:23:38.624 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20230228: 4684→1917 (剔除: {'neg_pe': 459, 'nonrecurring': 418, 'deviation': 2, 'peg': 158, 'liquidity': 441, 'cash_burn': 835, 'goodwill': 56, 'double_high': 398})
+2026-09-01 13:23:38.624 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 835 只
+2026-09-01 13:24:21.707 | INFO     | universe:get_universe:201 - universe @ 20230331: 4712 stocks (removed: 513 unlisted, 262 ST, 28 IPO-locked)
+2026-09-01 13:24:28.590 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20230331: 4712→1937 (剔除: {'neg_pe': 459, 'nonrecurring': 418, 'deviation': 5, 'peg': 158, 'liquidity': 444, 'cash_burn': 837, 'goodwill': 56, 'double_high': 398})
+2026-09-01 13:24:28.590 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 837 只
+2026-09-01 13:25:11.273 | INFO     | universe:get_universe:201 - universe @ 20230428: 4739 stocks (removed: 478 unlisted, 262 ST, 36 IPO-locked)
+2026-09-01 13:25:17.991 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20230428: 4739→2036 (剔除: {'neg_pe': 459, 'nonrecurring': 418, 'deviation': 13, 'peg': 158, 'liquidity': 467, 'cash_burn': 720, 'goodwill': 57, 'double_high': 411})
+2026-09-01 13:25:17.992 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 720 只
+2026-09-01 13:26:06.250 | INFO     | universe:get_universe:201 - universe @ 20230531: 4775 stocks (removed: 447 unlisted, 262 ST, 31 IPO-locked)
+2026-09-01 13:26:15.959 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20230531: 4775→2485 (剔除: {'neg_pe': 382, 'nonrecurring': 147, 'deviation': 15, 'peg': 114, 'liquidity': 577, 'cash_burn': 484, 'goodwill': 79, 'double_high': 492})
+2026-09-01 13:26:15.959 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 484 只
+2026-09-01 13:27:11.471 | INFO     | universe:get_universe:201 - universe @ 20230630: 4806 stocks (removed: 408 unlisted, 262 ST, 39 IPO-locked)
+2026-09-01 13:27:19.637 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20230630: 4806→2509 (剔除: {'neg_pe': 383, 'nonrecurring': 147, 'deviation': 9, 'peg': 115, 'liquidity': 582, 'cash_burn': 488, 'goodwill': 80, 'double_high': 493})
+2026-09-01 13:27:19.638 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 488 只
+2026-09-01 13:28:21.111 | INFO     | universe:get_universe:201 - universe @ 20230731: 4847 stocks (removed: 371 unlisted, 263 ST, 34 IPO-locked)
+2026-09-01 13:28:28.549 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20230731: 4847→2546 (剔除: {'neg_pe': 383, 'nonrecurring': 148, 'deviation': 0, 'peg': 116, 'liquidity': 589, 'cash_burn': 490, 'goodwill': 80, 'double_high': 495})
+2026-09-01 13:28:28.549 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 490 只
+2026-09-01 13:29:16.228 | INFO     | universe:get_universe:201 - universe @ 20230831: 4885 stocks (removed: 338 unlisted, 263 ST, 29 IPO-locked)
+2026-09-01 13:29:23.065 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20230831: 4885→2594 (剔除: {'neg_pe': 266, 'nonrecurring': 267, 'deviation': 0, 'peg': 148, 'liquidity': 601, 'cash_burn': 435, 'goodwill': 83, 'double_high': 491})
+2026-09-01 13:29:23.065 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 435 只
+2026-09-01 13:30:10.285 | INFO     | universe:get_universe:201 - universe @ 20230928: 4914 stocks (removed: 317 unlisted, 263 ST, 21 IPO-locked)
+2026-09-01 13:30:16.513 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20230928: 4914→2612 (剔除: {'neg_pe': 266, 'nonrecurring': 267, 'deviation': 4, 'peg': 148, 'liquidity': 604, 'cash_burn': 439, 'goodwill': 83, 'double_high': 491})
+2026-09-01 13:30:16.513 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 439 只
+2026-09-01 13:31:01.485 | INFO     | universe:get_universe:201 - universe @ 20231031: 4931 stocks (removed: 306 unlisted, 263 ST, 15 IPO-locked)
+2026-09-01 13:31:06.799 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20231031: 4931→2099 (剔除: {'neg_pe': 514, 'nonrecurring': 406, 'deviation': 5, 'peg': 151, 'liquidity': 477, 'cash_burn': 835, 'goodwill': 54, 'double_high': 390})
+2026-09-01 13:31:06.800 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 835 只
+2026-09-01 13:31:41.555 | INFO     | universe:get_universe:201 - universe @ 20231130: 4949 stocks (removed: 289 unlisted, 263 ST, 14 IPO-locked)
+2026-09-01 13:31:45.689 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20231130: 4949→2114 (剔除: {'neg_pe': 514, 'nonrecurring': 406, 'deviation': 4, 'peg': 150, 'liquidity': 479, 'cash_burn': 838, 'goodwill': 54, 'double_high': 390})
+2026-09-01 13:31:45.689 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 838 只
+2026-09-01 13:33:04.367 | INFO     | universe:get_universe:201 - universe @ 20231229: 4964 stocks (removed: 268 unlisted, 263 ST, 20 IPO-locked)
+2026-09-01 13:33:24.380 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20231229: 4964→2128 (剔除: {'neg_pe': 514, 'nonrecurring': 406, 'deviation': 2, 'peg': 151, 'liquidity': 480, 'cash_burn': 839, 'goodwill': 54, 'double_high': 390})
+2026-09-01 13:33:24.381 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 839 只
+2026-09-01 13:34:26.009 | INFO     | backtest.engine:run_backtest:433 - 进度: 20240123 | 持仓 100 只 | NAV 82,022,716 | 现金 5
+2026-09-01 13:34:26.070 | INFO     | universe:get_universe:201 - universe @ 20240131: 4985 stocks (removed: 254 unlisted, 263 ST, 13 IPO-locked)
+2026-09-01 13:34:34.657 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20240131: 4985→2145 (剔除: {'neg_pe': 514, 'nonrecurring': 407, 'deviation': 1, 'peg': 151, 'liquidity': 483, 'cash_burn': 839, 'goodwill': 54, 'double_high': 391})
+2026-09-01 13:34:34.657 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 839 只
+2026-09-01 13:35:23.004 | INFO     | universe:get_universe:201 - universe @ 20240229: 4996 stocks (removed: 248 unlisted, 263 ST, 8 IPO-locked)
+2026-09-01 13:35:29.363 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20240229: 4996→2153 (剔除: {'neg_pe': 514, 'nonrecurring': 407, 'deviation': 1, 'peg': 151, 'liquidity': 485, 'cash_burn': 839, 'goodwill': 54, 'double_high': 392})
+2026-09-01 13:35:29.363 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 839 只
+2026-09-01 13:36:13.522 | INFO     | universe:get_universe:201 - universe @ 20240329: 5005 stocks (removed: 238 unlisted, 263 ST, 9 IPO-locked)
+2026-09-01 13:36:19.845 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20240329: 5005→2198 (剔除: {'neg_pe': 514, 'nonrecurring': 408, 'deviation': 1, 'peg': 151, 'liquidity': 496, 'cash_burn': 781, 'goodwill': 55, 'double_high': 401})
+2026-09-01 13:36:19.845 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 781 只
+2026-09-01 13:37:01.175 | INFO     | universe:get_universe:201 - universe @ 20240430: 5014 stocks (removed: 233 unlisted, 263 ST, 5 IPO-locked)
+2026-09-01 13:37:07.984 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20240430: 5014→2665 (剔除: {'neg_pe': 385, 'nonrecurring': 108, 'deviation': 2, 'peg': 174, 'liquidity': 609, 'cash_burn': 470, 'goodwill': 82, 'double_high': 519})
+2026-09-01 13:37:07.984 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 470 只
+2026-09-01 13:37:52.500 | INFO     | universe:get_universe:201 - universe @ 20240531: 5019 stocks (removed: 230 unlisted, 263 ST, 3 IPO-locked)
+2026-09-01 13:37:57.573 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20240531: 5019→2668 (剔除: {'neg_pe': 385, 'nonrecurring': 108, 'deviation': 2, 'peg': 175, 'liquidity': 610, 'cash_burn': 470, 'goodwill': 82, 'double_high': 519})
+2026-09-01 13:37:57.573 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 470 只
+2026-09-01 13:38:35.792 | INFO     | universe:get_universe:201 - universe @ 20240628: 5022 stocks (removed: 224 unlisted, 263 ST, 6 IPO-locked)
+2026-09-01 13:38:40.744 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20240628: 5022→2672 (剔除: {'neg_pe': 385, 'nonrecurring': 108, 'deviation': 1, 'peg': 175, 'liquidity': 610, 'cash_burn': 470, 'goodwill': 82, 'double_high': 519})
+2026-09-01 13:38:40.744 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 470 只
+2026-09-01 13:39:18.955 | INFO     | universe:get_universe:201 - universe @ 20240731: 5029 stocks (removed: 218 unlisted, 263 ST, 5 IPO-locked)
+2026-09-01 13:39:23.528 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20240731: 5029→2678 (剔除: {'neg_pe': 385, 'nonrecurring': 108, 'deviation': 1, 'peg': 175, 'liquidity': 612, 'cash_burn': 470, 'goodwill': 82, 'double_high': 518})
+2026-09-01 13:39:23.528 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 470 只
+2026-09-01 13:40:01.960 | INFO     | universe:get_universe:201 - universe @ 20240830: 5035 stocks (removed: 209 unlisted, 263 ST, 8 IPO-locked)
+2026-09-01 13:40:06.462 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20240830: 5035→2716 (剔除: {'neg_pe': 385, 'nonrecurring': 108, 'deviation': 2, 'peg': 175, 'liquidity': 622, 'cash_burn': 429, 'goodwill': 81, 'double_high': 517})
+2026-09-01 13:40:06.462 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 429 只
+2026-09-01 13:40:45.980 | INFO     | universe:get_universe:201 - universe @ 20240930: 5043 stocks (removed: 199 unlisted, 263 ST, 10 IPO-locked)
+2026-09-01 13:40:50.668 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20240930: 5043→2716 (剔除: {'neg_pe': 283, 'nonrecurring': 224, 'deviation': 4, 'peg': 171, 'liquidity': 622, 'cash_burn': 431, 'goodwill': 80, 'double_high': 512})
+2026-09-01 13:40:50.668 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 431 只
+2026-09-01 13:41:31.506 | INFO     | universe:get_universe:201 - universe @ 20241031: 5052 stocks (removed: 188 unlisted, 263 ST, 12 IPO-locked)
+2026-09-01 13:41:36.193 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20241031: 5052→2110 (剔除: {'neg_pe': 608, 'nonrecurring': 321, 'deviation': 38, 'peg': 187, 'liquidity': 472, 'cash_burn': 888, 'goodwill': 54, 'double_high': 374})
+2026-09-01 13:41:36.193 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 888 只
+2026-09-01 13:42:09.195 | INFO     | universe:get_universe:201 - universe @ 20241129: 5064 stocks (removed: 179 unlisted, 263 ST, 9 IPO-locked)
+2026-09-01 13:42:13.476 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20241129: 5064→2123 (剔除: {'neg_pe': 608, 'nonrecurring': 321, 'deviation': 22, 'peg': 187, 'liquidity': 474, 'cash_burn': 897, 'goodwill': 54, 'double_high': 378})
+2026-09-01 13:42:13.477 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 897 只
+2026-09-01 13:42:45.643 | INFO     | universe:get_universe:201 - universe @ 20241231: 5073 stocks (removed: 168 unlisted, 263 ST, 11 IPO-locked)
+2026-09-01 13:42:49.831 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20241231: 5073→2136 (剔除: {'neg_pe': 608, 'nonrecurring': 321, 'deviation': 8, 'peg': 188, 'liquidity': 477, 'cash_burn': 901, 'goodwill': 54, 'double_high': 380})
+2026-09-01 13:42:49.831 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 901 只
+2026-09-01 13:43:22.037 | INFO     | universe:get_universe:201 - universe @ 20250127: 5083 stocks (removed: 156 unlisted, 263 ST, 13 IPO-locked)
+2026-09-01 13:43:26.312 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20250127: 5083→2142 (剔除: {'neg_pe': 608, 'nonrecurring': 321, 'deviation': 13, 'peg': 186, 'liquidity': 477, 'cash_burn': 902, 'goodwill': 54, 'double_high': 380})
+2026-09-01 13:43:26.312 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 902 只
+2026-09-01 13:43:58.327 | INFO     | universe:get_universe:201 - universe @ 20250228: 5094 stocks (removed: 155 unlisted, 263 ST, 3 IPO-locked)
+2026-09-01 13:44:02.626 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20250228: 5094→2150 (剔除: {'neg_pe': 608, 'nonrecurring': 321, 'deviation': 20, 'peg': 186, 'liquidity': 479, 'cash_burn': 895, 'goodwill': 54, 'double_high': 381})
+2026-09-01 13:44:02.627 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 895 只
+2026-09-01 13:44:35.072 | INFO     | universe:get_universe:201 - universe @ 20250331: 5098 stocks (removed: 141 unlisted, 263 ST, 13 IPO-locked)
+2026-09-01 13:44:39.357 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20250331: 5098→2196 (剔除: {'neg_pe': 608, 'nonrecurring': 321, 'deviation': 9, 'peg': 187, 'liquidity': 490, 'cash_burn': 844, 'goodwill': 56, 'double_high': 387})
+2026-09-01 13:44:39.357 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 844 只
+2026-09-01 13:45:11.943 | INFO     | universe:get_universe:201 - universe @ 20250430: 5111 stocks (removed: 131 unlisted, 263 ST, 10 IPO-locked)
+2026-09-01 13:45:16.930 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20250430: 5111→2768 (剔除: {'neg_pe': 321, 'nonrecurring': 107, 'deviation': 7, 'peg': 176, 'liquidity': 631, 'cash_burn': 522, 'goodwill': 75, 'double_high': 504})
+2026-09-01 13:45:16.930 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 522 只
+2026-09-01 13:45:58.756 | INFO     | universe:get_universe:201 - universe @ 20250530: 5121 stocks (removed: 125 unlisted, 263 ST, 6 IPO-locked)
+2026-09-01 13:46:03.627 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20250530: 5121→2772 (剔除: {'neg_pe': 321, 'nonrecurring': 107, 'deviation': 15, 'peg': 176, 'liquidity': 632, 'cash_burn': 520, 'goodwill': 75, 'double_high': 503})
+2026-09-01 13:46:03.627 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 520 只
+2026-09-01 13:46:48.839 | INFO     | universe:get_universe:201 - universe @ 20250630: 5127 stocks (removed: 117 unlisted, 263 ST, 8 IPO-locked)
+2026-09-01 13:46:53.633 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20250630: 5127→2780 (剔除: {'neg_pe': 321, 'nonrecurring': 107, 'deviation': 15, 'peg': 175, 'liquidity': 633, 'cash_burn': 518, 'goodwill': 74, 'double_high': 504})
+2026-09-01 13:46:53.633 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 518 只
+2026-09-01 13:47:56.761 | INFO     | universe:get_universe:201 - universe @ 20250731: 5136 stocks (removed: 109 unlisted, 263 ST, 7 IPO-locked)
+2026-09-01 13:48:07.936 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20250731: 5136→2782 (剔除: {'neg_pe': 321, 'nonrecurring': 107, 'deviation': 20, 'peg': 176, 'liquidity': 634, 'cash_burn': 517, 'goodwill': 75, 'double_high': 504})
+2026-09-01 13:48:07.937 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 517 只
+2026-09-01 13:49:13.914 | INFO     | universe:get_universe:201 - universe @ 20250829: 5143 stocks (removed: 101 unlisted, 263 ST, 8 IPO-locked)
+2026-09-01 13:49:22.700 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20250829: 5143→2831 (剔除: {'neg_pe': 321, 'nonrecurring': 107, 'deviation': 38, 'peg': 176, 'liquidity': 645, 'cash_burn': 441, 'goodwill': 79, 'double_high': 505})
+2026-09-01 13:49:22.700 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 441 只
+2026-09-01 13:50:23.250 | INFO     | universe:get_universe:201 - universe @ 20250930: 5151 stocks (removed: 90 unlisted, 263 ST, 11 IPO-locked)
+2026-09-01 13:50:30.577 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20250930: 5151→2826 (剔除: {'neg_pe': 245, 'nonrecurring': 218, 'deviation': 32, 'peg': 168, 'liquidity': 644, 'cash_burn': 430, 'goodwill': 82, 'double_high': 506})
+2026-09-01 13:50:30.577 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 430 只
+2026-09-01 13:51:32.509 | INFO     | universe:get_universe:201 - universe @ 20251031: 5159 stocks (removed: 81 unlisted, 263 ST, 12 IPO-locked)
+2026-09-01 13:51:39.811 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20251031: 5159→2264 (剔除: {'neg_pe': 616, 'nonrecurring': 290, 'deviation': 19, 'peg': 192, 'liquidity': 506, 'cash_burn': 817, 'goodwill': 57, 'double_high': 398})
+2026-09-01 13:51:39.811 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 817 只
+2026-09-01 13:52:36.028 | INFO     | universe:get_universe:201 - universe @ 20251128: 5171 stocks (removed: 70 unlisted, 263 ST, 11 IPO-locked)
+2026-09-01 13:52:49.676 | INFO     | valuation_filter:apply_valuation_filter:189 - 估值排雷 @ 20251128: 5171→2275 (剔除: {'neg_pe': 616, 'nonrecurring': 290, 'deviation': 20, 'peg': 192, 'liquidity': 507, 'cash_burn': 816, 'goodwill': 57, 'double_high': 398})
+2026-09-01 13:52:49.676 | INFO     | valuation_filter:apply_valuation_filter:194 -   R035 失血剔除: 816 只
+2026-09-01 13:53:56.831 | INFO     | backtest.engine:run_backtest:452 - 审计日志已写入: baseline/b1_price_pit/audit/audit_log.json (1065 行)
+2026-09-01 13:53:56.834 | INFO     | backtest.engine:run_backtest:464 - 回测完成: 969 天, 7086 笔交易
+2026-09-01 13:53:56.834 | INFO     | backtest.engine:run_backtest:467 - 累计收益: 11.67%, 年化: 2.91%, 夏普: 0.04, 最大回撤: -23.88%
+2026-09-01 13:53:56.834 | INFO     | backtest.engine:run_backtest:474 - 月均换手: 50.0%, 年化换手: 6.0x, 估算年化交易成本: 3.60%
+2026-09-01 13:53:56.834 | INFO     | backtest.engine:run_backtest:480 - Brinson归因: 配置=4% 选择=78% 交互=18% (47期)
+2026-09-01 13:53:56.849 | INFO     | backtest.engine:run_backtest:490 - 
+最大回撤: -23.88%
+  起点: 20220117
+  终点: 20240205
+  持续: 749 天
+  恢复: 246 天 (至 20241008)
+
+显著回撤期 (>5%): 8 次
+  2022-01-21 → 2024-05-14: -23.9% (844天)
+  2024-05-23 → 2024-10-08: -20.6% (138天)
+  2025-03-25 → 2025-07-17: -18.1% (114天)
+  2024-12-17 → 2025-03-18: -13.8% (91天)
+  2024-10-09 → 2024-10-28: -11.7% (19天)
+
+最差月份:
+  2024-02: -23.9%
+  2022-04: -22.7%
+  2022-10: -22.0%
+  2022-12: -20.7%
+  2022-09: -20.7%
+2026-09-01 13:53:56.850 | INFO     | backtest.engine:run_backtest:492 - 回撤预算: warning → 收紧行业上限5pp, 降低单票上限至5%
+2026-09-01 13:53:57.627 | INFO     | backtest.engine:run_backtest:503 - 数据快照已归档: data/archive/*_20260901_1353.csv
+B1 done
+{
+ "total_return": 0.1167,
+ "annual_return": 0.0291,
+ "annual_volatility": 0.2205,
+ "sharpe_ratio": 0.0415,
+ "max_drawdown": -0.2388,
+ "calmar_ratio": 0.122,
+ "win_rate": 0.5362,
+ "years": 3.84,
+ "initial_nav": 99700897.39,
+ "final_nav": 111333137.07,
+ "avg_turnover": 0.5001,
+ "annual_turnover": 6.0,
+ "annual_cost_est": 0.036
+}

@@ -1,0 +1,50 @@
+2026-09-01 12:21:11.675 | INFO     | universe:get_universe:201 - universe @ 20211231: 4214 stocks (removed: 1009 unlisted, 251 ST, 41 IPO-locked)
+2026-09-01 12:21:11.690 | INFO     | industry:_load_maps:29 - 申万行业映射已加载: 5467 只股票 (L1/L2/L3)
+2026-09-01 12:21:19.951 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20211231: 4214→2135 (剔除: {'neg_pe': 312, 'nonrecurring': 336, 'deviation': 0, 'peg': 149, 'liquidity': 0, 'cash_burn': 835, 'goodwill': 56, 'double_high': 391})
+2026-09-01 12:21:19.951 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 835 只
+20220104: 100 买入, RPS覆盖 100
+2026-09-01 12:21:43.117 | INFO     | universe:get_universe:201 - universe @ 20220331: 4303 stocks (removed: 923 unlisted, 253 ST, 36 IPO-locked)
+2026-09-01 12:21:47.182 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20220331: 4303→2211 (剔除: {'neg_pe': 312, 'nonrecurring': 337, 'deviation': 0, 'peg': 149, 'liquidity': 0, 'cash_burn': 844, 'goodwill': 56, 'double_high': 394})
+2026-09-01 12:21:47.182 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 844 只
+20220401: 55 买入, RPS覆盖 55
+2026-09-01 12:21:53.081 | INFO     | universe:get_universe:201 - universe @ 20220630: 4391 stocks (removed: 838 unlisted, 256 ST, 30 IPO-locked)
+2026-09-01 12:21:57.277 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20220630: 4391→2694 (剔除: {'neg_pe': 438, 'nonrecurring': 99, 'deviation': 0, 'peg': 155, 'liquidity': 0, 'cash_burn': 444, 'goodwill': 72, 'double_high': 489})
+2026-09-01 12:21:57.277 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 444 只
+20220701: 77 买入, RPS覆盖 77
+2026-09-01 12:22:08.639 | INFO     | universe:get_universe:201 - universe @ 20220930: 4504 stocks (removed: 705 unlisted, 259 ST, 47 IPO-locked)
+2026-09-01 12:22:12.896 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20220930: 4504→2825 (剔除: {'neg_pe': 330, 'nonrecurring': 235, 'deviation': 0, 'peg': 165, 'liquidity': 0, 'cash_burn': 383, 'goodwill': 69, 'double_high': 497})
+2026-09-01 12:22:12.896 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 383 只
+20221010: 78 买入, RPS覆盖 77
+2026-09-01 12:22:20.927 | INFO     | universe:get_universe:201 - universe @ 20221230: 4619 stocks (removed: 581 unlisted, 260 ST, 55 IPO-locked)
+2026-09-01 12:22:24.981 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20221230: 4619→2303 (剔除: {'neg_pe': 458, 'nonrecurring': 416, 'deviation': 0, 'peg': 158, 'liquidity': 0, 'cash_burn': 831, 'goodwill': 56, 'double_high': 397})
+2026-09-01 12:22:24.982 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 831 只
+20230103: 73 买入, RPS覆盖 73
+2026-09-01 12:22:31.647 | INFO     | universe:get_universe:201 - universe @ 20230331: 4712 stocks (removed: 513 unlisted, 262 ST, 28 IPO-locked)
+2026-09-01 12:22:37.591 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20230331: 4712→2384 (剔除: {'neg_pe': 459, 'nonrecurring': 418, 'deviation': 0, 'peg': 158, 'liquidity': 0, 'cash_burn': 838, 'goodwill': 57, 'double_high': 398})
+2026-09-01 12:22:37.591 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 838 只
+20230403: 76 买入, RPS覆盖 76
+2026-09-01 12:22:45.382 | INFO     | universe:get_universe:201 - universe @ 20230630: 4806 stocks (removed: 408 unlisted, 262 ST, 39 IPO-locked)
+2026-09-01 12:22:49.917 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20230630: 4806→3099 (剔除: {'neg_pe': 383, 'nonrecurring': 147, 'deviation': 0, 'peg': 116, 'liquidity': 0, 'cash_burn': 488, 'goodwill': 80, 'double_high': 493})
+2026-09-01 12:22:49.917 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 488 只
+20230703: 56 买入, RPS覆盖 56
+2026-09-01 12:22:57.469 | INFO     | universe:get_universe:201 - universe @ 20230928: 4914 stocks (removed: 317 unlisted, 263 ST, 21 IPO-locked)
+2026-09-01 12:23:01.812 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20230928: 4914→3219 (剔除: {'neg_pe': 266, 'nonrecurring': 267, 'deviation': 0, 'peg': 148, 'liquidity': 0, 'cash_burn': 439, 'goodwill': 83, 'double_high': 492})
+2026-09-01 12:23:01.812 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 439 只
+20231009: 63 买入, RPS覆盖 63
+2026-09-01 12:23:08.978 | INFO     | universe:get_universe:201 - universe @ 20231229: 4964 stocks (removed: 268 unlisted, 263 ST, 20 IPO-locked)
+2026-09-01 12:23:13.192 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20231229: 4964→2610 (剔除: {'neg_pe': 514, 'nonrecurring': 406, 'deviation': 0, 'peg': 151, 'liquidity': 0, 'cash_burn': 839, 'goodwill': 54, 'double_high': 390})
+2026-09-01 12:23:13.192 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 839 只
+20240102: 51 买入, RPS覆盖 51
+2026-09-01 12:23:19.001 | INFO     | universe:get_universe:201 - universe @ 20240329: 5005 stocks (removed: 238 unlisted, 263 ST, 9 IPO-locked)
+2026-09-01 12:23:23.132 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20240329: 5005→2695 (剔除: {'neg_pe': 514, 'nonrecurring': 408, 'deviation': 0, 'peg': 151, 'liquidity': 0, 'cash_burn': 781, 'goodwill': 55, 'double_high': 401})
+2026-09-01 12:23:23.132 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 781 只
+20240401: 62 买入, RPS覆盖 61
+2026-09-01 12:23:29.010 | INFO     | universe:get_universe:201 - universe @ 20240628: 5022 stocks (removed: 224 unlisted, 263 ST, 6 IPO-locked)
+2026-09-01 12:23:33.609 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20240628: 5022→3283 (剔除: {'neg_pe': 385, 'nonrecurring': 108, 'deviation': 0, 'peg': 175, 'liquidity': 0, 'cash_burn': 470, 'goodwill': 82, 'double_high': 519})
+2026-09-01 12:23:33.610 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 470 只
+20240701: 63 买入, RPS覆盖 63
+2026-09-01 12:23:40.741 | INFO     | universe:get_universe:201 - universe @ 20240930: 5043 stocks (removed: 199 unlisted, 263 ST, 10 IPO-locked)
+2026-09-01 12:23:45.230 | INFO     | valuation_filter:apply_valuation_filter:179 - 估值排雷 @ 20240930: 5043→3339 (剔除: {'neg_pe': 283, 'nonrecurring': 224, 'deviation': 0, 'peg': 171, 'liquidity': 0, 'cash_burn': 432, 'goodwill': 81, 'double_high': 513})
+2026-09-01 12:23:45.230 | INFO     | valuation_filter:apply_valuation_filter:184 -   R035 失血剔除: 432 只
+20241008: 95 买入, RPS覆盖 95
+saved 849 rows
