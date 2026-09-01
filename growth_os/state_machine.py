@@ -106,15 +106,27 @@ class InvestmentStateModel:
         # 单只股票 RPS 需要行业分位 → 批量场景由 scan() 预计算传入
         return np.nan
 
-    # ---- 状态机 ----
+    # ---- 状态机 v2: 行业范式参数化 ----
     def _classify(self, code: str, disc: float, rps: float,
                   reasons: list, risks: list) -> StateResult:
         if np.isnan(disc):
             return StateResult(code, "L0", "IGNORE", np.nan, rps,
                                reasons, ["Discovery 数据不足"])
 
-        # L5 错杀: RPS 低 + 毛利/CAPEX green (逻辑未坏) + 需乖离率负向 (待数据)
-        # v1 简化: 不单独判定 L5 (需估值/乖离数据, 后续版本)
+        paradigm = self._paradigm(code)
+
+        # 科技成长: 探针状态机不适用 (实证 L1-L0 = -1.6pp)
+        if paradigm == "tech_growth":
+            return StateResult(code, "L0", "IGNORE", disc, rps,
+                               reasons, ["tech_growth 范式: 探针状态机不适用, 需技术/订单类信号"])
+
+        # 防御行业: 确认后优先 (L2, 实证 +2.2pp)
+        if paradigm == "defensive":
+            if disc >= self.disc_thr and rps >= self.rps_low:
+                return StateResult(code, "L2", "B", disc, rps, reasons, risks)
+            return StateResult(code, "L0", "IGNORE", disc, rps, reasons, risks)
+
+        # cycle_manufacturing / consumer / other: L1 优先 (实证 +5.5pp / +2.8pp)
         if disc >= self.disc_thr:
             if rps < self.rps_low:
                 state, pri = "L1", "A"
