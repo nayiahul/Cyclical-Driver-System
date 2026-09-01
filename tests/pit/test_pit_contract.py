@@ -20,6 +20,7 @@ if ROOT not in sys.path:
 
 import screener  # noqa: E402
 import signals  # noqa: E402
+import pit.market as pit_market  # noqa: E402
 from data_governance import filter_available_reports  # noqa: E402
 
 
@@ -70,7 +71,8 @@ class TestMarketPIT:
         泄漏: ret = 未来价/60日前价 → A(+953%) > E(-37%) → 分位 A > E
         """
         monkeypatch.setattr(
-            screener, "_load_price_data", lambda c: make_price_df(T_PRICES[c], FUTURE[c])
+            pit_market, "_raw_loader",
+            lambda c: make_price_df(T_PRICES[c], FUTURE[c]),
         )
         rps = screener.compute_rps60(CODES, "20220630", IND_MAP)
         assert len(rps) == 5, f"RPS 应覆盖 5 只股票, 实际 {len(rps)}"
@@ -82,7 +84,8 @@ class TestMarketPIT:
     def test_industry_momentum_no_future(self, monkeypatch):
         """行业动量不得使用未来价格。"""
         monkeypatch.setattr(
-            screener, "_load_price_data", lambda c: make_price_df(T_PRICES[c], FUTURE[c])
+            pit_market, "_raw_loader",
+            lambda c: make_price_df(T_PRICES[c], FUTURE[c]),
         )
         mom = screener.compute_industry_momentum(CODES, "20220630", IND_MAP)
         assert "A" in mom

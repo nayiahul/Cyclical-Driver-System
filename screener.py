@@ -16,6 +16,10 @@ from trade_calendar import get_t_date, get_trade_calendar
 from universe import get_universe
 from valuation_filter import apply_valuation_filter
 from signals import compute_S1, compute_S2, compute_S5, compute_S7, _load_price_data
+from pit.market import MarketData
+
+# Gate 2: 行情读取统一走 PIT 契约层（as_of 截断，禁止未来数据）
+_MARKET = MarketData()
 from regime.detector import detect_regime
 from config.strategic_industries import (
     get_strategic_tags, get_strategic_bonus,
@@ -41,7 +45,7 @@ def compute_rps60(codes: list[str], t_date: str, industry_map: dict) -> dict[str
 
     ind_returns = defaultdict(list)
     for code in codes:
-        df = _load_price_data(code)
+        df = _MARKET.as_of(code, t_date)  # Gate 2 PIT: 截断到 t_date
         if len(df) < 200:
             continue
         close = df["close"]
@@ -79,7 +83,7 @@ def compute_industry_momentum(codes: list[str], t_date: str, industry_map: dict)
 
     ind_returns = defaultdict(list)
     for code in codes:
-        df = _load_price_data(code)
+        df = _MARKET.as_of(code, t_date)  # Gate 2 PIT: 截断到 t_date
         if len(df) < 200:
             continue
         close = df["close"]
@@ -126,7 +130,7 @@ def compute_theme_rps(codes: list[str], t_date: str, industry_map: dict) -> dict
         ind_codes = [c for c in codes if industry_map.get(c) == ind]
         rets = []
         for code in ind_codes:
-            df = _load_price_data(code)
+            df = _MARKET.as_of(code, t_date)  # Gate 2 PIT: 截断到 t_date
             if len(df) < 200:
                 continue
             close = df["close"]
