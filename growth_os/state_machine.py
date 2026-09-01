@@ -48,6 +48,25 @@ STATE_LABELS = {
 # 研究优先级
 PRIORITY = {"L1": "A", "L5": "A", "L2": "B", "L3": "C", "L4": "D", "L0": "IGNORE"}
 
+# v2: 行业范式映射 (INDUSTRY_PARADIGM_MAP.md, 2026-09-01 实证)
+PARADIGM_MAP = {
+    # 周期制造: L1 优先 (核心研究区, L1-L0 = +5.5pp)
+    "有色金属": "cycle_manufacturing", "基础化工": "cycle_manufacturing",
+    "机械设备": "cycle_manufacturing", "钢铁": "cycle_manufacturing",
+    "煤炭": "cycle_manufacturing", "石油石化": "cycle_manufacturing",
+    "建筑材料": "cycle_manufacturing",
+    # 科技成长: 探针状态机不适用 (L1-L0 = -1.6pp)
+    "电子": "tech_growth", "通信": "tech_growth", "计算机": "tech_growth",
+    "传媒": "tech_growth", "国防军工": "tech_growth",
+    # 消费: L1 弱有效 (+2.8pp)
+    "食品饮料": "consumer", "医药生物": "consumer", "家用电器": "consumer",
+    "纺织服饰": "consumer", "商贸零售": "consumer", "农林牧渔": "consumer",
+    "社会服务": "consumer", "美容护理": "consumer",
+    # 防御: L2 确认优先 (+2.2pp)
+    "银行": "defensive", "非银金融": "defensive", "公用事业": "defensive",
+    "交通运输": "defensive", "房地产": "defensive",
+}
+
 
 @dataclass
 class StateResult:
@@ -74,12 +93,19 @@ class InvestmentStateModel:
 
     def __init__(self, rps_threshold_low: float = 40.0,
                  rps_threshold_high: float = 70.0,
-                 disc_threshold: float = 0.5):
+                 disc_threshold: float = 0.5,
+                 ind_map: dict = None):
         self.rps_low = rps_threshold_low
         self.rps_high = rps_threshold_high
         self.disc_thr = disc_threshold
+        self._ind_map = ind_map or {}
         self._mkt = MarketData()
         self._fin = FinancialData()
+
+    def _paradigm(self, code: str) -> str:
+        """行业范式: SW1 → PARADIGM_MAP。"""
+        ind = self._ind_map.get(code, "")
+        return PARADIGM_MAP.get(ind, "other")
 
     # ---- Discovery 综合分（复用 3 个财务探针）----
     def _discovery_score(self, code: str, t_date: str) -> tuple[float, list, list]:
