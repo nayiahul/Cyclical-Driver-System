@@ -55,15 +55,27 @@ pit/
 3. **复用既有治理层**：FinancialData 内部调用 `data_governance.filter_available_reports`（实际披露日历 → 法定截止日），不复制逻辑。
 4. **零行为变更**：screener 的 compute_rps60 / compute_industry_momentum / compute_theme_rps 价格读取改为 `_MARKET.as_of(code, t_date)`，计算逻辑不变，只是输入被截断。
 
-## 六、违反规则清单（Gate 2 阶段）
+## 六、违反规则清单（Gate 3 完成）
 
 | 文件 | 违反点 | 状态 |
 |---|---|---|
 | screener.py | RPS60/行业动量/theme RPS `iloc[-1]` 全量读取 | ✅ 已迁移（Gate 2） |
-| screener.py | PE 计算 L274/L319 价格 | ⏳ Gate 3 |
-| valuation_filter.py | 乖离率 L93-94/流动性 L158 | ⏳ Gate 3（且数据源指向空目录 P2-001） |
-| signals.py | S3/S4（compute_alpha 路径） | ⏳ Gate 3 |
+| screener.py | PE 计算 L274/L319 价格 | ✅ 已迁移（Gate 3） |
+| valuation_filter.py | 乖离率/流动性 + **P2-001 空目录修复** | ✅ 已迁移（Gate 3，规则恢复生效） |
+| signals.py | S3/S4 | ✅ 验证无泄漏（已有上界截断 `df.index <= t_idx`，T-MKT-05 锁死） |
 | growth_os/data.py | 财务绕过披露治理（P0-2） | ⏳ Gate 4 |
+
+### Feature Activation Report（P2-001 修复后）
+
+| 规则 | 修复前 | 修复后（2022-01 首日实测） |
+|---|---|---|
+| 乖离率 >120% | 恒 0（未生效） | 4 只剔除 |
+| 流动性后 20% | 恒 0（未生效） | 413 只剔除 |
+
+候选池 2135 → 1720（-415），两条隐藏规则恢复后策略输入显著变化。
+
+> ⚠️ 归因提醒：Gate 3 后结果变化 = PIT 修复（价格截断）+ 隐藏功能恢复（乖离/流动性）两因素混合，
+> 需通过 B1 baseline（Gate 3 后跑）与 A 对照分离。
 
 ## 七、测试状态（Gate 2 Exit）
 

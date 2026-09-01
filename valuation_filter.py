@@ -1,19 +1,29 @@
-"""估值排雷 — 硬约束，不参与Alpha评分"""
+"""估值排雷 — 硬约束，不参与Alpha评分
+
+Gate 3 (2026-09-01):
+  - 修复 P2-001: 价格源从空目录 data/cache/daily_prices/ 改指 STOCKS_DIR
+  - 乖离率/流动性迁移到 MarketData.as_of（PIT 截断）
+  - 此前两规则因数据源指向空目录从未生效（Feature Activation）
+"""
 import os
 import numpy as np
 import pandas as pd
 from loguru import logger
 
-from config.params import PEG_MAX
+from config.params import PEG_MAX, STOCKS_DIR
 from data_governance import filter_available_reports_dash
+from pit.market import MarketData
+
+_MARKET = MarketData()
 
 
 def _load_price_data(code: str) -> pd.DataFrame:
-    """加载个股日线缓存"""
-    path = f"data/cache/daily_prices/{code}.csv"
+    """加载个股日线缓存（Gate 3: 指向 STOCKS_DIR，修复 P2-001 空目录问题）"""
+    path = f"{STOCKS_DIR}/{code}.csv"
     if os.path.exists(path):
         df = pd.read_csv(path, dtype={"date": str})
-        df["date"] = pd.to_datetime(df["date"])
+        df["date"] = df["date"].str.replace("-", "", regex=False)
+        df["date"] = pd.to_datetime(df["date"], format="%Y%m%d")
         return df.set_index("date").sort_index()
     return pd.DataFrame()
 
@@ -95,8 +105,8 @@ def apply_valuation_filter(t_date: str, codes: list[str],
                 removed["nonrecurring"] += 1
                 continue
 
-        # 规则3: 乖离率 > 120%
-        df = _load_price_data(code)
+        # 规则3: 乖离率 > 120%（Gate 3: PIT 截断 + 数据源修复，规则恢复生效）
+        df = _MARKET.as_of(code, t_date)
         if len(df) >= 200:
             close = df["close"]
             ma200 = close.rolling(200).mean().iloc[-1]
@@ -159,10 +169,10 @@ def apply_valuation_filter(t_date: str, codes: list[str],
 
         passed.append(code)
 
-    # 规则5: 流动性后20%
+    # 规则5: 流动性后20%（Gate 3: PIT 截断 + 数据源修复，规则恢复生效）
     market_caps = {}
     for code in passed:
-        df = _load_price_data(code)
+        df = _MARKET.as_of(code, t_date)
         if len(df) >= 20:
             close = df["close"].iloc[-1]
             volume = df["volume"].mean() if "volume" in df.columns else 1e6

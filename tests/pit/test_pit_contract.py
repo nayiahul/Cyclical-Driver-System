@@ -146,3 +146,55 @@ class TestFutureGuard:
     def test_backtest_audit_no_future(self):
         """回测审计日志 requested_as_of >= actual_effective_date（Gate 6 全量）。"""
         pytest.skip("集成测试在 Gate 6: 全量回测 + audit 日志校验")
+
+
+# ---------- T-MKT-05: signals S3/S4 上界截断安全性 ----------
+class TestSignalsNoLeak:
+    """S3/S4 已有上界截断 (df.index <= all_dates[t_idx]) — 锁死该安全性。
+
+    Gate 3 验证: 含未来行与无未来行的结果必须完全一致。
+    """
+
+    def _make_dfs(self):
+        import pandas as pd
+        from trade_calendar import get_trade_calendar
+
+        cal = get_trade_calendar("20210101", "20220630")
+        dates = cal["trade_date"].tolist()
+        codes = ["A", "B", "C", "D", "E"]
+        dfs = {}
+        for j, c in enumerate(codes):
+            rows = []
+            for i, d in enumerate(dates):
+                rows.append((pd.Timestamp(d), 10.0 + i * 0.01 + (j - 2) * 0.005))
+            rows.append((pd.Timestamp("2026-06-01"), 999.0 + j * 100))
+            dfs[c] = pd.DataFrame(rows, columns=["date", "close"]).set_index("date").sort_index()
+        return dfs
+
+    def test_s3_results_identical_with_future(self, monkeypatch):
+        """S3: 价格文件含 2026 未来行时，结果与无未来行完全一致。"""
+        import signals as signals_mod
+
+        dfs = self._make_dfs()
+        monkeypatch.setattr(signals_mod, "_load_price_data", lambda c: dfs[c].copy())
+        s3_fut = signals_mod.compute_S3("20220630", list(dfs), {c: "电子" for c in dfs})
+
+        dfs2 = {c: df[df.index <= pd.Timestamp("20220630")].copy() for c, df in dfs.items()}
+        monkeypatch.setattr(signals_mod, "_load_price_data", lambda c: dfs2[c].copy())
+        s3_clean = signals_mod.compute_S3("20220630", list(dfs2), {c: "电子" for c in dfs2})
+
+        assert s3_fut.equals(s3_clean), "S3 结果受未来行影响 → 存在泄漏"
+
+    def test_s4_results_identical_with_future(self, monkeypatch):
+        """S4: 同上。"""
+        import signals as signals_mod
+
+        dfs = self._make_dfs()
+        monkeypatch.setattr(signals_mod, "_load_price_data", lambda c: dfs[c].copy())
+        s4_fut = signals_mod.compute_S4("20220630", list(dfs), {c: "电子" for c in dfs})
+
+        dfs2 = {c: df[df.index <= pd.Timestamp("20220630")].copy() for c, df in dfs.items()}
+        monkeypatch.setattr(signals_mod, "_load_price_data", lambda c: dfs2[c].copy())
+        s4_clean = signals_mod.compute_S4("20220630", list(dfs2), {c: "电子" for c in dfs2})
+
+        assert s4_fut.equals(s4_clean), "S4 结果受未来行影响 → 存在泄漏"

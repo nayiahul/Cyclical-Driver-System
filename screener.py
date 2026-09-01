@@ -271,7 +271,7 @@ def compute_composite(t_date: str, codes: list[str],
             ind_pes = []
             for c in ind_codes:
                 e = ttm_eps_map.get(c, np.nan)
-                cp_df = _load_price_data(c)
+                cp_df = _MARKET.as_of(c, t_date)  # Gate 3 PIT: PE 价格截断到 t_date
                 cp = float(cp_df["close"].iloc[-1]) if len(cp_df) > 0 else np.nan
                 if not np.isnan(e) and e > 0.01 and not np.isnan(cp):
                     p = min(200, max(1, cp / e)); ind_pes.append(p)
@@ -316,7 +316,7 @@ def compute_composite(t_date: str, codes: list[str],
 
         # 估值: PE行业内分位 (TTM EPS)
         eps_val = ttm_eps_map.get(code, np.nan)
-        df_price = _load_price_data(code)
+        df_price = _MARKET.as_of(code, t_date)  # Gate 3 PIT: 个股 PE 价格截断
         close_price = float(df_price["close"].iloc[-1]) if len(df_price) > 0 else np.nan
         pe_val = close_price / eps_val if (not np.isnan(eps_val) and eps_val > 0.01) else np.nan
         pe_val = min(200, max(1, pe_val)) if not np.isnan(pe_val) else np.nan
