@@ -31,6 +31,16 @@ from diagnostics.drawdown import analyze_drawdowns, summary_report, check_dd_bud
 _PRICE_CACHE: dict[str, pd.Series] = {}
 
 
+def _audit_hash(obj) -> str:
+    """审计用：对象规范化后 sha256。纯辅助函数，不影响业务路径。"""
+    import hashlib
+    import json
+
+    return hashlib.sha256(
+        json.dumps(obj, sort_keys=True, ensure_ascii=False, default=str).encode()
+    ).hexdigest()
+
+
 @dataclass
 class BacktestResult:
     nav_series: pd.Series
@@ -145,17 +155,12 @@ def run_backtest(
     end: str = END_DATE,
     initial_capital: float = INITIAL_CAPITAL,
     use_neutralization: bool = True,
+    audit_dir: str = None,
 ) -> BacktestResult:
     """Run equal-weight monthly rebalance backtest.
 
-    Args:
-        start: Start date "YYYYMMDD".
-        end: End date "YYYYMMDD".
-        initial_capital: Starting cash.
-        use_neutralization: Enable Slice 5 risk neutralization.
-
-    Returns:
-        BacktestResult with NAV series, daily returns, trade log, and stats.
+    audit_dir: 若提供，每调仓日输出中间状态 hash（universe/score/ranking/portfolio/trade）
+               与每日 nav hash。纯审计输出，不影响任何计算路径（默认 None 时零开销）。
     """
     rebalance_dates = set(get_rebalance_dates(start, end))
     cal = get_trade_calendar(start, end)
@@ -181,6 +186,11 @@ def run_backtest(
     prev_prices: dict[str, float] = {}  # 上期调仓日价格，用于归因
     prev_universe: list[str] = []       # 上期股票池
     prev_industry_map: dict = {}        # 上期行业映射
+
+    # 审计输出（可选，默认关闭；不影响任何计算路径）
+    if audit_dir:
+        os.makedirs(audit_dir, exist_ok=True)
+        _audit_rows: list[dict] = []
 
     for i, day in enumerate(trading_days):
         if day in rebalance_dates:
@@ -223,6 +233,16 @@ def run_backtest(
                 # 等权分配，单票上限8%
                 weight = min(1.0 / max(n_selected, 1), MAX_SINGLE_WEIGHT)
                 target_weights = {c: weight for c in selected}
+
+                if audit_dir:
+                    _audit_rows.append({
+                        "day": day, "kind": "rebalance",
+                        "universe_hash": _audit_hash(sorted(target_codes)),
+                        "score_hash": _audit_hash(
+                            sorted(composite.items(), key=lambda x: x[0])),
+                        "ranking_hash": _audit_hash(ranked[:TOP_N_STOCKS]),
+                        "portfolio_hash": _audit_hash(target_weights),
+                    })
 
                 # 换手率: 记录调仓前持仓市值
                 old_holdings_value = {}
@@ -350,6 +370,13 @@ def run_backtest(
                 if holdings[code] <= 0:
                     del holdings[code]
 
+            if audit_dir:
+                day_trades = [t for t in trade_records if t["date"] == day]
+                _audit_rows.append({
+                    "day": day, "kind": "trades",
+                    "trade_hash": _audit_hash(day_trades),
+                })
+
             # --- 换手率 ---
             new_holdings_value = {}
             for code, shares in holdings.items():
@@ -397,6 +424,10 @@ def run_backtest(
                 equity += shares * price
         nav_records.append((day, equity))
 
+        if audit_dir:
+            _audit_rows.append({
+                "day": day, "kind": "nav", "nav_hash": _audit_hash(round(equity, 6)),
+            })
         # Progress log every 500 days
         if (i + 1) % 500 == 0:
             logger.info(
@@ -412,6 +443,13 @@ def run_backtest(
     trades_df = (
         pd.DataFrame(trade_records) if trade_records else pd.DataFrame()
     )
+
+    if audit_dir:
+        import json
+
+        with open(os.path.join(audit_dir, "audit_log.json"), "w") as f:
+            json.dump(_audit_rows, f, ensure_ascii=False, indent=1)
+        logger.info(f"审计日志已写入: {audit_dir}/audit_log.json ({len(_audit_rows)} 行)")
     stats = _compute_stats(nav_series, daily_returns)
     if turnover_rates:
         avg_turnover = sum(turnover_rates) / len(turnover_rates)

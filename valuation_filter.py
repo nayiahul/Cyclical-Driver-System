@@ -48,26 +48,35 @@ def apply_valuation_filter(t_date: str, codes: list[str],
         fin = filter_available_reports_dash(fin, "date", t_date)
         fin["date"] = pd.to_datetime(fin["date"])
         fin_cutoff = fin
+        # Gate 0-A: 按 code 预分组（无语义变更）
+        fin_by_code = {c: g for c, g in fin_cutoff.groupby("code")}
+        _EMPTY_FIN = fin_cutoff.iloc[0:0].copy()
     else:
         fin_cutoff = fin
+        fin_by_code = {}
+        _EMPTY_FIN = pd.DataFrame()
 
-    # R035: 预加载 TDX 经营现金流数据
-    tdx_path = "data/cache/tdx_financials.csv"
-    tdx = None
-    if os.path.exists(tdx_path):
-        tdx = pd.read_csv(tdx_path, dtype={"code": str, "report_date_str": str})
-        from data_governance import filter_available_reports
+    # R035: 预加载 TDX 经营现金流数据（Gate 0-A: 共享加载，无语义变更）
+    from data_governance import filter_available_reports, load_tdx_raw
+    tdx = load_tdx_raw()
+    if tdx is not None:
         tdx = filter_available_reports(tdx, t_date)
+        # Gate 0-A: 按 code 预分组，消除 29万行 × N 次全表过滤（无语义变更）
+        tdx_by_code = {c: g.sort_values("report_date_str") for c, g in tdx.groupby("code")}
+        _EMPTY_TDX = tdx.iloc[0:0].copy()
 
     # R008/R010: 预加载质量缓存 (westock-data)
     quality_path = "data/cache/quality_snapshot.csv"
     quality = None
     if os.path.exists(quality_path):
         quality = pd.read_csv(quality_path, dtype={"code": str, "report_date": str})
+        # Gate 0-A: 按 code 预分组（无语义变更）
+        quality_by_code = {c: g for c, g in quality.groupby("code")}
+        _EMPTY_Q = quality.iloc[0:0].copy()
 
     passed = []
     for code in codes:
-        code_fin = fin_cutoff[fin_cutoff["code"] == code] if not fin_cutoff.empty else pd.DataFrame()
+        code_fin = fin_by_code.get(code, _EMPTY_FIN) if fin_by_code else pd.DataFrame()
         roe = code_fin["roe_weighted"].dropna() if not code_fin.empty else pd.Series(dtype=float)
 
         # 规则1: PE负且近两季ROE未改善
@@ -114,7 +123,7 @@ def apply_valuation_filter(t_date: str, codes: list[str],
 
         # 规则6: R035 — 连续3期经营现金流为负 (TDX col 107)
         if tdx is not None:
-            ctdx = tdx[tdx["code"] == code].sort_values("report_date_str")
+            ctdx = tdx_by_code.get(code, _EMPTY_TDX)
             ocf = ctdx["operating_cash_flow"].dropna().values.astype(float)
             if len(ocf) >= 3:
                 if ocf[-1] < 0 and ocf[-2] < 0 and ocf[-3] < 0:
@@ -123,7 +132,7 @@ def apply_valuation_filter(t_date: str, codes: list[str],
 
         # 规则7: R008 — 商誉/净资产 > 30% (westock-data zcfz)
         if quality is not None:
-            qrow = quality[quality["code"] == code]
+            qrow = quality_by_code.get(code, _EMPTY_Q)
             if len(qrow) > 0:
                 gw = qrow.iloc[0]["goodwill"]
                 eq = qrow.iloc[0]["equity"]
@@ -139,7 +148,7 @@ def apply_valuation_filter(t_date: str, codes: list[str],
             ind = industry_map.get(code, "")
             skip_ind = {"银行", "非银金融", "公用事业"}
             if ind not in skip_ind:
-                qrow2 = quality[quality["code"] == code]
+                qrow2 = quality_by_code.get(code, _EMPTY_Q)
                 if len(qrow2) > 0:
                     cash = qrow2.iloc[0]["cash_equivalents"]
                     debt = qrow2.iloc[0]["interest_bear_debt"]

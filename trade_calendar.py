@@ -11,6 +11,9 @@ from config.params import TRADE_CALENDAR_CACHE
 _CALENDAR_EPOCH = "19901219"
 
 
+_CAL_FULL: pd.DataFrame | None = None  # Gate 0-A: 全表缓存（无语义变更）
+
+
 def get_trade_calendar(start: str, end: str) -> pd.DataFrame:
     """
     获取A股交易日历。
@@ -22,9 +25,13 @@ def get_trade_calendar(start: str, end: str) -> pd.DataFrame:
     Returns:
         DataFrame with columns: trade_date (str YYYYMMDD)
     """
-    if os.path.exists(TRADE_CALENDAR_CACHE):
-        df = pd.read_csv(TRADE_CALENDAR_CACHE, dtype={"trade_date": str})
-        cached = df[(df["trade_date"] >= start) & (df["trade_date"] <= end)]
+    global _CAL_FULL
+    if _CAL_FULL is None:
+        if os.path.exists(TRADE_CALENDAR_CACHE):
+            _CAL_FULL = pd.read_csv(TRADE_CALENDAR_CACHE, dtype={"trade_date": str})
+
+    if _CAL_FULL is not None:
+        cached = _CAL_FULL[(_CAL_FULL["trade_date"] >= start) & (_CAL_FULL["trade_date"] <= end)]
         if len(cached) > 0:
             # 验证缓存覆盖范围：若缓存结束日期早于请求结束日期，可能过期
             if cached["trade_date"].iloc[-1] < end:
@@ -47,6 +54,7 @@ def get_trade_calendar(start: str, end: str) -> pd.DataFrame:
     os.makedirs(os.path.dirname(TRADE_CALENDAR_CACHE), exist_ok=True)
     df.to_csv(TRADE_CALENDAR_CACHE, index=False)
     logger.info(f"交易日历已缓存至 {TRADE_CALENDAR_CACHE}，共 {len(df)} 条")
+    _CAL_FULL = df
 
     return df[(df["trade_date"] >= start) & (df["trade_date"] <= end)].reset_index(drop=True)
 

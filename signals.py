@@ -13,7 +13,7 @@ from weights import CycleIRWeightManager
 from risk_factors import compute_risk_factors
 from neutralizer import neutralize
 from regime.detector import detect_regime
-from data_governance import filter_available_reports, filter_available_reports_dash
+from data_governance import filter_available_reports, filter_available_reports_dash, load_tdx_raw
 
 from config.params import (
     FIN_START_YEAR, MOMENTUM_DAYS_ABOVE_MA, ROE_MIN_QUARTERS,
@@ -345,29 +345,30 @@ def compute_S1(t_date: str, codes: list[str], industry_map: dict[str, str],
         return_raw: 若为 True，返回 (zscored_series, raw_yoy_series) 元组。
                     用于 PEG 标准计算等需要原始增速的场景。
     """
-    import os as _os
-    tdx_path = "data/cache/tdx_financials.csv"
-    if not _os.path.exists(tdx_path):
+    fin = load_tdx_raw()
+    if fin is None:
         return pd.Series(dtype=float)
-
-    fin = pd.read_csv(tdx_path, dtype={"code": str, "report_date_str": str})
     fin = fin.dropna(subset=["report_date_str"])
     fin = filter_available_reports(fin, t_date)
     fin = fin[["code", "report_date_str", "deducted_profit_yoy",
                "deducted_profit_q", "operating_cash_flow", "revenue_yoy"]].copy()
     fin = fin.dropna(subset=["deducted_profit_yoy"])
 
+    # Gate 0-A: 按 code 预分组，消除 87万行 × N 次的全表字符串过滤（无语义变更）
+    by_code = {c: g.sort_values("report_date_str") for c, g in fin.groupby("code")}
+    _EMPTY = fin.iloc[0:0].copy()  # 空表保留 dtype（Gate 0-A）
+
     # 营收验证: 记录每只股票的近四季营收增速中位数，供后续降权
     rev_check = {}
     for code in codes:
-        cfin = fin[fin["code"] == code].sort_values("report_date_str")
+        cfin = by_code.get(code, _EMPTY)
         rev_yoy = cfin["revenue_yoy"].dropna().values[-4:].astype(float)
         if len(rev_yoy) >= 4:
             rev_check[code] = np.nanmedian(rev_yoy)
 
     scores = {}
     for code in codes:
-        code_fin = fin[fin["code"] == code].sort_values("report_date_str")
+        code_fin = by_code.get(code, _EMPTY)
         if len(code_fin) < 4:
             continue
         yoy = code_fin["deducted_profit_yoy"].values[-3:].astype(float)
@@ -450,19 +451,21 @@ def compute_S2(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
     算法: TTM合同负债yoy(订单) + TTM CAPEX yoy(硬扩张)，合成打分。
     排除: 银行/非银金融/房地产(一级行业)。
     """
-    import os as _os
-    tdx_path = "data/cache/tdx_financials.csv"
-    if not _os.path.exists(tdx_path):
+    fin = load_tdx_raw()
+    if fin is None:
         return pd.Series(dtype=float)
 
     # 排除行业
     exclude = {"银行", "非银金融", "房地产"}
 
-    fin = pd.read_csv(tdx_path, dtype={"code": str, "report_date_str": str})
     fin = fin.dropna(subset=["report_date_str"])
     fin = filter_available_reports(fin, t_date)
     fin = fin[["code", "report_date_str", "contract_liabilities",
                "advance_receipts", "fixed_assets", "capex_cash", "roe"]].copy()
+
+    # Gate 0-A: 按 code 预分组（无语义变更）
+    by_code = {c: g.sort_values("report_date_str") for c, g in fin.groupby("code")}
+    _EMPTY = fin.iloc[0:0].copy()  # 空表保留 dtype（Gate 0-A）
 
     scores = {}
     for code in codes:
@@ -470,7 +473,7 @@ def compute_S2(t_date: str, codes: list[str], industry_map: dict[str, str]) -> p
         if ind in exclude:
             continue
 
-        code_fin = fin[fin["code"] == code].sort_values("report_date_str")
+        code_fin = by_code.get(code, _EMPTY)
         if len(code_fin) < 8:  # need at least 8 quarters for TTM
             continue
 

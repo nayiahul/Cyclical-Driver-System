@@ -21,7 +21,7 @@ from config.strategic_industries import (
     get_strategic_tags, get_strategic_bonus,
     is_strategic_core, STRATEGIC_COMPOSITE_BONUS,
 )
-from data_governance import filter_available_reports
+from data_governance import filter_available_reports, load_tdx_raw
 from industry import get_sw_industry_l3
 from utils.disclosure import get_season_label
 
@@ -243,11 +243,14 @@ def compute_composite(t_date: str, codes: list[str],
             logger.warning(f"风险中性化失败: {e}，使用原始信号")
 
     # PE TTM: 近4季单季度EPS之和
-    fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
+    fin = load_tdx_raw()
     fin = filter_available_reports(fin, t_date)
+    # Gate 0-A: 按 code 预分组（无语义变更）
+    by_code = {c: g.sort_values("report_date_str") for c, g in fin.groupby("code")}
+    _EMPTY = fin.iloc[0:0].copy()  # 空表保留 dtype（Gate 0-A）
     ttm_eps_map = {}
     for code in codes:
-        cfin = fin[fin["code"] == code].sort_values("report_date_str")
+        cfin = by_code.get(code, _EMPTY)
         if len(cfin) < 4: continue
         last4 = cfin.tail(4)
         dq_sum = last4["deducted_profit_q"].sum()
@@ -430,11 +433,14 @@ def screen(date_str: str = None, top_n: int = 200) -> pd.DataFrame:
     is_vacuum = season != "DISCLOSURE"
 
     # PE TTM: 近4季单季度EPS之和
-    fin = pd.read_csv("data/cache/tdx_financials.csv", dtype={"code": str, "report_date_str": str})
+    fin = load_tdx_raw()
     fin = filter_available_reports(fin, t_date)
+    # Gate 0-A: 按 code 预分组（无语义变更）
+    by_code = {c: g.sort_values("report_date_str") for c, g in fin.groupby("code")}
+    _EMPTY = fin.iloc[0:0].copy()  # 空表保留 dtype（Gate 0-A）
     ttm_eps_map = {}
     for code in filtered:
-        cfin = fin[fin["code"] == code].sort_values("report_date_str")
+        cfin = by_code.get(code, _EMPTY)
         if len(cfin) < 4: continue
         last4 = cfin.tail(4)
         dq_sum = last4["deducted_profit_q"].sum()

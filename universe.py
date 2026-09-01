@@ -155,6 +155,9 @@ def _get_listing_dates(codes: list[str]) -> dict[str, str]:
     return date_map
 
 
+_UNIVERSE_CACHE: dict[str, pd.DataFrame] = {}  # Gate 0-A: 按 t_date 缓存（无语义变更）
+
+
 def get_universe(trade_date: str) -> pd.DataFrame:
     """
     获取指定交易日的可交易股票池。
@@ -170,6 +173,9 @@ def get_universe(trade_date: str) -> pd.DataFrame:
     Returns:
         DataFrame with columns: code, name
     """
+    if trade_date in _UNIVERSE_CACHE:
+        return _UNIVERSE_CACHE[trade_date].copy()
+
     stocks = get_stock_list()
     total = len(stocks)
 
@@ -197,4 +203,6 @@ def get_universe(trade_date: str) -> pd.DataFrame:
         f"(removed: {removed_not_listed} unlisted, "
         f"{removed_st} ST, {removed_ipo} IPO-locked)"
     )
-    return filtered[["code", "name"]].reset_index(drop=True)
+    result = filtered[["code", "name"]].reset_index(drop=True)
+    _UNIVERSE_CACHE[trade_date] = result
+    return result.copy()
