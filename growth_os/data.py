@@ -12,6 +12,7 @@ from loguru import logger
 import akshare as ak
 
 from growth_os.config import DATA_PATHS, WACC_CONFIG
+from data_governance import filter_available_reports  # Gate 4: 披露日治理（P0-2）
 
 # 缓存
 _tdx_cache: Optional[pd.DataFrame] = None
@@ -43,12 +44,16 @@ def load_tdx_financials(force_reload: bool = False) -> pd.DataFrame:
 _snapshot_cache: dict = {}
 
 def get_financial_snapshot(t_date: str) -> pd.DataFrame:
-    """获取截至 t_date 的最新财务数据快照（带缓存）。"""
+    """获取截至 t_date 的最新财务数据快照（带缓存）。
+
+    Gate 4 (P0-2 修复): 从 report_date <= t 升级为披露日治理
+    (filter_available_reports: 实际披露日 → 法定截止日 fallback)。
+    """
     if t_date in _snapshot_cache:
         return _snapshot_cache[t_date]
 
     df = load_tdx_financials()
-    df = df[df["report_date_str"] <= t_date]
+    df = filter_available_reports(df, t_date)  # Gate 4: 披露日语义
     snapshot = df.sort_values("report_date_str").groupby("code").tail(1).copy()
     _snapshot_cache[t_date] = snapshot
     logger.info(f"财务快照 {t_date}: {len(snapshot)} 只股票")
@@ -70,9 +75,11 @@ def get_quarterly_series(code: str, field: str, n_quarters: int = 12,
         return _quarterly_cache[cache_key].tail(n_quarters)
 
     df = load_tdx_financials()
-    mask = df["code"] == code
     if t_date:
-        mask &= df["report_date_str"] <= t_date
+        # Gate 4: 披露日语义（仅保留截至 t_date 已披露的报告，P0-2 修复）
+        avail = filter_available_reports(df, t_date)
+        df = avail
+    mask = df["code"] == code
     series = df[mask].sort_values("report_date_str").set_index("report_date_str")[field]
     _quarterly_cache[cache_key] = series
     return series.tail(n_quarters)
