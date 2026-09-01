@@ -1,0 +1,5471 @@
+[
+ {
+  "day": "20220104",
+  "kind": "rebalance",
+  "universe_hash": "2e2cfc868e38a045852f58364549cee413d8df8f994a2e76d15afc6f17a746f3",
+  "score_hash": "d905612928ba9d63ddc762674dbdb4b5f9e7314f1faac1fdb2ca37cd21f6ba83",
+  "ranking_hash": "5694a45f18b17808d29efc7989e26f09a19ce310e9b41c31c34a46adfee91e8c",
+  "portfolio_hash": "bb0748bc4d11f3c5d05522e869f23be6e9bb3e54e7c48a0d0daf7403da27edec"
+ },
+ {
+  "day": "20220104",
+  "kind": "trades",
+  "trade_hash": "29d2f16f46cf796aa6b8a3eb24f45c69632c18ea235b40ff14e29767625c5987"
+ },
+ {
+  "day": "20220104",
+  "kind": "nav",
+  "nav_hash": "4d429da128dca8fb871372adccf73dcbd11cac9f191d98e2989994585e6b6319"
+ },
+ {
+  "day": "20220105",
+  "kind": "nav",
+  "nav_hash": "f09cc09e654c72f1c9f2ed842d3f47f6af7747a6475ec4fe56690237f7d9b3d5"
+ },
+ {
+  "day": "20220106",
+  "kind": "nav",
+  "nav_hash": "f520c6ec00cbe06b66ee2b3343c3f4d42e8c56f64efd6629e8148994a46f74e2"
+ },
+ {
+  "day": "20220107",
+  "kind": "nav",
+  "nav_hash": "f5a2685cafb26b63b4427a7bc8301864d798f8f51f1bd8c8a9092dd3fcb014ca"
+ },
+ {
+  "day": "20220110",
+  "kind": "nav",
+  "nav_hash": "da58357875ec075cf00cdd973b095bcd7c98becd3b9a436949b722ace26ffe87"
+ },
+ {
+  "day": "20220111",
+  "kind": "nav",
+  "nav_hash": "5474d8aa1e21f8fcd4b9cd0e21ca7da87ef0e5e7858f431885dce3eb5fde6b23"
+ },
+ {
+  "day": "20220112",
+  "kind": "nav",
+  "nav_hash": "60eeb971eebd7fe71b2b273383de5083db01930b3ea88b2068847c6822c7a54b"
+ },
+ {
+  "day": "20220113",
+  "kind": "nav",
+  "nav_hash": "b6f6f4009ea8969bc0d813c22005c243c46bb8ef1a1fc36780926118998bdaea"
+ },
+ {
+  "day": "20220114",
+  "kind": "nav",
+  "nav_hash": "e2892f9decc6a0473033b89659a2d7426fd5837cf6e7524b482bf9eb6429e6b7"
+ },
+ {
+  "day": "20220117",
+  "kind": "nav",
+  "nav_hash": "9d49bbfa562e918e44a7361d7e1a11101d769c726349d826c1fd457d61e49472"
+ },
+ {
+  "day": "20220118",
+  "kind": "nav",
+  "nav_hash": "14430f57b0a1c326c94db774bcebb86c720a643f755609815f5b1c9e96bf962d"
+ },
+ {
+  "day": "20220119",
+  "kind": "nav",
+  "nav_hash": "019ffffee60eac16d3bcbfff64e68a6c2402b7cf1238e5106546365addfc375e"
+ },
+ {
+  "day": "20220120",
+  "kind": "nav",
+  "nav_hash": "91d5ca513232e5d618205b0f3bf9128145a98a999c15afbaf52a879f499f8fb2"
+ },
+ {
+  "day": "20220121",
+  "kind": "nav",
+  "nav_hash": "1b2104410a19c0eb241dd170100abf9e4ac06dbae39a50f3e0e3cc6427627a84"
+ },
+ {
+  "day": "20220124",
+  "kind": "nav",
+  "nav_hash": "cfbf8a3d84530cba9d0c263a33d5fbcd5034832eab379f706bd2dc101c2df028"
+ },
+ {
+  "day": "20220125",
+  "kind": "nav",
+  "nav_hash": "9eb29d0c25252ccc5f3727476097931ac8d54f1c2996ced72ae40f2a8baa3d7c"
+ },
+ {
+  "day": "20220126",
+  "kind": "nav",
+  "nav_hash": "1de2e20c05fe126b16e6488eef47f83f98271e405d0fb3443eb0baf127463c99"
+ },
+ {
+  "day": "20220127",
+  "kind": "nav",
+  "nav_hash": "1f7d1aef5d93e86b8d7128b3f306a26714d1604a06f990fdc98c707846118eab"
+ },
+ {
+  "day": "20220128",
+  "kind": "nav",
+  "nav_hash": "2429dee6716ee9914190ae440119d952f3f257a830e8979e63b998beb5b3c142"
+ },
+ {
+  "day": "20220207",
+  "kind": "rebalance",
+  "universe_hash": "485e67e2bf5b157ab1976343abc27189baeb35180f6481dc9a97713739a872ce",
+  "score_hash": "34d6b90ca393b932f781d2eb50fcb839eb3b2dfd797d39541be51e08e264f284",
+  "ranking_hash": "a1bd4281b54864ee69c99ac629a7df2fde6f5805478cf881fdba713da5fb3792",
+  "portfolio_hash": "5c95fbbd5763108f8f775eae4d2c9de5c8f15f3d2d8a836dc51c2c87bcc247cd"
+ },
+ {
+  "day": "20220207",
+  "kind": "trades",
+  "trade_hash": "d2502ec08791b770befa1c79dc834dcda2f14f200dceebf8971af28fc1e22d0d"
+ },
+ {
+  "day": "20220207",
+  "kind": "nav",
+  "nav_hash": "82266a0d11c700454b1774643562ff9be09cb052b90f920f61899ee3822bf49b"
+ },
+ {
+  "day": "20220208",
+  "kind": "nav",
+  "nav_hash": "5484e2478cd5637210641ce97ca6fc7536411786782c7e662d442d71180dc5b0"
+ },
+ {
+  "day": "20220209",
+  "kind": "nav",
+  "nav_hash": "fee764a5c64b6a4364fa53499c99497338702ce965212269417afda96435ea98"
+ },
+ {
+  "day": "20220210",
+  "kind": "nav",
+  "nav_hash": "e0989833aa6c65ff61a012016a7c456fa843ab45582fce7520ef102c71f2e78b"
+ },
+ {
+  "day": "20220211",
+  "kind": "nav",
+  "nav_hash": "c93b1cb062d8af468f537179da30e4e0fa481b3137dd42df78cab47aa6835916"
+ },
+ {
+  "day": "20220214",
+  "kind": "nav",
+  "nav_hash": "5550c833a7fc09c0db73d34e21de2e2ad1366010417a4297993116d478efc51e"
+ },
+ {
+  "day": "20220215",
+  "kind": "nav",
+  "nav_hash": "5e34e8f41fe77a4386d2ab7f060945057e514e602e7fd8d81511f25095bc2df4"
+ },
+ {
+  "day": "20220216",
+  "kind": "nav",
+  "nav_hash": "096d8b1004bf4f7eb8252c917f8fe98e3531394518b90f36dcaa8c1d409d8793"
+ },
+ {
+  "day": "20220217",
+  "kind": "nav",
+  "nav_hash": "ff34f15832f9a7878a0638e4a19e3e0800213433b15d71ce27ae74ce1f3c4afe"
+ },
+ {
+  "day": "20220218",
+  "kind": "nav",
+  "nav_hash": "eccecbf4b9851ad9a149cfed237b17e4b4a3d3fb5894405bc5ea37523710ee82"
+ },
+ {
+  "day": "20220221",
+  "kind": "nav",
+  "nav_hash": "1207d5bc046772339f7f51b684b2d8e6ddcfb899e083f03ca2da33fb24ef7db5"
+ },
+ {
+  "day": "20220222",
+  "kind": "nav",
+  "nav_hash": "962f9f460b9b37b820f7ca135715718a296a4bb98001892a31296bc2e90e0261"
+ },
+ {
+  "day": "20220223",
+  "kind": "nav",
+  "nav_hash": "60cc61e9e763aa7bc4fc13ff8b98ecd3fbe344ce7bebe89d6d8adc3e047f0fc5"
+ },
+ {
+  "day": "20220224",
+  "kind": "nav",
+  "nav_hash": "00c688c5742606232e29920823f1afded0f16fec400d8864b99f7a5369f7c5df"
+ },
+ {
+  "day": "20220225",
+  "kind": "nav",
+  "nav_hash": "ed0764e329eac6649e69bf6ffaaa32a4cf54437c57509cabf2fcd01bfc1df1dd"
+ },
+ {
+  "day": "20220228",
+  "kind": "nav",
+  "nav_hash": "c6e540f625afc42b43701eaecf2d1589246817797ffc74ddb5b5f95e440abb2c"
+ },
+ {
+  "day": "20220301",
+  "kind": "rebalance",
+  "universe_hash": "b9343782b8eff9b7526d3df7a6afefda2944020929e7e0525950168da2108a55",
+  "score_hash": "8866aa869436208c9c7cb460630ec768f2e95d18890456a345953ccceff36560",
+  "ranking_hash": "215c66516b7d81aa4ff8717afad9914cacf45905ffdbbf892e43645070c51f41",
+  "portfolio_hash": "3c31a8f862f00d73317f4d9f3862e47df7ae3d7173850b600660cf214fa72142"
+ },
+ {
+  "day": "20220301",
+  "kind": "trades",
+  "trade_hash": "06de31b2d543065fb46253dd10e802bfd4b0d75a35ac1510e867ab0df56f2d4e"
+ },
+ {
+  "day": "20220301",
+  "kind": "nav",
+  "nav_hash": "2408f3c52e56fe3a36787b1c96f8e287e0f6e098111c131055ad719187e0f2b0"
+ },
+ {
+  "day": "20220302",
+  "kind": "nav",
+  "nav_hash": "3382cffc4735d19d37d028d6b4c8c0fe7cb770e5f3f37fd7cf6138483572c97d"
+ },
+ {
+  "day": "20220303",
+  "kind": "nav",
+  "nav_hash": "96626597399c267f1bba7f142b61ab523a5c89907897797fcd80ac207c732ff5"
+ },
+ {
+  "day": "20220304",
+  "kind": "nav",
+  "nav_hash": "8f746b3cf2db34d485e5a7d394e5957486c84cf180b929bb18c326c58dfaca6b"
+ },
+ {
+  "day": "20220307",
+  "kind": "nav",
+  "nav_hash": "c48adf77d41a2a8fb06bb1aed2cf83966f550de084b7669a494dec914a06dbf2"
+ },
+ {
+  "day": "20220308",
+  "kind": "nav",
+  "nav_hash": "0adf40da7eca52feb4e14243bcb3e0ce21a647116bc72beda3eae890e4da6d12"
+ },
+ {
+  "day": "20220309",
+  "kind": "nav",
+  "nav_hash": "c802a894e3d8f912da0872e1a585e00ef7088a98737494e9adc75715412e513b"
+ },
+ {
+  "day": "20220310",
+  "kind": "nav",
+  "nav_hash": "a13348ecb5c20c77dc3d6caf6d299f7abf5e08321990494337fdc1c71871de53"
+ },
+ {
+  "day": "20220311",
+  "kind": "nav",
+  "nav_hash": "cdf1baa3ab66139a56d873a466ca77e4ab87e632b8785adfa150016f17ecf023"
+ },
+ {
+  "day": "20220314",
+  "kind": "nav",
+  "nav_hash": "56b0d012748f5f4c642cfe1279e52c0e2d6ac6238dab8f22bdf3d6ead5552284"
+ },
+ {
+  "day": "20220315",
+  "kind": "nav",
+  "nav_hash": "1dc9e86578a4377d7414095f3ab10238c2084baec4256bf680a4d48e29bbcd94"
+ },
+ {
+  "day": "20220316",
+  "kind": "nav",
+  "nav_hash": "2f1878d9a691a5a3d7eaa45612218004e9821d764debcd1382e8e74cb542a477"
+ },
+ {
+  "day": "20220317",
+  "kind": "nav",
+  "nav_hash": "5e12054fd713d81b4f426bb1b2751dbebc9f20811bb16392aee63b43cc174b25"
+ },
+ {
+  "day": "20220318",
+  "kind": "nav",
+  "nav_hash": "6997c696b3d34e1c96584da6a6008d6e52e9a07f6c5a97e02eae49edfb8e81df"
+ },
+ {
+  "day": "20220321",
+  "kind": "nav",
+  "nav_hash": "fac569328d687ed7b1656915383ea7f1d8b8d3d2454d5152e67243cf4ee55255"
+ },
+ {
+  "day": "20220322",
+  "kind": "nav",
+  "nav_hash": "19d7f05a23d67afda8de6662f9d7344b5afc98b2d3fec9ad9c28d4f4ec82d9a7"
+ },
+ {
+  "day": "20220323",
+  "kind": "nav",
+  "nav_hash": "5268189f5f7a43e780857abf58ce9b79df3a7ade942460ce8b88ee5a833832c7"
+ },
+ {
+  "day": "20220324",
+  "kind": "nav",
+  "nav_hash": "6ec0a4bb15afb818d14c216189f6c1630a9aced11005db9ac1a00b78ad76b463"
+ },
+ {
+  "day": "20220325",
+  "kind": "nav",
+  "nav_hash": "921a882adc27b7b5c24d5749346037a33f3a5674b50b5e8e3c0f58761f15a15c"
+ },
+ {
+  "day": "20220328",
+  "kind": "nav",
+  "nav_hash": "cbcff302bb7157de628ed852cfe705526b02fe40ad5736b4b0d6970f03272ab0"
+ },
+ {
+  "day": "20220329",
+  "kind": "nav",
+  "nav_hash": "35ccdf5f6a4a37534d7766fded09af1e75b92205dafb8daccf6918d976718bbf"
+ },
+ {
+  "day": "20220330",
+  "kind": "nav",
+  "nav_hash": "f1bb3030fef80de24963816c199eaab571855429844555bef7f422ff19a7b4a7"
+ },
+ {
+  "day": "20220331",
+  "kind": "nav",
+  "nav_hash": "ee4f4d17b62b8d42417c99bd0045dded024944a51ce41110c7cdcf2900122847"
+ },
+ {
+  "day": "20220401",
+  "kind": "rebalance",
+  "universe_hash": "3aa0d32752fe72be74d1e9d177cfc6536a8a33013ec3519113fea4ad04965538",
+  "score_hash": "498778972b13731ab985d9e3bb9fdd1ac2d08618a3e246e7ffd5f7391b5cb91b",
+  "ranking_hash": "1b627fa9361d7a6aa79bf0f226ae9d612b8a6973374f92fbe6ef9eefe37bafe6",
+  "portfolio_hash": "a6d785cae651ea4fc7310d2d3209674039595a6d1ffac8ab6aef789bf348c287"
+ },
+ {
+  "day": "20220401",
+  "kind": "trades",
+  "trade_hash": "f90612dfbe42cca3a20892915a8a7e5b248947eb451fbb326c4e9702736986ec"
+ },
+ {
+  "day": "20220401",
+  "kind": "nav",
+  "nav_hash": "d98b8f548d053dd89cc6e172c6a2fa0f50081b41f01a1d22eec3fa0d4f188de4"
+ },
+ {
+  "day": "20220406",
+  "kind": "nav",
+  "nav_hash": "7cf6b2f24e0ae57ed553dccb040fc39f44394a684bb05f4e49f620a667c8644f"
+ },
+ {
+  "day": "20220407",
+  "kind": "nav",
+  "nav_hash": "0f268d41e57ce858e2cfb96b5d98526fbd4e559c85d20d2bfd662b4ef32f9eb3"
+ },
+ {
+  "day": "20220408",
+  "kind": "nav",
+  "nav_hash": "a348b44f1f7e8e257666df5892b6f7c80e0f6323d8d44a1de9aced4934173aa6"
+ },
+ {
+  "day": "20220411",
+  "kind": "nav",
+  "nav_hash": "fa2133e239023c05f77ae4e3b72cdceeb0fcc42f26061fd9517a60ec33e8cd67"
+ },
+ {
+  "day": "20220412",
+  "kind": "nav",
+  "nav_hash": "f5d576b101c8c8f3fab71cadc45faf325f3665a40e73a3317f286074e9d1521e"
+ },
+ {
+  "day": "20220413",
+  "kind": "nav",
+  "nav_hash": "e7fddf3eb2a71f9239e8dd40de2f579bd9f5787368994998c66d1a386619763a"
+ },
+ {
+  "day": "20220414",
+  "kind": "nav",
+  "nav_hash": "0eff3dd9682e0fe194f727f114347cd8c16908a1c8d105ebfb602ae2aff4ae17"
+ },
+ {
+  "day": "20220415",
+  "kind": "nav",
+  "nav_hash": "68ba1892a2feab4e927beaea929b2cde431d3e8ef436a83e3650ae53a55d8970"
+ },
+ {
+  "day": "20220418",
+  "kind": "nav",
+  "nav_hash": "e0622776c5350dfeea8d8f5f1db1f19832900c7691c3347d6633b9d2d31ada9d"
+ },
+ {
+  "day": "20220419",
+  "kind": "nav",
+  "nav_hash": "6931aca4ab5f165bc0dcc2c58aad2d0369bd8a0222121f59f6d1294889b67694"
+ },
+ {
+  "day": "20220420",
+  "kind": "nav",
+  "nav_hash": "f2839f516e58f9ac55a5ef3120631a1fecddeb58fb6efa30b25cf354a78705d5"
+ },
+ {
+  "day": "20220421",
+  "kind": "nav",
+  "nav_hash": "6efd7104bf48c60efeb8ff51ac0c70c37182d3f31ca2247d7d3d642946bd4f41"
+ },
+ {
+  "day": "20220422",
+  "kind": "nav",
+  "nav_hash": "5736127507735223ccdd097022ca3d8af9ace562781a838ab405963b6293a18b"
+ },
+ {
+  "day": "20220425",
+  "kind": "nav",
+  "nav_hash": "13aa8a6c1b4f8e3f5ffd66bcd7f3080a40d60a5f1f718df33ebbab92b378d0fb"
+ },
+ {
+  "day": "20220426",
+  "kind": "nav",
+  "nav_hash": "3f675a587dbe25053700621b75c1dc8a5c51a0ef967cfb6f99b23b8c91bb4a52"
+ },
+ {
+  "day": "20220427",
+  "kind": "nav",
+  "nav_hash": "7de972496daf5d27e74203654cfab5ba69bd3d8273af67fc4e73a0c4175dfa47"
+ },
+ {
+  "day": "20220428",
+  "kind": "nav",
+  "nav_hash": "718881574dda5381f423bc3affff44235e3f31214c8aa8fb84846166e7b3f048"
+ },
+ {
+  "day": "20220429",
+  "kind": "nav",
+  "nav_hash": "56b9856d9b36f9a7e7ad2fc6bd3439ed94ed62a772851f52e6444348747962f4"
+ },
+ {
+  "day": "20220505",
+  "kind": "rebalance",
+  "universe_hash": "69b6e49ba870ec5b4a1149a5856c67f02a755520da5e8cb6d97552c3965c55c9",
+  "score_hash": "67906181b57b798efb554a1618b6e062f8b7a5b4e42d769168cb924af7374f33",
+  "ranking_hash": "1db92295c4d9008ced922de06b8ff2de3cdc91d350b55dcf9f7b04661092bbef",
+  "portfolio_hash": "921df20ef45563d8d9ac0f6e32a7c3b019829abaa75e2d16070ac785053cae4f"
+ },
+ {
+  "day": "20220505",
+  "kind": "trades",
+  "trade_hash": "dbc183f4b831a9959f157d7bef906ec6c6b962ecb50e7b20496d43e3ab96723d"
+ },
+ {
+  "day": "20220505",
+  "kind": "nav",
+  "nav_hash": "aca870e7df021636600cfad406fc2e126132a5d7f2a867ea72bd440fff9ec9ef"
+ },
+ {
+  "day": "20220506",
+  "kind": "nav",
+  "nav_hash": "98d3694ff3f4663d05cc192511550859e35b3fd1da21b20fa94ffe67ed5dbaa7"
+ },
+ {
+  "day": "20220509",
+  "kind": "nav",
+  "nav_hash": "9f4fd140f9981124167204ca1ac98eca695c9d8d8e6ed2826fc115d2407aaed8"
+ },
+ {
+  "day": "20220510",
+  "kind": "nav",
+  "nav_hash": "5fc465210f257b1a321ee1e775d2287bd45727ab9868a28632be63373e5cb556"
+ },
+ {
+  "day": "20220511",
+  "kind": "nav",
+  "nav_hash": "b9ab807fdd458ea1fe8515d7c4082f4920161ec8529eaea0d81ac956ecde0c5e"
+ },
+ {
+  "day": "20220512",
+  "kind": "nav",
+  "nav_hash": "f6690565fd3ecc798cc9f1158c42b5425f6d522c6ff3a02a0b452af2854946dc"
+ },
+ {
+  "day": "20220513",
+  "kind": "nav",
+  "nav_hash": "6d95dc74b3341d5c0b6195f82eb99b111ceb2ad3437546cd5830e583adfd77b3"
+ },
+ {
+  "day": "20220516",
+  "kind": "nav",
+  "nav_hash": "8a57121bdcd98ce254a0c94682b337c98097e0a9005d351faee4dc3181e609d3"
+ },
+ {
+  "day": "20220517",
+  "kind": "nav",
+  "nav_hash": "ca786818409993d67312012edbe8b7d1010f7e14502b549bfbcfbac076c7e3bd"
+ },
+ {
+  "day": "20220518",
+  "kind": "nav",
+  "nav_hash": "93b1f855e7942768754ffca6c6d461d658c8222f8efbb9be68425d4775428325"
+ },
+ {
+  "day": "20220519",
+  "kind": "nav",
+  "nav_hash": "e3b49ff4e091f5f64cb5a2e16610f7e397636fbb628e262d5fee94904b7e439a"
+ },
+ {
+  "day": "20220520",
+  "kind": "nav",
+  "nav_hash": "9d0d6947a6813fbb005addc1856f25c4a1beb911cf9a55ffc2fe945b8fbacc5a"
+ },
+ {
+  "day": "20220523",
+  "kind": "nav",
+  "nav_hash": "bb27214f4264fcd00af29b05417f9e7f65151f13830325ad839f96541b988eac"
+ },
+ {
+  "day": "20220524",
+  "kind": "nav",
+  "nav_hash": "6ce2ad5903fb83aaf2a7a7edad145e56e5b2f0fdd53983a866b93fcf3d777df1"
+ },
+ {
+  "day": "20220525",
+  "kind": "nav",
+  "nav_hash": "ea3363788ea6fbf26daa81f772a72acf77b66e769903e301eac0e19a774ced77"
+ },
+ {
+  "day": "20220526",
+  "kind": "nav",
+  "nav_hash": "3c668bf8afa6bfab41f84e939bec8c4dbf21aafca9202ad7c72070f6cc55b2e2"
+ },
+ {
+  "day": "20220527",
+  "kind": "nav",
+  "nav_hash": "d042323a351bb96eccc4d23a073357ef9919fb2eed4d428dac1915dfa01ef7dc"
+ },
+ {
+  "day": "20220530",
+  "kind": "nav",
+  "nav_hash": "5e24a39e8f830e8b4c4460eef4a3eac5fb0f266b7542caa3c180f9ab803bdd24"
+ },
+ {
+  "day": "20220531",
+  "kind": "nav",
+  "nav_hash": "f6b568a11801cece0d7e5b5fab73772526d8bb7b4a4bea082e18fb38d90ccd20"
+ },
+ {
+  "day": "20220601",
+  "kind": "rebalance",
+  "universe_hash": "f077e81950f24cba0ddea3670b8ae930b821aa65647ec163dc6a555bb63c7025",
+  "score_hash": "6739043e05aef2fab82373f3640d379756446cc0cd50760a2203b714a55c9b31",
+  "ranking_hash": "736068cda152949ca37c77bd8cc82338d1994fadbd9cb8f8ca8aa7318fb17918",
+  "portfolio_hash": "ddbe3be5c558df4f95db0e62685da25a25af10d5331c5315f41d15acd56f72c2"
+ },
+ {
+  "day": "20220601",
+  "kind": "trades",
+  "trade_hash": "9903d8feb964bdddce10d6c17dc2bac01ed4af8c884bf27b95ff29b792f665c1"
+ },
+ {
+  "day": "20220601",
+  "kind": "nav",
+  "nav_hash": "8a68a8ea8bf8ec5ef0938df812fb9a1e37bbaaa78f077a2df7a3843e39428c89"
+ },
+ {
+  "day": "20220602",
+  "kind": "nav",
+  "nav_hash": "75c8cfe3cf125600b4394eafaff97b224f5e613a99d38bddb5faabdd615ddcee"
+ },
+ {
+  "day": "20220606",
+  "kind": "nav",
+  "nav_hash": "d5e1ffdc0abcd7c1a88244abbdcab2b92f38b2e59fb65302e8120b7169edafb1"
+ },
+ {
+  "day": "20220607",
+  "kind": "nav",
+  "nav_hash": "5073157d18dc3fb06695f15dcfb77540926654b65cd1aea70a2fac1b2a4e3608"
+ },
+ {
+  "day": "20220608",
+  "kind": "nav",
+  "nav_hash": "f27c97d00d611c91112f395da2c10cbab9d370ca4b12d64773a172ccbd8dce1b"
+ },
+ {
+  "day": "20220609",
+  "kind": "nav",
+  "nav_hash": "6d036357824d32593d8349869e058e292baab79740f6ef284d2cda42cdd52777"
+ },
+ {
+  "day": "20220610",
+  "kind": "nav",
+  "nav_hash": "c910763ded59208afe1e54d8328526d40529f8c774f62886f6c3aa80e2b102a7"
+ },
+ {
+  "day": "20220613",
+  "kind": "nav",
+  "nav_hash": "f78e0f7759d3943ef9fa3513020abd82ad86c6df65356e737d4b3e9f60f093db"
+ },
+ {
+  "day": "20220614",
+  "kind": "nav",
+  "nav_hash": "443b5d0fae9797e0606b24f840a2f6b94466730e89f376ecf5ad10c1c6149a76"
+ },
+ {
+  "day": "20220615",
+  "kind": "nav",
+  "nav_hash": "14222bbe3b89670ff285632b0f1d872f0dafa1b1467330b048659bd8b811a974"
+ },
+ {
+  "day": "20220616",
+  "kind": "nav",
+  "nav_hash": "dfdceefda32db0a37914e7f226df9ce4f4df2c5b0ace62ff97cf9df12c8b7e1a"
+ },
+ {
+  "day": "20220617",
+  "kind": "nav",
+  "nav_hash": "5fe4e2af63a0ed1cd790a2758e338bb04a3aecac682b2ac62bce2eb81d893b48"
+ },
+ {
+  "day": "20220620",
+  "kind": "nav",
+  "nav_hash": "599da2d103fb9110fe2ce946be9603099e5355cf8188a717e2145edb9d4ebb52"
+ },
+ {
+  "day": "20220621",
+  "kind": "nav",
+  "nav_hash": "39a43d9c9c5f175074854e867c4ca6f32047d9723ceac7fc61153aee8dd0ea23"
+ },
+ {
+  "day": "20220622",
+  "kind": "nav",
+  "nav_hash": "b24e05178d1e28bf5472f574c19e380998b56c21e1007d03a2320357cdce1536"
+ },
+ {
+  "day": "20220623",
+  "kind": "nav",
+  "nav_hash": "fba574f39a293e5513f75a4d4c2c36e9509fd62c61659d8057cbd3dcf5c42506"
+ },
+ {
+  "day": "20220624",
+  "kind": "nav",
+  "nav_hash": "bab8aa160e7c4b209cb49784a0225838c4533b4e596210ab9aee0be3475138f2"
+ },
+ {
+  "day": "20220627",
+  "kind": "nav",
+  "nav_hash": "088a56a32336f8a6cc2b97c7f37809766562dacd05fcf6258183d3c95f3f5185"
+ },
+ {
+  "day": "20220628",
+  "kind": "nav",
+  "nav_hash": "9a0027bb61167e5a9d5ff79ecce2bf8077b8962deef467ce7b842b046db65251"
+ },
+ {
+  "day": "20220629",
+  "kind": "nav",
+  "nav_hash": "3d9b7b67f6a6d5c4821185bda61e0599d4a61ecd4305a65ccf73e453b1231e22"
+ },
+ {
+  "day": "20220630",
+  "kind": "nav",
+  "nav_hash": "d8897c7fc209ddf9fe129522e1214ab900b5f7abcc06f7f8929c7355e2763eb1"
+ },
+ {
+  "day": "20220701",
+  "kind": "rebalance",
+  "universe_hash": "6962cd5c771e690829a381601a2bd786d720c24d37ff568f53c0854aa4ad2db4",
+  "score_hash": "f643ae800e86b77af0f40600a265670653a026d08c636801070cc670bd9604d5",
+  "ranking_hash": "7accd1edf1120c9f0abea20f87084ed266e52a744635d1ab8c41869ec72299a8",
+  "portfolio_hash": "7d3e53774963c58836e41e3413ba9137f240ac1c5668ac889eab6f357b5a82a6"
+ },
+ {
+  "day": "20220701",
+  "kind": "trades",
+  "trade_hash": "bd28d41a5ed6c945ac89d5d73b882c45a2a36426b9aa19d3e7793331e0e331c1"
+ },
+ {
+  "day": "20220701",
+  "kind": "nav",
+  "nav_hash": "dd12478e262f81534685df67aa5d3a5853c35b1bc98a90ba9bf2e400ac558ffa"
+ },
+ {
+  "day": "20220704",
+  "kind": "nav",
+  "nav_hash": "129fc35b7bc1ee37c9238fc7c70d7c5a0ebe38bd119e7ed7e67f39fb4f8f8f62"
+ },
+ {
+  "day": "20220705",
+  "kind": "nav",
+  "nav_hash": "f3530f268154ea567300b416f4f486475e7fe90d9e5e1261dc5ca5311bf0e0a4"
+ },
+ {
+  "day": "20220706",
+  "kind": "nav",
+  "nav_hash": "182731a59fa9df700b999cd42984a572f9309383a29b51b60c4240f7a7698e00"
+ },
+ {
+  "day": "20220707",
+  "kind": "nav",
+  "nav_hash": "00de4fcd7d2419efd569304f6fcff96870a74a432246978623b7ae9111ad1114"
+ },
+ {
+  "day": "20220708",
+  "kind": "nav",
+  "nav_hash": "4fbeeef38f945841579dc1a6cff349bcd387ad2be15e418fa4b06735a48d0a4c"
+ },
+ {
+  "day": "20220711",
+  "kind": "nav",
+  "nav_hash": "4f9416afd480f6caad35e392149addaea9cd1bd263b8641cc1c34fc2a54eacda"
+ },
+ {
+  "day": "20220712",
+  "kind": "nav",
+  "nav_hash": "623166e4486e2e5843bd34553495c0c65a9c3ebd7fdb3b505fff12d0e3baf497"
+ },
+ {
+  "day": "20220713",
+  "kind": "nav",
+  "nav_hash": "b12b7000dbf213d964a3873472bc9bb9cb7354e98efbd0e2cf459a2ac1c31720"
+ },
+ {
+  "day": "20220714",
+  "kind": "nav",
+  "nav_hash": "5663b1a3478f2562352bceca67e8a3ee0b3b2c79ca0829794aebfe6ab8f3b74c"
+ },
+ {
+  "day": "20220715",
+  "kind": "nav",
+  "nav_hash": "4b8875bbcb11dadc493c829385008a07665c3e1d003660c49244a90ed476ba65"
+ },
+ {
+  "day": "20220718",
+  "kind": "nav",
+  "nav_hash": "b715a2d7dd42651c7d75285df682b2f21907344d5e971f87448d3f303a12611c"
+ },
+ {
+  "day": "20220719",
+  "kind": "nav",
+  "nav_hash": "c348a20a3f8025762915319be45f5b3e2fd073d8c8e6ff34ba03972f61397fc9"
+ },
+ {
+  "day": "20220720",
+  "kind": "nav",
+  "nav_hash": "cc096a3ec5f813cabb931f1b3d3e9022c228d050aa3090723bded25a9e92b8f5"
+ },
+ {
+  "day": "20220721",
+  "kind": "nav",
+  "nav_hash": "867aa5c0cc0838c2f985f1d64970e1a576e30ab8e6ab79f992c8f0b230a5338a"
+ },
+ {
+  "day": "20220722",
+  "kind": "nav",
+  "nav_hash": "7b2ee57902914766d622d0e4be3c789aaf41530f8263c7d5f4305f4a620ceee2"
+ },
+ {
+  "day": "20220725",
+  "kind": "nav",
+  "nav_hash": "e02a0026bf78ac482072eb493f75aff3b3abf27b51873ffee5155d10241220c0"
+ },
+ {
+  "day": "20220726",
+  "kind": "nav",
+  "nav_hash": "03da567bc6e215e56fc87bed4147a4cbe23f44b0f95919173c75c7d0594970de"
+ },
+ {
+  "day": "20220727",
+  "kind": "nav",
+  "nav_hash": "f8b684cd8d18efeaeb5ac77c238a1c72e4e72fa920a455cad3eb6c80c213ca71"
+ },
+ {
+  "day": "20220728",
+  "kind": "nav",
+  "nav_hash": "38fbfbe1fb4a7ed3084cc482cf1bd55401d066ab55c198a00793c0259f1ed44b"
+ },
+ {
+  "day": "20220729",
+  "kind": "nav",
+  "nav_hash": "91f7f1af4897ea553d91ef9ad0078e099624a19f25dfa375dd4ea707c7aa4fc5"
+ },
+ {
+  "day": "20220801",
+  "kind": "rebalance",
+  "universe_hash": "e475d067eaa42bb094d00e237b391644aaa4a22a36fa04469ffc31c8e7c74634",
+  "score_hash": "fe661509ea534fc1e555771ad9437c72d89d67e18e0abaa6181868127d953dd9",
+  "ranking_hash": "9a1b4291a0f5ecc30f79cc2bdeb9967ff512c469e4f9eefe9eb524a7c586e4d2",
+  "portfolio_hash": "a3028a853284b7fda8cb0dbb813bcc25dddc91e9a70e03d19bf3e835b1668c5a"
+ },
+ {
+  "day": "20220801",
+  "kind": "trades",
+  "trade_hash": "e18a1aecab1d6abd3e6836959c29ea2a631fbe157b82bff6a3b40fa000cc3b47"
+ },
+ {
+  "day": "20220801",
+  "kind": "nav",
+  "nav_hash": "0838a2cbdae3cf90753b3f4e92f7315dbbc2fbea30c823997cc38d7a7873ec72"
+ },
+ {
+  "day": "20220802",
+  "kind": "nav",
+  "nav_hash": "799ce22d71f593216331933ef2b200c1268b86fba2e900317722b5f6025e6a72"
+ },
+ {
+  "day": "20220803",
+  "kind": "nav",
+  "nav_hash": "89c1f59c4dce79fb15a8cff37ea3e768e16a83581ee87d1dd2753cb54e147afc"
+ },
+ {
+  "day": "20220804",
+  "kind": "nav",
+  "nav_hash": "2058a0e6359668ab82f56750679488fa479a5e973ee3716b250f5e431c63ebe3"
+ },
+ {
+  "day": "20220805",
+  "kind": "nav",
+  "nav_hash": "2767899714c24ebbd4dda03d21f7cdf8568c2fdcf47214c4df40bdb9b77de806"
+ },
+ {
+  "day": "20220808",
+  "kind": "nav",
+  "nav_hash": "d4156b9ca65248617677d0df66936fedfb27eec5f3dba92a22ac6a6905f2a274"
+ },
+ {
+  "day": "20220809",
+  "kind": "nav",
+  "nav_hash": "3fcaffa2655a67e629f01508f6dfec4d3d3561bcf826eb3415367e3f37e1a622"
+ },
+ {
+  "day": "20220810",
+  "kind": "nav",
+  "nav_hash": "b366f3d768f58e4225656cd2710cd63c82bd324b6432ae8df274a1fbe2c24ae6"
+ },
+ {
+  "day": "20220811",
+  "kind": "nav",
+  "nav_hash": "15bf623d8e78aae2e8538a2bdea8abe3d0ccb3d2d31fb5ab8578e20adedbc8af"
+ },
+ {
+  "day": "20220812",
+  "kind": "nav",
+  "nav_hash": "132d942cfe6fbfd61e80247f7ccd8e423420630fc62a71f6210a489c963e3882"
+ },
+ {
+  "day": "20220815",
+  "kind": "nav",
+  "nav_hash": "91e9b6b9566ac870424cd7d748f87e2e3de0fad545e40a0a0a58bb8793fbf106"
+ },
+ {
+  "day": "20220816",
+  "kind": "nav",
+  "nav_hash": "2e8302354581a6cb0854636a5faab7cd79fecaef4e67452174d48e37b174c370"
+ },
+ {
+  "day": "20220817",
+  "kind": "nav",
+  "nav_hash": "8971c1b3e48d03855121a992db227ea6e7e1ac5763acec8027211d30936eabbe"
+ },
+ {
+  "day": "20220818",
+  "kind": "nav",
+  "nav_hash": "8f5ed9335e029130ccf6505cefa9ce60fa14082d032fa99404d5fb52de0a0fb9"
+ },
+ {
+  "day": "20220819",
+  "kind": "nav",
+  "nav_hash": "50b3d8b04ffd2e502806b6738476f1f82d306b9bfc5009796c42daf90aae87f2"
+ },
+ {
+  "day": "20220822",
+  "kind": "nav",
+  "nav_hash": "a1ee8bc445385c1052b6d33332d3ab8ead01050ff8acbd5f2443a1f7c8e9ea87"
+ },
+ {
+  "day": "20220823",
+  "kind": "nav",
+  "nav_hash": "ebb1ad9c688cbc65dd10c668337893dfa25856d07a1dd3eadadaee2ebd40280f"
+ },
+ {
+  "day": "20220824",
+  "kind": "nav",
+  "nav_hash": "6981a7b7b2fd0a3756211501479c3e0fe5e8e217ccbc9b245592a89a3f759dde"
+ },
+ {
+  "day": "20220825",
+  "kind": "nav",
+  "nav_hash": "6dd19724389619107852e29c3a8d2fdcf09531db9da33cd4ecc2e8b0440e4ab5"
+ },
+ {
+  "day": "20220826",
+  "kind": "nav",
+  "nav_hash": "58b079760567a7cfceb28ef4eaddfe38d30d8095395b55b7f29085d3137c405b"
+ },
+ {
+  "day": "20220829",
+  "kind": "nav",
+  "nav_hash": "7ba14d89242f51185dd67ef2e8a62e74ca043ac96345227a644ccdce983e95c3"
+ },
+ {
+  "day": "20220830",
+  "kind": "nav",
+  "nav_hash": "7f284bc997267b046e3989e198fef234022e14db69784ffa3a8e29bf1975910b"
+ },
+ {
+  "day": "20220831",
+  "kind": "nav",
+  "nav_hash": "63c83d00392b0556683c56de97ee29870cb029c0c2eac553ae064766f03444c4"
+ },
+ {
+  "day": "20220901",
+  "kind": "rebalance",
+  "universe_hash": "676f491e213ea9817409f07230d6afb130464bf027fb43e59446446035273617",
+  "score_hash": "9b14d5f9f38f8253413d0da5edee36b26a478f74d7968ca38fa91b6278984d6c",
+  "ranking_hash": "835708f26b3dbb061c63b8d6d2a8020b3cf64ad98976d0e0d2c25baa5ba80482",
+  "portfolio_hash": "3af9c31a3beb65f39fd6bb8d92deae4c3a180511dff8fb2eb0e349f640099c12"
+ },
+ {
+  "day": "20220901",
+  "kind": "trades",
+  "trade_hash": "5270bda74bd138c03c2abb468d6364cd14fee3fa2f15f566b6a460c4831e1e85"
+ },
+ {
+  "day": "20220901",
+  "kind": "nav",
+  "nav_hash": "2f9d1c1bae8303acc28328b962e82107561522d6a7dad31961eb0cd0ca4b6ab7"
+ },
+ {
+  "day": "20220902",
+  "kind": "nav",
+  "nav_hash": "557adf6e438ba9de21143f99a6300b286023cbd52cde921234476c07c276b6d6"
+ },
+ {
+  "day": "20220905",
+  "kind": "nav",
+  "nav_hash": "f68f40291ac7b14bbf4c57894d8232bedd6e38e5ca6fa1bf7b033120f888bf23"
+ },
+ {
+  "day": "20220906",
+  "kind": "nav",
+  "nav_hash": "e22edd83ef95229802fde3d648301e75dd335ebb70bc721ca8e80ba113a549d7"
+ },
+ {
+  "day": "20220907",
+  "kind": "nav",
+  "nav_hash": "7544557e948d150b64ee8f56490027b73472643204b91ce1b9ddea817733ffd7"
+ },
+ {
+  "day": "20220908",
+  "kind": "nav",
+  "nav_hash": "7887761d5d396267e23359eeb78658dea728896f538a412d91f5d22ed4430e77"
+ },
+ {
+  "day": "20220909",
+  "kind": "nav",
+  "nav_hash": "3844b690375d8ffe8515de662b6a45eeebf366690500d8c83fac88771738c967"
+ },
+ {
+  "day": "20220913",
+  "kind": "nav",
+  "nav_hash": "b17d4eb3bb804a20adf19e9895b78e0803302ab897fa149ef066ffd744d0e3f6"
+ },
+ {
+  "day": "20220914",
+  "kind": "nav",
+  "nav_hash": "c6cf37f0d8f75bf34cbaf1206ad1c6d1581cd907e5554f1f94ce5498c93af5b9"
+ },
+ {
+  "day": "20220915",
+  "kind": "nav",
+  "nav_hash": "f05e8d65d183678604b9348150146588de253dcee02da65c0f575c82f0c40769"
+ },
+ {
+  "day": "20220916",
+  "kind": "nav",
+  "nav_hash": "19c2e60bc1ba16ca47ec6b86251b79c57fe9464977a4c2cd5c1aa02bdc0f8348"
+ },
+ {
+  "day": "20220919",
+  "kind": "nav",
+  "nav_hash": "a948964842c60b1f157cd1ca09fd304e518cae3fdea784cb60efafcd8133e51a"
+ },
+ {
+  "day": "20220920",
+  "kind": "nav",
+  "nav_hash": "268a84eba25b249412ae722faee6e90fca268b02f141a7dca62c27f54e595329"
+ },
+ {
+  "day": "20220921",
+  "kind": "nav",
+  "nav_hash": "ef8cacd89bda3620ba7e2e527f581cf247db8109ac9aa2e99810e836a1102295"
+ },
+ {
+  "day": "20220922",
+  "kind": "nav",
+  "nav_hash": "7ab10427ad9f8f4c62769e0712a5a5fe14887aeeb6c70c6c357d7251551f393b"
+ },
+ {
+  "day": "20220923",
+  "kind": "nav",
+  "nav_hash": "860872266e39444ac922a4281e09fa58e599505c04d8bbf2636cb11eeadf015c"
+ },
+ {
+  "day": "20220926",
+  "kind": "nav",
+  "nav_hash": "af1693a78a5bf5c617379a07badccfdd09192ccf21949f7cb43232a0286b8ac8"
+ },
+ {
+  "day": "20220927",
+  "kind": "nav",
+  "nav_hash": "7c385172a4bf088ec9537a7a02ee2a4f21133b1f664894a1452c92393a2a7296"
+ },
+ {
+  "day": "20220928",
+  "kind": "nav",
+  "nav_hash": "f2a1b966ae7275c1656795b04c5f62802c55b66dcc794de6f7df4c003e80b172"
+ },
+ {
+  "day": "20220929",
+  "kind": "nav",
+  "nav_hash": "343cb3380a3b7c48d4e96de8ea1d36c9d2490a06f5639abe0e4eb97bd12c0c42"
+ },
+ {
+  "day": "20220930",
+  "kind": "nav",
+  "nav_hash": "251516bb8adf2fe24f3b0180c528fbeb6f9b74b08fa56877060cbde1808c5551"
+ },
+ {
+  "day": "20221010",
+  "kind": "rebalance",
+  "universe_hash": "f7cb8b7d0a778d2d3b2b3943278a9a5ce97e0b47b565a021d8ff5b2e4ad4aee7",
+  "score_hash": "3ea706fc4aff8f986bad5d2503fcc1e7b02d0e95be6b37388bd1e20ada203a7c",
+  "ranking_hash": "e65ad1545b15bd9658e5746e5c1b93cbdbded5f8ba32a80e386e90a0d7f5bb21",
+  "portfolio_hash": "175d60fa012023e556ab6933817e95cb43f4b1658e5c1e0fc82171334b074a38"
+ },
+ {
+  "day": "20221010",
+  "kind": "trades",
+  "trade_hash": "c6a138cb339c1f89f9420d36d7add6312eb39d7ea95cee3a44740c2e20289716"
+ },
+ {
+  "day": "20221010",
+  "kind": "nav",
+  "nav_hash": "31fe0c9acb1cc93b43e3ef1753f9f1367a87570f7f7279a0b607ff461621d0cf"
+ },
+ {
+  "day": "20221011",
+  "kind": "nav",
+  "nav_hash": "9c633fa890a6a11e8c851407701e9dfb7a6defb71b70e1d24464400364034465"
+ },
+ {
+  "day": "20221012",
+  "kind": "nav",
+  "nav_hash": "e463ec389da0295e873bc6cf25c973b65d78eb419e69c3af706d925e24c0d9c4"
+ },
+ {
+  "day": "20221013",
+  "kind": "nav",
+  "nav_hash": "6220333315e8a42133dbc8ed44a128a89b2f2202e4802609dd52b513fe1c8fee"
+ },
+ {
+  "day": "20221014",
+  "kind": "nav",
+  "nav_hash": "6508df3bca55193cb58b4cf9b7d7ebffd29b9b60ae9f97c8f6f4ae6b4289e836"
+ },
+ {
+  "day": "20221017",
+  "kind": "nav",
+  "nav_hash": "9801a1d3b7e55e77f25026aad7ad7db3dba4b3aef887e5f88c473cae9478915e"
+ },
+ {
+  "day": "20221018",
+  "kind": "nav",
+  "nav_hash": "307894848d91b8b27ff9d40cb74bdf5140d190c95cd85a00c0796fa94363cbe7"
+ },
+ {
+  "day": "20221019",
+  "kind": "nav",
+  "nav_hash": "5d9f04270d946491a430c4a76205b45d95bb8d6fa60c7297291b7f78a576af45"
+ },
+ {
+  "day": "20221020",
+  "kind": "nav",
+  "nav_hash": "db81570a453c292637f1f99dad0eb108add0fad5fa1a32eb429ded758511e248"
+ },
+ {
+  "day": "20221021",
+  "kind": "nav",
+  "nav_hash": "a46aa51562aaf71b64d5999d09c37c710891fbde0b916ab8fe699a715b882a3a"
+ },
+ {
+  "day": "20221024",
+  "kind": "nav",
+  "nav_hash": "fd0300446bb129fc57aecc15276e8639825ddde9425743ed5b426bc0688f0bec"
+ },
+ {
+  "day": "20221025",
+  "kind": "nav",
+  "nav_hash": "8facc89be7b1f581393bc1c1a461c337ec5a9116cd9c8f023574bff87d4e9b5d"
+ },
+ {
+  "day": "20221026",
+  "kind": "nav",
+  "nav_hash": "81d974c45168cf5f50cb15bfd4edd25802d6c4cd86aca8f3f9f62bac6396a6bb"
+ },
+ {
+  "day": "20221027",
+  "kind": "nav",
+  "nav_hash": "f9eeb553ad35832c08a647c6d64bed84ef818bd1c0b16980da66d310ca944686"
+ },
+ {
+  "day": "20221028",
+  "kind": "nav",
+  "nav_hash": "4f0557d4bb85a1623251e97dcba8bbcea304c473ccad6285491bea669f279935"
+ },
+ {
+  "day": "20221031",
+  "kind": "nav",
+  "nav_hash": "111a82b398178b34c68fe903efd804815461f7b3b6bd1385cfba9adc19ecf8ed"
+ },
+ {
+  "day": "20221101",
+  "kind": "rebalance",
+  "universe_hash": "f8d363f5c735e3e9193de33d561f606151c0bb57ecd74d461f7c0b2d3a1078f0",
+  "score_hash": "89c35315738cf6150830bf1c4d571697dc03ccfa896ae23291e2bf52d084184a",
+  "ranking_hash": "1670c0d28e92743799a508e761c4a5a6cfdddef8180a2438cca892fa402266f1",
+  "portfolio_hash": "aa4987b09e1a58b57a042e7cfcb0f7e8367b589a508b9939c240598af8e663ec"
+ },
+ {
+  "day": "20221101",
+  "kind": "trades",
+  "trade_hash": "ff5211f834931e08dcdf2701f1461eaf50ee0d545e008a8599fa4244efc1b83b"
+ },
+ {
+  "day": "20221101",
+  "kind": "nav",
+  "nav_hash": "c158ede10a667110aa48ace28fb4899a23b0515ddfd3769b8af2613d0cd863a6"
+ },
+ {
+  "day": "20221102",
+  "kind": "nav",
+  "nav_hash": "aea0f8fc89334c66cc00de6218ea464f436d2b9c0fe979cd602808ca5184459e"
+ },
+ {
+  "day": "20221103",
+  "kind": "nav",
+  "nav_hash": "35842e6ec8c34ebc0e071e8320f0755724e3cfe60534259b66676159876a1f3d"
+ },
+ {
+  "day": "20221104",
+  "kind": "nav",
+  "nav_hash": "dab3147eb8e5677e1e09223e2e0bf0cebe0801d581d0b33e15cfc703c4229707"
+ },
+ {
+  "day": "20221107",
+  "kind": "nav",
+  "nav_hash": "954f1c1fef5dddb5b1c5650500e40c443d2c8e9256f37238729a23dfc80c1280"
+ },
+ {
+  "day": "20221108",
+  "kind": "nav",
+  "nav_hash": "ab66f5f2408a8549c958e754cc675bcdfc8b765457e4cdaf787600b9757667fc"
+ },
+ {
+  "day": "20221109",
+  "kind": "nav",
+  "nav_hash": "6506dad50d27e2973a82a0b02371b7c443601c3311b93031e752846166c95185"
+ },
+ {
+  "day": "20221110",
+  "kind": "nav",
+  "nav_hash": "675223a082846a86deb32b01fe90f5dc320d3070d95d90a72c8defb7c3797893"
+ },
+ {
+  "day": "20221111",
+  "kind": "nav",
+  "nav_hash": "489d6278cfa5624893865806f96470398ffbbce007e319ab77921bd9e9205d16"
+ },
+ {
+  "day": "20221114",
+  "kind": "nav",
+  "nav_hash": "c2c5b301c90fa71cb5ae4d0ac626418e4812e0bedd8e366ef4747003b7265bae"
+ },
+ {
+  "day": "20221115",
+  "kind": "nav",
+  "nav_hash": "558531ade8b96a787bb4e0182e3a0f751b30562db39ac2a709f359fb9391bb31"
+ },
+ {
+  "day": "20221116",
+  "kind": "nav",
+  "nav_hash": "a9dffbd9a978ecc0f679ad793a16cc167597d08a3f5574c0d321eae55ee317d0"
+ },
+ {
+  "day": "20221117",
+  "kind": "nav",
+  "nav_hash": "105b8fb375970f7273ddaccf2f33283d33f07b75d4d1b33cf11e3f443645e5ae"
+ },
+ {
+  "day": "20221118",
+  "kind": "nav",
+  "nav_hash": "140f109eca19df257d72e3195ff214754e2217008ebef8005a334abd126eb72c"
+ },
+ {
+  "day": "20221121",
+  "kind": "nav",
+  "nav_hash": "c7fd1edbfc51e1df954d19e8cbc88fd7bb81f6f243044ac52fe397cd59c3612f"
+ },
+ {
+  "day": "20221122",
+  "kind": "nav",
+  "nav_hash": "d18338c4478aaca681a3391ea40b38fea445febcfbb186dcb4ceec47b22fe48b"
+ },
+ {
+  "day": "20221123",
+  "kind": "nav",
+  "nav_hash": "25ecbe18b19cacfb6208684e7f0ab41145915aae507e3165d5ed66fe16f06070"
+ },
+ {
+  "day": "20221124",
+  "kind": "nav",
+  "nav_hash": "f6c50a64f1f8a1cc22a5461c9c59b92cbfeb7ca8da266de6d8110bed7bd15e3a"
+ },
+ {
+  "day": "20221125",
+  "kind": "nav",
+  "nav_hash": "5a2079a085564fa88b492ce5939dd8c79a26562d666bb6d4b4a91f47c77691e8"
+ },
+ {
+  "day": "20221128",
+  "kind": "nav",
+  "nav_hash": "463b2e328079a944031d9ad61b523678ad2f91c9113a75ea8ec29160cb7b5b0a"
+ },
+ {
+  "day": "20221129",
+  "kind": "nav",
+  "nav_hash": "4aaebe3a6ee40a0873516a18e0fd644f3208e5e24813c63a935c8a6488db61ff"
+ },
+ {
+  "day": "20221130",
+  "kind": "nav",
+  "nav_hash": "99e4091fc1193aa824cd709e69c8e854ec94d7dd5143bc32aefe9ad63a40c650"
+ },
+ {
+  "day": "20221201",
+  "kind": "rebalance",
+  "universe_hash": "ea91351c9f684059dd28bb254ace81dec6912c5c4e0886883df6580a7bf1f891",
+  "score_hash": "d74b833002fd1b6921fceddadc4edf9a32ca47aa9b7bd6681af0a0b62aa3c815",
+  "ranking_hash": "57ec24c2d10972582f334a90f324acdb10faa6419c429868165382979bbc6e69",
+  "portfolio_hash": "10c59abbf3e82976fbebda4b8f38229fe90adbb5d745325c4369683430335486"
+ },
+ {
+  "day": "20221201",
+  "kind": "trades",
+  "trade_hash": "466171cec699d0073a6d98632481fc891a85c22da1e631e6ba8d7fa0cf060b4e"
+ },
+ {
+  "day": "20221201",
+  "kind": "nav",
+  "nav_hash": "f3496b591528ea4f4361cd0b032609486477dc30391ace8d040357cb8375f188"
+ },
+ {
+  "day": "20221202",
+  "kind": "nav",
+  "nav_hash": "e1ede0fa141b5fa6e24cd11e3f30b0ad56ce35df950ef99988182f4fd39198c7"
+ },
+ {
+  "day": "20221205",
+  "kind": "nav",
+  "nav_hash": "68184aa3fcea682867b17769e68891827088d3520db59d4344165baed1a6bfb6"
+ },
+ {
+  "day": "20221206",
+  "kind": "nav",
+  "nav_hash": "734f016ed7deb83fa79aba025de80a3106ac2b7d6e72d7754af524fa6e016a52"
+ },
+ {
+  "day": "20221207",
+  "kind": "nav",
+  "nav_hash": "922516f8eec218adfbd5e3546d59a94e3f005a3506429715ecc5d13fcaa2f129"
+ },
+ {
+  "day": "20221208",
+  "kind": "nav",
+  "nav_hash": "e77586cf27e3294070d1cb72c612d16868e99ec70b1e2065995216a4ce4bded6"
+ },
+ {
+  "day": "20221209",
+  "kind": "nav",
+  "nav_hash": "156a2a39ac7f4e22a98ad4cb8de6adc0a38f1c72a9d507f51e3cd8a21c670fca"
+ },
+ {
+  "day": "20221212",
+  "kind": "nav",
+  "nav_hash": "d212771a0100058e8bc2fbf6732cc1ba65e7ec1cedc85ac5587c254f9d64ab83"
+ },
+ {
+  "day": "20221213",
+  "kind": "nav",
+  "nav_hash": "21df4aabbdc1e041940f844991ad2410d2e5376522c3ce442b9a546ff0f19072"
+ },
+ {
+  "day": "20221214",
+  "kind": "nav",
+  "nav_hash": "29260ed04e6378c6a3455e9471cc378065c0540d82493931594370b0298bb326"
+ },
+ {
+  "day": "20221215",
+  "kind": "nav",
+  "nav_hash": "ea7bfc87eb2150cc4c8f8a04e024cf9fd46e20436251105022cc73bbd95a4da9"
+ },
+ {
+  "day": "20221216",
+  "kind": "nav",
+  "nav_hash": "4ef61bedd0d3baacffd91328040c0e715a5bfdc0b602dced65f31d7d8e66e623"
+ },
+ {
+  "day": "20221219",
+  "kind": "nav",
+  "nav_hash": "f07fc48cf5e1a96f61176e72722431049d6b10ae6307dffd2376599f21a0347f"
+ },
+ {
+  "day": "20221220",
+  "kind": "nav",
+  "nav_hash": "665164992d08c2e1fbd9f562501cc64c681d25a41c55e48883fd36e06d9e772f"
+ },
+ {
+  "day": "20221221",
+  "kind": "nav",
+  "nav_hash": "8ee18698529863ff9867ebc306bcdac9710deaa18c32b3c272f8dff578f5fccf"
+ },
+ {
+  "day": "20221222",
+  "kind": "nav",
+  "nav_hash": "996ef9b41fa914e3e28b4d6398e1fd844e967b3f1a62f9ffa55728c1c0dd4e95"
+ },
+ {
+  "day": "20221223",
+  "kind": "nav",
+  "nav_hash": "b9eb8ece6248f1f4d1b3af310b5bbbeae7cb4934047ab9b407e87cecc37abd31"
+ },
+ {
+  "day": "20221226",
+  "kind": "nav",
+  "nav_hash": "6954e0b5d2a0405a6b0d1de3d62151763c014ebf024695441c4f2db786c4684b"
+ },
+ {
+  "day": "20221227",
+  "kind": "nav",
+  "nav_hash": "dce6e52dbbe21ef389e8c6d47484d286b0f823381361069b7d8bd10eca142047"
+ },
+ {
+  "day": "20221228",
+  "kind": "nav",
+  "nav_hash": "39f13f0043ff64863f34b0512a00b0f709a42348da31f060a680bd5240ec4bb8"
+ },
+ {
+  "day": "20221229",
+  "kind": "nav",
+  "nav_hash": "0b78d990b9eda115eb4a4847fb5826190a4f52faeee7abb92e3945049c3840f3"
+ },
+ {
+  "day": "20221230",
+  "kind": "nav",
+  "nav_hash": "61c863bfaec510ff73dfb9260060c4771c3cb274af2328356f10e61ca34cd2c6"
+ },
+ {
+  "day": "20230103",
+  "kind": "rebalance",
+  "universe_hash": "666d5d4c91a85d16c2737facb0b435974502c97215c06e12d119e1ad10d787b0",
+  "score_hash": "b05cd7e7bb4c9a08df114843f9eae8137e19a03d0e263dfcc7e75ba35900e85b",
+  "ranking_hash": "71c41258994b04aa7568131aa2c68dc66515a0c28a49bfa34373be16d54911c1",
+  "portfolio_hash": "027404d16bdc88ab4934bf91a01b80158aa46a99b8f208ffc229adc17d626444"
+ },
+ {
+  "day": "20230103",
+  "kind": "trades",
+  "trade_hash": "1df3d6c50e9c2c8f000539bb4c20eeaf52e03c9959a3a296c6d053a7689f781f"
+ },
+ {
+  "day": "20230103",
+  "kind": "nav",
+  "nav_hash": "c79c29e1e6c375a913bf4425e7f37d8f5154d0e471d480ba64f6c332841b5fcb"
+ },
+ {
+  "day": "20230104",
+  "kind": "nav",
+  "nav_hash": "680c715e472883d24ff0a6735eaca69cf5c2dbab7d385fc8766d424f17873f70"
+ },
+ {
+  "day": "20230105",
+  "kind": "nav",
+  "nav_hash": "2607a7e1cd7331ddbc640ae7ea0b90e69f64b5006e53f3d862622ae894fd4cb6"
+ },
+ {
+  "day": "20230106",
+  "kind": "nav",
+  "nav_hash": "0960bd5db6e14999e00af9a938f9c4f94c67d5f7085047abda7cc950fa326eb2"
+ },
+ {
+  "day": "20230109",
+  "kind": "nav",
+  "nav_hash": "d5c0a15a0d80135ca78075e981c0259ad7466e669a2d3cb642632390474b47c2"
+ },
+ {
+  "day": "20230110",
+  "kind": "nav",
+  "nav_hash": "a655ccd46dabaceed3f8ac80a4c9faa0bdc3b10061403983f5b16ee5fde1b171"
+ },
+ {
+  "day": "20230111",
+  "kind": "nav",
+  "nav_hash": "5f1eb53d9bc500300f02dec6cd38c0f04867b9f723e2c75bec912f5ee966fdaa"
+ },
+ {
+  "day": "20230112",
+  "kind": "nav",
+  "nav_hash": "09c2570953886bd9569f3b06626ba447c31dc41a9e09b325b247c3e6cdd2f564"
+ },
+ {
+  "day": "20230113",
+  "kind": "nav",
+  "nav_hash": "53fe127aa1a6776c2516d50994b89d5266056b35477c79ee81e0d85a21b9d293"
+ },
+ {
+  "day": "20230116",
+  "kind": "nav",
+  "nav_hash": "450013a8c83e04d3a6ca9ffff14412eb240127fe8c619824464086b9dffeadc2"
+ },
+ {
+  "day": "20230117",
+  "kind": "nav",
+  "nav_hash": "c90e3c185bc3ee427db1958d4a819c8819a140c7749d3e8d32f2b5bff650c888"
+ },
+ {
+  "day": "20230118",
+  "kind": "nav",
+  "nav_hash": "8fe8e5c6ef9d40cb6c535b5c90eacab7ca0c18a72a4f3f9635ebaf451c108c5e"
+ },
+ {
+  "day": "20230119",
+  "kind": "nav",
+  "nav_hash": "f17286171d2877272705f95238ef711f367c9e42bd12f5e2a9b5174564e3c828"
+ },
+ {
+  "day": "20230120",
+  "kind": "nav",
+  "nav_hash": "adc7833abc1bc9497e1c48acd21e58d1738ea01f1eae3e404c09ffcf113beead"
+ },
+ {
+  "day": "20230130",
+  "kind": "nav",
+  "nav_hash": "ff804c67063a885183a81c1155c538aac0b96d9d6d6186846738a0d0d9864bc9"
+ },
+ {
+  "day": "20230131",
+  "kind": "nav",
+  "nav_hash": "64fa271a606a479c8ec559178f635f9ba37b7e2652354462a6cbf4018a606cbb"
+ },
+ {
+  "day": "20230201",
+  "kind": "rebalance",
+  "universe_hash": "351576e25240d4657648dd75a73dac16b5703831e5abb3b51985e3902452e79d",
+  "score_hash": "06fdd9d4fe08f73cb6f36d0e62bbb027b21a87535bd002523d2cc8bcc917cd64",
+  "ranking_hash": "a30477684c72134c585ea984c69f96d11522a2f0699555897ed5ef68bc1882b9",
+  "portfolio_hash": "c58ea0dfef34d6493c5b595afe2c25e866f27ac3257d40f303859f6eb6081a04"
+ },
+ {
+  "day": "20230201",
+  "kind": "trades",
+  "trade_hash": "706d5ce80cfc64a7d26ae098f421710cf8d5ddb3dcf415ec2346eb49282a7ea9"
+ },
+ {
+  "day": "20230201",
+  "kind": "nav",
+  "nav_hash": "551287f4a001c38d69be45fd195c9b7ed117661bab7ef8a2e6a57c87732b2dcc"
+ },
+ {
+  "day": "20230202",
+  "kind": "nav",
+  "nav_hash": "3ad29d7ad13753112a2003e52488f48e1314156692d341bdd371914c42f2e8ba"
+ },
+ {
+  "day": "20230203",
+  "kind": "nav",
+  "nav_hash": "623a1e620f05f057edf4a28961dc912ffa0b8f26b7197f82d863dad1c0abffee"
+ },
+ {
+  "day": "20230206",
+  "kind": "nav",
+  "nav_hash": "6f26a68c66187898d47c01e447e3cbe4894bcb40aab9ca68751b2441bf827a0a"
+ },
+ {
+  "day": "20230207",
+  "kind": "nav",
+  "nav_hash": "0804cf97d9fb85fa191f6ee0891691aed28ac5b1a2c3f48d064fed524a92d185"
+ },
+ {
+  "day": "20230208",
+  "kind": "nav",
+  "nav_hash": "8cd817c6e55920e707465326caea5130ed571ad6a42111f9fc420cfb07ef66f5"
+ },
+ {
+  "day": "20230209",
+  "kind": "nav",
+  "nav_hash": "503f0ae20062abb7d1d180bc6b2c34fdf125e6d5146a1426dd3c21a9791fa0c1"
+ },
+ {
+  "day": "20230210",
+  "kind": "nav",
+  "nav_hash": "036957a4a97fe2f9cb7fe64335b62bfccc887af480191dc98be95cc98a0ea53a"
+ },
+ {
+  "day": "20230213",
+  "kind": "nav",
+  "nav_hash": "d32932c39a8c3c00dece07504338cf6c1de0c0e3707da1409975b0ee14bfc7a8"
+ },
+ {
+  "day": "20230214",
+  "kind": "nav",
+  "nav_hash": "1e3d3ee54abd2861f7e15deede540368bf00df9fc4ac723669ec5fc26ba628dd"
+ },
+ {
+  "day": "20230215",
+  "kind": "nav",
+  "nav_hash": "f969a729628d95b31d69405766255333e66ba50444dba0cc37d6b456fef3d5b2"
+ },
+ {
+  "day": "20230216",
+  "kind": "nav",
+  "nav_hash": "a33134e2a1d659b61d4b3e36e4d18eb76455f936906285337ede21c6cf611e0b"
+ },
+ {
+  "day": "20230217",
+  "kind": "nav",
+  "nav_hash": "aa5a80e334e8298e535ef88fce2ded9ae76e2f07293bdf664424667fed1b2348"
+ },
+ {
+  "day": "20230220",
+  "kind": "nav",
+  "nav_hash": "2d4f49aa81d3e4a9023e4a6b0aa75b4fe236ba0cbd2832fa169e50c246a3c742"
+ },
+ {
+  "day": "20230221",
+  "kind": "nav",
+  "nav_hash": "b5cfc2bed822a13851a92e01dbec2e061a382ef0f5e9b2b07f11ab06ec3a1ee9"
+ },
+ {
+  "day": "20230222",
+  "kind": "nav",
+  "nav_hash": "c869eab9c9b6089e199207c0f417add22df1b44ebc1ff65f9b1f072581933e70"
+ },
+ {
+  "day": "20230223",
+  "kind": "nav",
+  "nav_hash": "613c43be976efd1f3b322eafeaa668576d5faca5b894d7f58b411bfe3bbd864a"
+ },
+ {
+  "day": "20230224",
+  "kind": "nav",
+  "nav_hash": "a274c8a7089c183b4e9635255f30c5d12ede4022df6aca7a7aa2d7be949ac84f"
+ },
+ {
+  "day": "20230227",
+  "kind": "nav",
+  "nav_hash": "0b97b445af8cc34375080e794d36be80de6a818594a567a34f8f1cde89ac9fcb"
+ },
+ {
+  "day": "20230228",
+  "kind": "nav",
+  "nav_hash": "3729b9de249768e30d6ca05c6d95940e76051b67f057550ef7a0ce3fa3a8662a"
+ },
+ {
+  "day": "20230301",
+  "kind": "rebalance",
+  "universe_hash": "8278135c0d40a2c3a69e2d8f576e036d20613ff5b3192271eca12f4e8536eb61",
+  "score_hash": "6626298f91a988a7f9a28f5f256eee043ca1a54ac9797053172d8359f02798a7",
+  "ranking_hash": "7492de2d66033a7ccd1307066af41d89632a6f987c4bb65ee796c6be30bc48be",
+  "portfolio_hash": "4495025a5c3aa6d6d2279696ad56f63e1377a9903bbe296ca21396ae8986b066"
+ },
+ {
+  "day": "20230301",
+  "kind": "trades",
+  "trade_hash": "739fab5d332c5032d68a9b7d1a4fc05d24bb7f08a28cf74478511110d83f88b6"
+ },
+ {
+  "day": "20230301",
+  "kind": "nav",
+  "nav_hash": "11468d026f057ea7f7f32b564931fd67518dfeddf6c92083d782ac3a64932e52"
+ },
+ {
+  "day": "20230302",
+  "kind": "nav",
+  "nav_hash": "84775eb5898908959f993bb90b4f46e86548d50c94741777f25d81bb808b8948"
+ },
+ {
+  "day": "20230303",
+  "kind": "nav",
+  "nav_hash": "241c712b3b7f56e3f1ff89713c2e7fb9fdefab28ee3aeb3dcb1db063913ae961"
+ },
+ {
+  "day": "20230306",
+  "kind": "nav",
+  "nav_hash": "5d421bb8de610a031890c75713478e62fc7d8a566c7998f42f675bc7a675875d"
+ },
+ {
+  "day": "20230307",
+  "kind": "nav",
+  "nav_hash": "5ebd269c7f6fd4c3d0fa5a61b3f9f9052638c87693be8ab327d645b8729b2485"
+ },
+ {
+  "day": "20230308",
+  "kind": "nav",
+  "nav_hash": "3fb3ce661789c05f70a06bea7d606154c8b95ce3eebd3c7c4fd6a5da514b9a44"
+ },
+ {
+  "day": "20230309",
+  "kind": "nav",
+  "nav_hash": "939498d4798f4ec30ae829965d8ae708bdc28da4ba534bc886e8ac76767aace1"
+ },
+ {
+  "day": "20230310",
+  "kind": "nav",
+  "nav_hash": "5b636b29f22348241e22a656e3014dfca853c0143469b5c981c341c4e6675e34"
+ },
+ {
+  "day": "20230313",
+  "kind": "nav",
+  "nav_hash": "d96743d627750716f6f3d6ed62da083472a915befa711d50756f05be423e35e7"
+ },
+ {
+  "day": "20230314",
+  "kind": "nav",
+  "nav_hash": "d2d56a429aef23158429000fd6d66b97cf899c895599cd00366eaf812a4c909d"
+ },
+ {
+  "day": "20230315",
+  "kind": "nav",
+  "nav_hash": "1b88d8bef9f2ca29fa5d017c711a63217ad09895b53be7011e5b2dcbe41938f8"
+ },
+ {
+  "day": "20230316",
+  "kind": "nav",
+  "nav_hash": "c4c539306b0079f8d34d14039bbcf394ae815882b1acf69c001eb7c143bcb0f9"
+ },
+ {
+  "day": "20230317",
+  "kind": "nav",
+  "nav_hash": "06ab1b2f929ba382fb292d7fd5163deaea50f5f9d7862f92e58dbe5a67502c21"
+ },
+ {
+  "day": "20230320",
+  "kind": "nav",
+  "nav_hash": "62fd26aa493b6a6ae5cedddb0964ff8eb8f80128922d9d4eeb1331c287aff7e4"
+ },
+ {
+  "day": "20230321",
+  "kind": "nav",
+  "nav_hash": "23fdd6f404eefd2b972c2735727375752a48d8cfb24eac793fdb8b1b13e95946"
+ },
+ {
+  "day": "20230322",
+  "kind": "nav",
+  "nav_hash": "b0951055c48e07b33d62a15a5dbdada29ff1f00138df098eb0122347ea473cd8"
+ },
+ {
+  "day": "20230323",
+  "kind": "nav",
+  "nav_hash": "68703d5f99d505dc05cc1eb7b4fd2580e21167056fa4965eaa2c4e87c44b7a88"
+ },
+ {
+  "day": "20230324",
+  "kind": "nav",
+  "nav_hash": "fa8fb45af57346fafd58cadce803f7e17589aa44894e07be56143f73643bb67f"
+ },
+ {
+  "day": "20230327",
+  "kind": "nav",
+  "nav_hash": "fe78a83f72a2a7b4794a6aa9c05e5751aadc40c9cbd8ad32df10d24273479935"
+ },
+ {
+  "day": "20230328",
+  "kind": "nav",
+  "nav_hash": "421aa9a4f007b1442b664b69bc104d451b7f8cef6cd068ec44fa1172a26255e6"
+ },
+ {
+  "day": "20230329",
+  "kind": "nav",
+  "nav_hash": "01ea29f89b845824b4d51f8a6c9819f0d6d95f49789f01d51dc92a114b928f25"
+ },
+ {
+  "day": "20230330",
+  "kind": "nav",
+  "nav_hash": "32bf8d5be89a744e4c341cf0d4e3b64c1df4cb66d5614ed771674a831b56f376"
+ },
+ {
+  "day": "20230331",
+  "kind": "nav",
+  "nav_hash": "e3aa37d81844e20b4a41c0699daf6c4b938bd8c3ca6fdd67095749a073820b5a"
+ },
+ {
+  "day": "20230403",
+  "kind": "rebalance",
+  "universe_hash": "5ffce7847f68550beebec23eb92aa8e6251c4e4bb954e79858b86347fd5ddd33",
+  "score_hash": "b35439755c659c1fe8e008454115bdf81de21890599342bfc767b4ef6b877277",
+  "ranking_hash": "5efbb8ba3acff94803737f69e4f8df9d50c4f18171c43207c3c4090921740a61",
+  "portfolio_hash": "9668235a18310b5853766c80ebbdabc7e114612df7cf110adb9cec9abbc032d4"
+ },
+ {
+  "day": "20230403",
+  "kind": "trades",
+  "trade_hash": "36262721e63983b26cb0db0dd35f1f4baa33b77dcb6a58ac472c401363c88938"
+ },
+ {
+  "day": "20230403",
+  "kind": "nav",
+  "nav_hash": "0df59e5c7762335d1787c2fc2229d9cf8aced6efa6bfcc44e5f37ed096c165ab"
+ },
+ {
+  "day": "20230404",
+  "kind": "nav",
+  "nav_hash": "2b0fa08632cd580690afc955aa78dc985c7921f0448640b16ac8f77faa82de74"
+ },
+ {
+  "day": "20230406",
+  "kind": "nav",
+  "nav_hash": "f7fd20fa469d92d31a1429fa4df564219f8e337ef195d7e80533f5bc42def86f"
+ },
+ {
+  "day": "20230407",
+  "kind": "nav",
+  "nav_hash": "885ac50b1428b4fcc645181f2ab639988831433c4efac89f1ce5ee5d00403151"
+ },
+ {
+  "day": "20230410",
+  "kind": "nav",
+  "nav_hash": "7b03867cbd1243c563d91178cef36fa4d9afd15ff0a48f8f9ed31c8d6c4b23c3"
+ },
+ {
+  "day": "20230411",
+  "kind": "nav",
+  "nav_hash": "efb9d764e91b10adf052cfc3b6e8897dfbd625fcaaaa9671d35bb532b8ac19f2"
+ },
+ {
+  "day": "20230412",
+  "kind": "nav",
+  "nav_hash": "8d9752a19251427e489e5b6f9ae426b1057ac411b5ddfac31fd8e5fe71b1d755"
+ },
+ {
+  "day": "20230413",
+  "kind": "nav",
+  "nav_hash": "eda677460960fc15f3ef4fd8f9c3e2a2255be07de7b6a6171c632831c0758ce4"
+ },
+ {
+  "day": "20230414",
+  "kind": "nav",
+  "nav_hash": "0f7f1c81a642459b1f84364a9a6a19b2bf49f73e53ab6d53b04f3e5079092e5b"
+ },
+ {
+  "day": "20230417",
+  "kind": "nav",
+  "nav_hash": "80fbef3380c859410e34c6c00670b014063ee6b08d7a3c4a870aa55375f5df04"
+ },
+ {
+  "day": "20230418",
+  "kind": "nav",
+  "nav_hash": "efb15fa548e722611c8ebb05ed9a3ee4daad38c3c94629edaa2da7f2158cdd7b"
+ },
+ {
+  "day": "20230419",
+  "kind": "nav",
+  "nav_hash": "5daa4fe54c380dad030c87d86c9a32c666fb030fe9958aefb37d09c2e5006b8b"
+ },
+ {
+  "day": "20230420",
+  "kind": "nav",
+  "nav_hash": "a35c2ab44a8ee891736867e361d9fee950c63a96d86ddef3c19569371c1c2803"
+ },
+ {
+  "day": "20230421",
+  "kind": "nav",
+  "nav_hash": "3e58feee32f62585458c3a3181551e483e8a436592617436410c9db49758a5fd"
+ },
+ {
+  "day": "20230424",
+  "kind": "nav",
+  "nav_hash": "d10073b7491aba0ed344f147630332fa18efc36c00e072941ada235b9111dc28"
+ },
+ {
+  "day": "20230425",
+  "kind": "nav",
+  "nav_hash": "85c1d6ba99aadec1d20b59520953c5fd4a134d361536b09b2cb9f95caf6452a2"
+ },
+ {
+  "day": "20230426",
+  "kind": "nav",
+  "nav_hash": "38f52b96cf5b4faf5d27fd466f3231e6a85079c848d6df9d279103ebf0a2ecdd"
+ },
+ {
+  "day": "20230427",
+  "kind": "nav",
+  "nav_hash": "357eb4d8d3a8195993b60c4d99d020e4081d568facb3d09ea4481ba2c5ff51bc"
+ },
+ {
+  "day": "20230428",
+  "kind": "nav",
+  "nav_hash": "382a9c99ea8ff13547a58cb0c58d535fec1fc52b189ceaf4f42c3aeb83237697"
+ },
+ {
+  "day": "20230504",
+  "kind": "rebalance",
+  "universe_hash": "ead69e89944367f1a994f0d546a95201126672a3969a02f3a6af27b66e74ac51",
+  "score_hash": "bd8f907c40d1a3bec58f0094a96a8eeee2c5e4b78f54e0cff6af852109008b07",
+  "ranking_hash": "42dc53c45747949ae0da4edf8a2239c353043eef1dcc8969e92e2df2f590c1b9",
+  "portfolio_hash": "192e77070b646708a81d7fdb7e991c3d1d6ad3f182345282e303be30761e9440"
+ },
+ {
+  "day": "20230504",
+  "kind": "trades",
+  "trade_hash": "82f317b9f188df0d39fc96fa2abcdbc2f80d4886d09b44f6da7ad5a49daf7e9c"
+ },
+ {
+  "day": "20230504",
+  "kind": "nav",
+  "nav_hash": "6650d4344cca73bf44011293755b5b0ca933afe237362fb2050c3e60af7c9b3f"
+ },
+ {
+  "day": "20230505",
+  "kind": "nav",
+  "nav_hash": "a74c92881330906e7b0f8fa4e3ca1d2e45c05a5f41a678cd6a4b6f7dc8379d7e"
+ },
+ {
+  "day": "20230508",
+  "kind": "nav",
+  "nav_hash": "e48c45c6eacffa26a26e79814f14f662f780bbcf95a00f64e706ec15ce9d61fe"
+ },
+ {
+  "day": "20230509",
+  "kind": "nav",
+  "nav_hash": "21daeaad0aef3c2edcd56841d9e447712bd1a9fa109fda912ce8f3f5feb2448d"
+ },
+ {
+  "day": "20230510",
+  "kind": "nav",
+  "nav_hash": "96e13f80d08494f0f0e3265326228a4880ed4c281b034dd92e0f80a0d50168a0"
+ },
+ {
+  "day": "20230511",
+  "kind": "nav",
+  "nav_hash": "cd329d41d9324b4b7639e85b60c35ce7881ad8e3a7f25fdf07cc0eee723bb7f5"
+ },
+ {
+  "day": "20230512",
+  "kind": "nav",
+  "nav_hash": "a1f506bb3fc5816b0f68e95093338506c613e6e8e2243421d7b32a757e6b6809"
+ },
+ {
+  "day": "20230515",
+  "kind": "nav",
+  "nav_hash": "e7ef3622f08e3922a91dc3608778adafb0be36b54cd8b07c35bf881a2e2acf65"
+ },
+ {
+  "day": "20230516",
+  "kind": "nav",
+  "nav_hash": "7352351eaa042c58aeebbe28ea838921fd5a4e6fbcaba595219e05bf5037ee03"
+ },
+ {
+  "day": "20230517",
+  "kind": "nav",
+  "nav_hash": "1f3160970920a7852ecb4ea0138d5d9f5bfdc0e8a184bd66cbc6e08133268c41"
+ },
+ {
+  "day": "20230518",
+  "kind": "nav",
+  "nav_hash": "664a3822f65300c5c9ddc19ff235c5f70d642f7c47437131a1a560211dd4cb25"
+ },
+ {
+  "day": "20230519",
+  "kind": "nav",
+  "nav_hash": "87cff12452340beac59a01946fd5db7362d9d589b6f7ecabdaa7026dc75b8c1b"
+ },
+ {
+  "day": "20230522",
+  "kind": "nav",
+  "nav_hash": "ebbdc654440ae165495f64846653050db0ceb72d7fd9af1c02e0a95a7efa4055"
+ },
+ {
+  "day": "20230523",
+  "kind": "nav",
+  "nav_hash": "c67ab95b65d0e6b1c6dfa04726e6fefd1a3708c41123537833c9214821627249"
+ },
+ {
+  "day": "20230524",
+  "kind": "nav",
+  "nav_hash": "37759ef6cbe2fcf4e04376900c70a88a72347f1010e34bc0d629255aaea90869"
+ },
+ {
+  "day": "20230525",
+  "kind": "nav",
+  "nav_hash": "7d47cb07ef0962714d7d110774e30a582559ae7605a4310cb1e2f6c212975f8e"
+ },
+ {
+  "day": "20230526",
+  "kind": "nav",
+  "nav_hash": "b6b537250f88a15dd06691b00af91d8ada4ffea5e931d753ea6db9965b335a9f"
+ },
+ {
+  "day": "20230529",
+  "kind": "nav",
+  "nav_hash": "604c41bcd54810bed0613f104f0e64dde104f2239869f079150b701a03cef84a"
+ },
+ {
+  "day": "20230530",
+  "kind": "nav",
+  "nav_hash": "d5902a72d1f7027b26a4bd6fa62eec559b8717322f0bd81c01fb0c54a7d4a201"
+ },
+ {
+  "day": "20230531",
+  "kind": "nav",
+  "nav_hash": "bc4044701d3a724a1276c3e500a6c9b7917ba934cc695ef27f7d4cb2700f9182"
+ },
+ {
+  "day": "20230601",
+  "kind": "rebalance",
+  "universe_hash": "ee80e28d802954b1e3ae468f2d6984cef3ca18638af2e5ef51e2a4bb3598b7c2",
+  "score_hash": "43024b380d0635e85103871acd7d6ccbf0fcef355944b887bc327330f37e6dfa",
+  "ranking_hash": "399868f24df3fd94a0eb234e938b35ef6ccc228a4814ef759cc8c95d8c2aaff4",
+  "portfolio_hash": "1b3fbae47158bd051ca64a1b5c52423d1bb9b6b304704bc9a1e3f8559bf51693"
+ },
+ {
+  "day": "20230601",
+  "kind": "trades",
+  "trade_hash": "2b31958508a996422637130fce4ad639485ddf1abd4feacdf02dd8305c538b80"
+ },
+ {
+  "day": "20230601",
+  "kind": "nav",
+  "nav_hash": "94c5364e21ece30150867a95e1c70f31718f3bafcb239518f321d5a486423806"
+ },
+ {
+  "day": "20230602",
+  "kind": "nav",
+  "nav_hash": "7fa66efb250f77ce96714cba0d6d08b357cf7ae99a5b1d79e6dc7eabb59c0f15"
+ },
+ {
+  "day": "20230605",
+  "kind": "nav",
+  "nav_hash": "07152773b591b1c3bafa405f39fee7f0be05d5420974ee5e691e2494b5cf1458"
+ },
+ {
+  "day": "20230606",
+  "kind": "nav",
+  "nav_hash": "fdf409e575d19bbf54d1bb197785847ce88ef02d39a6fd489f7f3a38790ca0a8"
+ },
+ {
+  "day": "20230607",
+  "kind": "nav",
+  "nav_hash": "8c97a6ada4628032a8484321bad5f7640b048b03a308018c0d435a977235d6a7"
+ },
+ {
+  "day": "20230608",
+  "kind": "nav",
+  "nav_hash": "a29a56a8b72f1424e61c6faafc727bcc34235dc9a6d3896592e0455cb1b432e8"
+ },
+ {
+  "day": "20230609",
+  "kind": "nav",
+  "nav_hash": "4160d35f8fac66c334bb312f8b2cdc1523f7f997cae8577eeffa1df033f9f2b3"
+ },
+ {
+  "day": "20230612",
+  "kind": "nav",
+  "nav_hash": "ebf2512dd56e7795c84c9afc1d23c50cadcef7d263aeaf01b019a0f2e66f443f"
+ },
+ {
+  "day": "20230613",
+  "kind": "nav",
+  "nav_hash": "791807a9a41741efbac5d5dc5134664c2969f84dcb68b67c4513ecc56ad4abf4"
+ },
+ {
+  "day": "20230614",
+  "kind": "nav",
+  "nav_hash": "8d63515fca8ff332ee0112a0e6e74304c248340a6200cdcf00766e5ebe55e70e"
+ },
+ {
+  "day": "20230615",
+  "kind": "nav",
+  "nav_hash": "f3c2364b76bc3199a4f1ccc7aafd695d0751e2ad08a50ff0ea3fada578d6bc77"
+ },
+ {
+  "day": "20230616",
+  "kind": "nav",
+  "nav_hash": "882823f36b48635354aff5fb34e22e2ca82163d60f2b65ef386726ee4bcc4f8b"
+ },
+ {
+  "day": "20230619",
+  "kind": "nav",
+  "nav_hash": "565e4378e592c1ec9558e4af52be0dd87b150821601d9fa129d63be30a69e08e"
+ },
+ {
+  "day": "20230620",
+  "kind": "nav",
+  "nav_hash": "d05f71072446cbad2268ab8ec8e509581502c771292304ca6234eb8f0a7ca51a"
+ },
+ {
+  "day": "20230621",
+  "kind": "nav",
+  "nav_hash": "076726662eb4689b3f5e488256417b78ce58ae3e6a73ea3a3135125ddd0149cc"
+ },
+ {
+  "day": "20230626",
+  "kind": "nav",
+  "nav_hash": "0ac00feacb1de2c36a7478b24f691811cbd3c1a0577da19c4abd1ef26f154fab"
+ },
+ {
+  "day": "20230627",
+  "kind": "nav",
+  "nav_hash": "33ccab3a453727a9f9d0f6f8ce65f54d92929e960705b3b3f1c004143d55c556"
+ },
+ {
+  "day": "20230628",
+  "kind": "nav",
+  "nav_hash": "02d7acc18079304682ee15effb97c3b79a587fd5141f1a423e67234f18dd2f38"
+ },
+ {
+  "day": "20230629",
+  "kind": "nav",
+  "nav_hash": "d74c993cf9ef41281947f7b96b9b024d315566895e86263369a5ed017fe3c87f"
+ },
+ {
+  "day": "20230630",
+  "kind": "nav",
+  "nav_hash": "c7bbb74d2585d3aa347b43abaf39f7800abe8d1c4efc23eaaadb6f00a77656d0"
+ },
+ {
+  "day": "20230703",
+  "kind": "rebalance",
+  "universe_hash": "ad46712f6bd08cc763cf4a6c79fd89c86a0f064ad9717304524f192c995516c5",
+  "score_hash": "d6b489b1d02eae95da8910cc525a4996c3519f7f13c2be576521ff15c760a0b2",
+  "ranking_hash": "005251843bca000674b914c1d1a6876e181b8a45cea6ebf275ab5d285c7ae6ee",
+  "portfolio_hash": "3e640c34d53b5131835e56d1253a90db6330af3d2aff84597cc9d0de1c509997"
+ },
+ {
+  "day": "20230703",
+  "kind": "trades",
+  "trade_hash": "128f9f592571ea0eb6019f706709f13728ef535f50172021d893f0450773f6f1"
+ },
+ {
+  "day": "20230703",
+  "kind": "nav",
+  "nav_hash": "86bce076f5648f39aae95e4f0eb9e27b4f2089d564ab9d81fe87f8e37f09f6f9"
+ },
+ {
+  "day": "20230704",
+  "kind": "nav",
+  "nav_hash": "3276c0554e950e683960f63bc7425ac7c1c5df795f03392294fd7831ec3c8991"
+ },
+ {
+  "day": "20230705",
+  "kind": "nav",
+  "nav_hash": "27eb7473478e72d39f5b57145b2b9113a83be8a1abf47d358c73c9d46722eba5"
+ },
+ {
+  "day": "20230706",
+  "kind": "nav",
+  "nav_hash": "ec8416c3a6444f9e5bd3978842c162bd8bc3ff61e2f8a5449da0d768f7f43912"
+ },
+ {
+  "day": "20230707",
+  "kind": "nav",
+  "nav_hash": "3844d6184999494479c503bf0762081fad72b1a6751c30c6fbf13c4a3b9a405d"
+ },
+ {
+  "day": "20230710",
+  "kind": "nav",
+  "nav_hash": "97e06939ae37536138774e6aaaebcb8310b620b60baf64f4286d56b4f40da751"
+ },
+ {
+  "day": "20230711",
+  "kind": "nav",
+  "nav_hash": "5df15d0c8b913419f14e99284849e554236c802c44b7ec8fd48c2e7f1b1eb412"
+ },
+ {
+  "day": "20230712",
+  "kind": "nav",
+  "nav_hash": "18c7c667c80bb987f1a6175c70ac40d36b31795ea12c15fd1242125a87405fcb"
+ },
+ {
+  "day": "20230713",
+  "kind": "nav",
+  "nav_hash": "94a5c785837bb64e120816ba12356564cf75615530c5634b838c0f5f7cde16ba"
+ },
+ {
+  "day": "20230714",
+  "kind": "nav",
+  "nav_hash": "42476d5bc37ccc11305b35ce3ff111f83ae79b7815e68ddc00952776e5f7940c"
+ },
+ {
+  "day": "20230717",
+  "kind": "nav",
+  "nav_hash": "5d999072356b044112cdfc227763c0f3948e797b674ee470cc12563a9b35cf32"
+ },
+ {
+  "day": "20230718",
+  "kind": "nav",
+  "nav_hash": "b460677ac81f6efcae58a174c0a053dcac7f197b6eb2df9e10fe1091ec367b7f"
+ },
+ {
+  "day": "20230719",
+  "kind": "nav",
+  "nav_hash": "0582c2e3fab40396f86b2af1cb85dac7fa0df032bc9e4f1273342dc44bf432b1"
+ },
+ {
+  "day": "20230720",
+  "kind": "nav",
+  "nav_hash": "386a67ae083a1ba5a1d0fb8d48ad1d3b074e3f52a28cd0ce217c0d600454c6eb"
+ },
+ {
+  "day": "20230721",
+  "kind": "nav",
+  "nav_hash": "14f7d6eb30aafd271d7928b9b50a3ae7abe15391a8a8ce6a94ce4c367d80ed28"
+ },
+ {
+  "day": "20230724",
+  "kind": "nav",
+  "nav_hash": "4feee904b88d5027c29bf830d1a84f59b2e13456a971bc7cd830f62fdf6b7135"
+ },
+ {
+  "day": "20230725",
+  "kind": "nav",
+  "nav_hash": "70a97673ee6084a9509aafe5404abdfd437e30c2eff7f61d849a1741d9502960"
+ },
+ {
+  "day": "20230726",
+  "kind": "nav",
+  "nav_hash": "b5be3d0104624ca410d52bf4bc0536cc573b230258ba40e48edbc02c72fa45aa"
+ },
+ {
+  "day": "20230727",
+  "kind": "nav",
+  "nav_hash": "aed8346901bd387c744798fa282e95608283a06671e10807e7b6e70d039500d1"
+ },
+ {
+  "day": "20230728",
+  "kind": "nav",
+  "nav_hash": "a6e14b168cb2d2b648bc382bcfac1c4747ed01fb685e4b9cf59a80fa0d2d2d29"
+ },
+ {
+  "day": "20230731",
+  "kind": "nav",
+  "nav_hash": "befddd049bbaba809be449eab6b610b07dc7daad4752edb952d84ab4d54d4087"
+ },
+ {
+  "day": "20230801",
+  "kind": "rebalance",
+  "universe_hash": "b7b2dea21777c1f4519e36b461571dd79c8aa316afda4ae4d80f27da2e252479",
+  "score_hash": "7c915dbdd75e4ba4c6b778b8e107f8577a94167327b4163ec925feea42bd513a",
+  "ranking_hash": "292d663d0d8c156276cdcb3c3d83d36db43883f8840e16124d19a45150b98895",
+  "portfolio_hash": "81d3fb914e42a27dab7a1fcdc5155426a5b9cde5162879c69e65698b580789c4"
+ },
+ {
+  "day": "20230801",
+  "kind": "trades",
+  "trade_hash": "8cb7d97c91c90ffc410ce79aaf57469ec615b1fd0744835c3a8f61ad0cfb4966"
+ },
+ {
+  "day": "20230801",
+  "kind": "nav",
+  "nav_hash": "71486e53486bb0d8272565c6b757b0497ddf86799618d192626656ba09dc5bf0"
+ },
+ {
+  "day": "20230802",
+  "kind": "nav",
+  "nav_hash": "affc1757bf4b7b78af12e916aa4a7af28f96585f4470fd33b2d7930ba890e8e8"
+ },
+ {
+  "day": "20230803",
+  "kind": "nav",
+  "nav_hash": "b022d570fa5a8e139cd2522399274537d497aacd17da81d925bec0bc19248c98"
+ },
+ {
+  "day": "20230804",
+  "kind": "nav",
+  "nav_hash": "3036276b2bbf2889dcc4ce1d245d5ce78787a75c99214ea0b8806e9011eae4dc"
+ },
+ {
+  "day": "20230807",
+  "kind": "nav",
+  "nav_hash": "eff0c13c349f848d393c7a67b448ac1e2d9fef2234e66eefef7ede4bfa7842b1"
+ },
+ {
+  "day": "20230808",
+  "kind": "nav",
+  "nav_hash": "7e1f3c49ffbffb6d3445c93ab33437f2205db38ed15bbfbc6d0819eaeb05d3a8"
+ },
+ {
+  "day": "20230809",
+  "kind": "nav",
+  "nav_hash": "d943bb2cd7c8395b081471a7b88837c10fc15c06387b1dcffb2342e05abf1966"
+ },
+ {
+  "day": "20230810",
+  "kind": "nav",
+  "nav_hash": "9e75a9fcdeddc3291f04149872b348ff10aa88557db69a3d96f8fa5eb344fb23"
+ },
+ {
+  "day": "20230811",
+  "kind": "nav",
+  "nav_hash": "cada2da4b7a6d3f9652526c7a1f46a10a6d33205122485ff56afd03ae5ae6d5e"
+ },
+ {
+  "day": "20230814",
+  "kind": "nav",
+  "nav_hash": "7a002019d5ea1aa80bb750cbf554d98e2410dfea3d7b3cd4f45e32a557e0d383"
+ },
+ {
+  "day": "20230815",
+  "kind": "nav",
+  "nav_hash": "ac178f3fcde6bd7203fbc0775b367e03080fae83740e665e7dad45c3b0a721d2"
+ },
+ {
+  "day": "20230816",
+  "kind": "nav",
+  "nav_hash": "340faf4024998049cea9ce22f82ddc35b197199c985117484f89a3beea93bc10"
+ },
+ {
+  "day": "20230817",
+  "kind": "nav",
+  "nav_hash": "cc065aa86664a37345180015b2f1f479eb3ad73ec8377bc11ee714c050c9892c"
+ },
+ {
+  "day": "20230818",
+  "kind": "nav",
+  "nav_hash": "ae7cfe301a613e9db8c543ec68e2660c68ba078463a22a70e0baab0d7275651d"
+ },
+ {
+  "day": "20230821",
+  "kind": "nav",
+  "nav_hash": "ec5c0d11560869dd7903efdc963dfa51ad2ad184007ecb966e1ee50da7d3f0b9"
+ },
+ {
+  "day": "20230822",
+  "kind": "nav",
+  "nav_hash": "62c8013cb533afe19c371ccb50b932f676f219bc9c05d1d3e5e4b2e6a75a2b41"
+ },
+ {
+  "day": "20230823",
+  "kind": "nav",
+  "nav_hash": "bcb5cfd6eedd8e90411a445609149656b8060f29516320b38db79accf6edae7b"
+ },
+ {
+  "day": "20230824",
+  "kind": "nav",
+  "nav_hash": "bdd4073b75109f948068aa93212408c6e0a98eab70b53465bde9a47d99a9b0ac"
+ },
+ {
+  "day": "20230825",
+  "kind": "nav",
+  "nav_hash": "700470bfe559335fde7a27232114f81973be207b30517551cf349643ed3adc7b"
+ },
+ {
+  "day": "20230828",
+  "kind": "nav",
+  "nav_hash": "ae9f7fd07cc665d529efd98a58cc8fd68ae429759a83f5c4fc5afdc2d089da1e"
+ },
+ {
+  "day": "20230829",
+  "kind": "nav",
+  "nav_hash": "1e8af45a188d3db9a2b066a10d9502b411188b9f93453a7e45bd398dc1127f9d"
+ },
+ {
+  "day": "20230830",
+  "kind": "nav",
+  "nav_hash": "46e08dc721087c8679f3619ef67f71a56b020b93fea2127e12ed2a0cb18919d0"
+ },
+ {
+  "day": "20230831",
+  "kind": "nav",
+  "nav_hash": "e39bd9ef82fcd2747175b9a52b4b5c7cf3b3aa18ba85aef789a0317210b19be9"
+ },
+ {
+  "day": "20230901",
+  "kind": "rebalance",
+  "universe_hash": "70937f2c0022d05dccadb4ec87361a5f2d46aa3ae1592ca448134394f49e9b7e",
+  "score_hash": "659c8444577cac50c134db8f1d8333541988228f74c212408a0ceeda55479447",
+  "ranking_hash": "9d1921709b475454f7bb4b82d771602d7f625431852a7210772933064299020d",
+  "portfolio_hash": "1fd854c6f685393c623f55a80adeed76fde78a39a9190411b677f294222038a6"
+ },
+ {
+  "day": "20230901",
+  "kind": "trades",
+  "trade_hash": "a2bc96d5ccdd4e499b3ca1c66eb9864608837f3e07db93f5b2a49ed0095edc21"
+ },
+ {
+  "day": "20230901",
+  "kind": "nav",
+  "nav_hash": "00b286946723291b0d8cf4c9e3a0d895da3b8866ab2b67f348f9266f53636526"
+ },
+ {
+  "day": "20230904",
+  "kind": "nav",
+  "nav_hash": "611b39961236daa3c5368ca5092a1501e592a14710a365ad29a01072405e4e62"
+ },
+ {
+  "day": "20230905",
+  "kind": "nav",
+  "nav_hash": "2ef5d838112b4fe563e7f1f9dba01c4660f03a4b004aa1ed9abeffede5a1ee89"
+ },
+ {
+  "day": "20230906",
+  "kind": "nav",
+  "nav_hash": "b0680de5c70100e7d12ef5bbeb2b07e1760a6608f98acbeb3e56b614e2674df3"
+ },
+ {
+  "day": "20230907",
+  "kind": "nav",
+  "nav_hash": "a77cf76041ad2d2eef6065b8624fd05b50ee6d272a255ecc550e981785ef19d6"
+ },
+ {
+  "day": "20230908",
+  "kind": "nav",
+  "nav_hash": "2f50c564b6a5a58ecaef7e7c794e02fbc8d3ba2bc01bb123f2ba4e31d9ab4911"
+ },
+ {
+  "day": "20230911",
+  "kind": "nav",
+  "nav_hash": "93079cee3a39723e36c7fa75f7c8863c107872f349d06fea794b4a8d048f91a5"
+ },
+ {
+  "day": "20230912",
+  "kind": "nav",
+  "nav_hash": "fa6a61e535adbf21e7a152e145f0719396630c09f6f4dd92e95b55aa79e8807e"
+ },
+ {
+  "day": "20230913",
+  "kind": "nav",
+  "nav_hash": "451d63911a05ddc4720c4b62b9691740c2f6f4a3719d585bc66f487e1e1f4f22"
+ },
+ {
+  "day": "20230914",
+  "kind": "nav",
+  "nav_hash": "fcc139c32d33796c871899f1648801a87cfba493156c6b21e1876fdf3910245c"
+ },
+ {
+  "day": "20230915",
+  "kind": "nav",
+  "nav_hash": "19385a1cdc3eb6e5179548b6bcf67eb59be530755723b9342c25800bf6c08127"
+ },
+ {
+  "day": "20230918",
+  "kind": "nav",
+  "nav_hash": "614d083e1289debdb879e9f144d1de70e8912cd4c422dcd28bd5f34d5ec9b7ca"
+ },
+ {
+  "day": "20230919",
+  "kind": "nav",
+  "nav_hash": "1c1625c8977b34fb2cca08f79bb37980cd8b99efdadaa586329678c555fd3000"
+ },
+ {
+  "day": "20230920",
+  "kind": "nav",
+  "nav_hash": "472fb1560ba060aae07249b6c6be562eff142d5c2573124c79d811e4663f9b16"
+ },
+ {
+  "day": "20230921",
+  "kind": "nav",
+  "nav_hash": "c11f516fa4be2869f689dd11615fe2d2b70fddb20ea463b4d4642a836eb70bd4"
+ },
+ {
+  "day": "20230922",
+  "kind": "nav",
+  "nav_hash": "20761268884401684d3d85fd0b9e672ab4f1aff0ab4baa6a7244c1c793d9f7e3"
+ },
+ {
+  "day": "20230925",
+  "kind": "nav",
+  "nav_hash": "62f91c8a0422f975d7cf367d8e2bd781f496b57f254593147e360d5003f7f2b3"
+ },
+ {
+  "day": "20230926",
+  "kind": "nav",
+  "nav_hash": "33b32984579293f0fadf12286514e03fc12ba1e6ef3359571e198954385afd86"
+ },
+ {
+  "day": "20230927",
+  "kind": "nav",
+  "nav_hash": "38e6e43eb5ca3a2d3ca912d32cb2308c65c8b084505c48ecc23a32ddde89b262"
+ },
+ {
+  "day": "20230928",
+  "kind": "nav",
+  "nav_hash": "664baa873879e6e9998d93c1808620837fb82e8884ce9c898a5893a92127f47c"
+ },
+ {
+  "day": "20231009",
+  "kind": "rebalance",
+  "universe_hash": "260d38777149bdafa0718425374fcf1f5cbac367acb9537652df5fd0db0bf3a4",
+  "score_hash": "b908447c9dd408d53f57788482d25da84d8f0d7aeae57685670e08d768f2997a",
+  "ranking_hash": "a3e5fa5bc20760425485d702f7407d85a7383c61ce8121b53fafe2293a46202e",
+  "portfolio_hash": "b2a7f831d3a3436074d3356809bcfa4a42f5b541aa29edb69221165750d53204"
+ },
+ {
+  "day": "20231009",
+  "kind": "trades",
+  "trade_hash": "336f2a9b3f5e1de97734cea9e1e3341a2dca97781bd0aae39b8635f61fbd5c5e"
+ },
+ {
+  "day": "20231009",
+  "kind": "nav",
+  "nav_hash": "a5ed4c6c12d1bbdf6ae5bd86f41b81e8f5b1c01d38fcc3701711577c4d7b327f"
+ },
+ {
+  "day": "20231010",
+  "kind": "nav",
+  "nav_hash": "6df30a2a399d690ffde9bfb51e37bcebe0b24252acaa1038dc5e8282aab14dbc"
+ },
+ {
+  "day": "20231011",
+  "kind": "nav",
+  "nav_hash": "00b348c0b4d414dc9f712971201f045ce899d4a04e204795c4412c25fd0cb3e8"
+ },
+ {
+  "day": "20231012",
+  "kind": "nav",
+  "nav_hash": "f30abe58d6b30866c1681b7795c8cf29698d24407c884689c54c70f7e541b96e"
+ },
+ {
+  "day": "20231013",
+  "kind": "nav",
+  "nav_hash": "d09d7d5c3d1a3987f741a0ba94012a371d188be312b15588c901c4457cd5b655"
+ },
+ {
+  "day": "20231016",
+  "kind": "nav",
+  "nav_hash": "41ddbd7322c9722f55d64a964eb0295f928940093e01c9fe52f5b571a8975580"
+ },
+ {
+  "day": "20231017",
+  "kind": "nav",
+  "nav_hash": "42acab6e9db08b6a3e1f70a50a097aa0176cc13fb146f5b325455e0f5c9dd02d"
+ },
+ {
+  "day": "20231018",
+  "kind": "nav",
+  "nav_hash": "71177389bb24a632f890c9b1c58bc886f9c2e442ad1b06e2fa0d1cf6394337a1"
+ },
+ {
+  "day": "20231019",
+  "kind": "nav",
+  "nav_hash": "aa236b64efc6d28e90dd262198c2334188013f397376a352897160d4150139a9"
+ },
+ {
+  "day": "20231020",
+  "kind": "nav",
+  "nav_hash": "2304ee98671ed9eb696a578304bf5ea176046e622dc14f9a8ced29035c93e75e"
+ },
+ {
+  "day": "20231023",
+  "kind": "nav",
+  "nav_hash": "3a036a6f130f74d70f82d2626ecce73ff5b615e0490bbbbe2bcd394d7eeffc50"
+ },
+ {
+  "day": "20231024",
+  "kind": "nav",
+  "nav_hash": "84904d602bfe59d1413b0de11dc7177d176bad405e6b3427910c53633ba651f2"
+ },
+ {
+  "day": "20231025",
+  "kind": "nav",
+  "nav_hash": "19358e5c5f903998623ec18c77197426bbf4df5bb4e5ed623c0dd085a02b9956"
+ },
+ {
+  "day": "20231026",
+  "kind": "nav",
+  "nav_hash": "cbacf6065442472039fb91d61b5384c10be22737f0bf5784d05a6e1b40239b59"
+ },
+ {
+  "day": "20231027",
+  "kind": "nav",
+  "nav_hash": "20d7894318f25644b5d236ee6a3c829e33b198d895ed1f5fa71ca147cc532eff"
+ },
+ {
+  "day": "20231030",
+  "kind": "nav",
+  "nav_hash": "bc14ee23e611965864a0d2be6dc830a22f93370cc8b2466db144aebb4052be0b"
+ },
+ {
+  "day": "20231031",
+  "kind": "nav",
+  "nav_hash": "c31c8d0a07e205399854995823c48706196b878ba6980dce16b815f8022edd9e"
+ },
+ {
+  "day": "20231101",
+  "kind": "rebalance",
+  "universe_hash": "df8e839e3d7cbfdf85ce0a94103693bb3ba8adff8a9dc142f08cd35c2a8216b8",
+  "score_hash": "86341da3ddd839c967b4ff30ebd3e78b16babc4dc3c5392a4bd95ad6f2950671",
+  "ranking_hash": "bbb3ea49a423f63f668e49779ed76db957a1ab95053b91328b9e66dd54d3f30b",
+  "portfolio_hash": "3a89073d0dd8577b480b02fb7ce8c7aef226515580e2e4a45aea4ee93380f46f"
+ },
+ {
+  "day": "20231101",
+  "kind": "trades",
+  "trade_hash": "8d392cab82549ec1d7b9fd010b9d33af86bf4c0bf6a885394e3dd9de6e107ef9"
+ },
+ {
+  "day": "20231101",
+  "kind": "nav",
+  "nav_hash": "a56f9177245e57ef2a5ea806c05ba40f4e0782c71d778741a0c8d266e242b256"
+ },
+ {
+  "day": "20231102",
+  "kind": "nav",
+  "nav_hash": "8330ef513b668d47ff0a121e97eff686b65874e26eb6868ea0c31c046e6e8d49"
+ },
+ {
+  "day": "20231103",
+  "kind": "nav",
+  "nav_hash": "5a3547efe81417806250478126284adedde9b6f9ee574c5d88c1e319196cf164"
+ },
+ {
+  "day": "20231106",
+  "kind": "nav",
+  "nav_hash": "17571ee8702191c237f576bb1a9b73cf0fbc6d4f42151072c7619065d691433b"
+ },
+ {
+  "day": "20231107",
+  "kind": "nav",
+  "nav_hash": "c386d9efc27efb566bb4d3b9c34dbdbeed003032f8773a062badd3ada8fc1ad3"
+ },
+ {
+  "day": "20231108",
+  "kind": "nav",
+  "nav_hash": "5cc49a1e0054a0e48c34d5aea5fb079010f6e27178ebf6fd54be614cebbd4fcb"
+ },
+ {
+  "day": "20231109",
+  "kind": "nav",
+  "nav_hash": "4f26802dca31b9b29b5f60f1fe772ec3807b1a4b1e879df90e24c56f54db9d80"
+ },
+ {
+  "day": "20231110",
+  "kind": "nav",
+  "nav_hash": "736e6a761a05b32eaf800dee1a8e0e1f0ea0a003bff0630f57a798bd0b5af542"
+ },
+ {
+  "day": "20231113",
+  "kind": "nav",
+  "nav_hash": "febf00d94daab82edef15d063d59d588354dcc7817b37229bd64a63dac3197c7"
+ },
+ {
+  "day": "20231114",
+  "kind": "nav",
+  "nav_hash": "34bf694c7b825db9ee34ba1fd1e4f4926751953ff11e0fb6bb774ac98a1640d0"
+ },
+ {
+  "day": "20231115",
+  "kind": "nav",
+  "nav_hash": "25e784f1b8c6f3f3d8b58bd50cceef18d665a2e047a0dc3f352e6cab9dcda2bd"
+ },
+ {
+  "day": "20231116",
+  "kind": "nav",
+  "nav_hash": "645ccd5f6c65a638b97312563cc29b4d9eb92268e8e6d8d21a734854ebd9ce37"
+ },
+ {
+  "day": "20231117",
+  "kind": "nav",
+  "nav_hash": "cbdd4db59d8704677042616dcb9d7f014cb438085c35afea3e23cfbba9e6c2e0"
+ },
+ {
+  "day": "20231120",
+  "kind": "nav",
+  "nav_hash": "e8e21604fd9d07d66ffcc3afb1429c0e0c6794057884e2ab15978e9f5203ab72"
+ },
+ {
+  "day": "20231121",
+  "kind": "nav",
+  "nav_hash": "e259f76158b2ed22df6776cdde6ba232bb8cf68acc24f28ac353a76455b40063"
+ },
+ {
+  "day": "20231122",
+  "kind": "nav",
+  "nav_hash": "5faba14436706b20bcc7b4f7a48b38510bd9bb80e157d51f98258fd7991a84f8"
+ },
+ {
+  "day": "20231123",
+  "kind": "nav",
+  "nav_hash": "f4d8a2b7420df9b2b3e84fb6bfedfbfaa938fc65935f65957fddd365b0415401"
+ },
+ {
+  "day": "20231124",
+  "kind": "nav",
+  "nav_hash": "605b69e4f35f963a3f87cdb35d4367b941de65cc70efde5a0533177b4cc5ce25"
+ },
+ {
+  "day": "20231127",
+  "kind": "nav",
+  "nav_hash": "ada35c18d0d4a910166973ebc773e83e205795cffccb6efffd83b7c10ae73283"
+ },
+ {
+  "day": "20231128",
+  "kind": "nav",
+  "nav_hash": "fc0f79cf90962efbf2978462e14245c31a4fa0a4db3a74098f45112e3c0387d7"
+ },
+ {
+  "day": "20231129",
+  "kind": "nav",
+  "nav_hash": "6a5091223f3b538150690263c57e53e138f670f6f5d725c225d27378ae75b627"
+ },
+ {
+  "day": "20231130",
+  "kind": "nav",
+  "nav_hash": "1ccff33466552501fd477ac384ad4ed3119297eb9d0fe6307311ec00929db0cc"
+ },
+ {
+  "day": "20231201",
+  "kind": "rebalance",
+  "universe_hash": "32a8a60a7e10ba113e6f02041f21ba83d7aa87c6bcc005a867c03cfdd2c7ff6b",
+  "score_hash": "2578779e96afa85ea563482dd3eee91a55861d63332ae6a55a21d17c8dc2a159",
+  "ranking_hash": "7aeb37ebffcdfeb75a87bfa69e6d2cc538d9e4994c67cf9f4f0defd17cc33906",
+  "portfolio_hash": "0a1857825e03a13772053d9c4ab1192f43944b4dc3197fa746557fe5086c943b"
+ },
+ {
+  "day": "20231201",
+  "kind": "trades",
+  "trade_hash": "b5f5911e9739f3758422d00bdef38ea93b3cf721c33518430a4dc93e76bb3d7b"
+ },
+ {
+  "day": "20231201",
+  "kind": "nav",
+  "nav_hash": "d4b7abc183285f6461ecf27cf16ace98e6afa9d5966c886d5afae0b8a9a28f65"
+ },
+ {
+  "day": "20231204",
+  "kind": "nav",
+  "nav_hash": "917ede25aaa03ce19d658e4c5910aeed8ab9e1d46a0df50bcfcea2bf995ceb56"
+ },
+ {
+  "day": "20231205",
+  "kind": "nav",
+  "nav_hash": "acb851dcffd9d92e3a979563abcbcca839dd67c185e291dd0782320ed904deaa"
+ },
+ {
+  "day": "20231206",
+  "kind": "nav",
+  "nav_hash": "b4ad227840c644dcbeb7d6c4f76dc7bf990dadf4daeb9865cfed3cf900789245"
+ },
+ {
+  "day": "20231207",
+  "kind": "nav",
+  "nav_hash": "2d106eb63686cdbefcf234f3981fbf176381ec907c1ec2512ac8fd7636e5ed53"
+ },
+ {
+  "day": "20231208",
+  "kind": "nav",
+  "nav_hash": "26e9ca00e06d39c1bc0bc0abfcd1d2ef97da405b057c79d65a5e04bc53e2d6aa"
+ },
+ {
+  "day": "20231211",
+  "kind": "nav",
+  "nav_hash": "b2395a6434d7b0816a23d6ca4e86cbb495975a46eb22c27f5f8a23b00bdb1966"
+ },
+ {
+  "day": "20231212",
+  "kind": "nav",
+  "nav_hash": "063a02a71b884fd111c98cd584ee60909b18600a84011ace21fac131730c8120"
+ },
+ {
+  "day": "20231213",
+  "kind": "nav",
+  "nav_hash": "86608cc641d2a19533291b743228ccced9acfbde623647062fb499c72127d379"
+ },
+ {
+  "day": "20231214",
+  "kind": "nav",
+  "nav_hash": "12089c5d78ae80e85375b5cf285cc0a685e17c73b3b9a9b5f6d8693c634e24c2"
+ },
+ {
+  "day": "20231215",
+  "kind": "nav",
+  "nav_hash": "3a1f7b851d23896e1c305091ae030ec1556ab2f870ed779ea9b9e71d1b072499"
+ },
+ {
+  "day": "20231218",
+  "kind": "nav",
+  "nav_hash": "afab629cc9360ae9c9c008233963191c3b2347cdc1a499a7e189711fe71696ca"
+ },
+ {
+  "day": "20231219",
+  "kind": "nav",
+  "nav_hash": "28d740b8682e966cce7a58ff19e30c8a8a8f84eb96e2a5e557228e540af999db"
+ },
+ {
+  "day": "20231220",
+  "kind": "nav",
+  "nav_hash": "86d23bdb05cc66a6bc8528ec5a016ea94b1f589b86b9ff1ea5f51f37aa3062a9"
+ },
+ {
+  "day": "20231221",
+  "kind": "nav",
+  "nav_hash": "4ab6051a67f9642f4613ec9b0c4249a1f44a0de9640accaedb5d3654dc7454e6"
+ },
+ {
+  "day": "20231222",
+  "kind": "nav",
+  "nav_hash": "1cbd18590987163c58e938c90753726d1518e08f39c1e8b815015ec9d9289a6f"
+ },
+ {
+  "day": "20231225",
+  "kind": "nav",
+  "nav_hash": "57ec8f3d33de3f6363b7304847dc83511c086a15606ea5f379e394fb5629c3ad"
+ },
+ {
+  "day": "20231226",
+  "kind": "nav",
+  "nav_hash": "fb7d9eaa56ab393b09e75fa02250132f2f41f39d19a77dc10fca3c008fb336b0"
+ },
+ {
+  "day": "20231227",
+  "kind": "nav",
+  "nav_hash": "48633065786ae8dd98a7156c71fbeb7e6bd48bc8ac602ede626304c7159dfd70"
+ },
+ {
+  "day": "20231228",
+  "kind": "nav",
+  "nav_hash": "adac39cbe23dc5c7aef12a4efc2e33bbdd0abbd5172503aa44b384fa75242893"
+ },
+ {
+  "day": "20231229",
+  "kind": "nav",
+  "nav_hash": "58281b70a03c7e19f2ca57762d8ffecdc67c534cb9bf189d1bddcfa96e170154"
+ },
+ {
+  "day": "20240102",
+  "kind": "rebalance",
+  "universe_hash": "e3eb190d3e3cd21f2783306a86a6478e4c6ada6e75de4c4f9b8c5a268d5929bd",
+  "score_hash": "b71b0d8bfd66985c0b387d109de149db561ea95c52dd0150fa8b15a4551da4d8",
+  "ranking_hash": "3936d2327d61a59711ae747bd4e880029572eefe9bac21d4b2234771e6f4c3c2",
+  "portfolio_hash": "778e607258fcf00ec29a9f7b5a03d8ca943e47e902b3b78ac56e2a5decfd2e86"
+ },
+ {
+  "day": "20240102",
+  "kind": "trades",
+  "trade_hash": "ec6deffa4baa1de6dc2494991e548fcc4743d1ed982b2ad8ee6196a560a5b3ff"
+ },
+ {
+  "day": "20240102",
+  "kind": "nav",
+  "nav_hash": "66fd3e8b3da5f472f90bfc71656a6bc04bd343ab4aafb3068a3ad07ca64cc45b"
+ },
+ {
+  "day": "20240103",
+  "kind": "nav",
+  "nav_hash": "645f8533219729fe9a9f308fe344ff4686ca01e4b2cbf04930bca8d1636664aa"
+ },
+ {
+  "day": "20240104",
+  "kind": "nav",
+  "nav_hash": "da0e49df3093a3ae6f5fbdb9b6cf985614c420cb9f10c36de5738d3d75fad200"
+ },
+ {
+  "day": "20240105",
+  "kind": "nav",
+  "nav_hash": "64714cfc0a165eae43aaae55fe4cba12345b0578e19a6423523ecbdd7820b6f9"
+ },
+ {
+  "day": "20240108",
+  "kind": "nav",
+  "nav_hash": "793e40493957b4c6a26ac211b921dff21fb8724bce49fc72e0d50b649bb85583"
+ },
+ {
+  "day": "20240109",
+  "kind": "nav",
+  "nav_hash": "1a926a620532829b80dd22eeeb8adc831bf202fbb69b0bee55d0ff381d51ce0d"
+ },
+ {
+  "day": "20240110",
+  "kind": "nav",
+  "nav_hash": "c579d035662766fbf17d45f2d8e4a6eb31091b25500ff0fd38c7610b9da11267"
+ },
+ {
+  "day": "20240111",
+  "kind": "nav",
+  "nav_hash": "54257a87ded699d99f4fa2441f35ac8e6bd8f8b854c43f20a08a2996e625a325"
+ },
+ {
+  "day": "20240112",
+  "kind": "nav",
+  "nav_hash": "d76d1d0dc6c7685124522389c06f2be4d5a3598c694a1395d599af44409baca9"
+ },
+ {
+  "day": "20240115",
+  "kind": "nav",
+  "nav_hash": "7258e31327951b7e05e4f61c128c16573531d8b7448316ad5b27c34836800454"
+ },
+ {
+  "day": "20240116",
+  "kind": "nav",
+  "nav_hash": "98d1ae8dd381b8f705c06e1dc81c534abc5008c034c4d6809d4023bc8a833e68"
+ },
+ {
+  "day": "20240117",
+  "kind": "nav",
+  "nav_hash": "1a7d0242abe2a1df7b2af250d6bcf9928cb9b610ecefa55aa42f5fa059e26df0"
+ },
+ {
+  "day": "20240118",
+  "kind": "nav",
+  "nav_hash": "7b927b638cb153af0eff540b50545125a88d30b88389e39513d9cd7298b02b70"
+ },
+ {
+  "day": "20240119",
+  "kind": "nav",
+  "nav_hash": "5270b4001832ffe9b84a362f32f62bd5622d9d8fbdfe2bbb74a921ac2d1cc1bd"
+ },
+ {
+  "day": "20240122",
+  "kind": "nav",
+  "nav_hash": "58792f43fb6fc403b54659d23f8104bb714d540d7aa7474b3af8f6f923a5dc8b"
+ },
+ {
+  "day": "20240123",
+  "kind": "nav",
+  "nav_hash": "314fa4f56c6776bf456269d7378e163683b3ef2be2f8d532112e2b430f9c9fe0"
+ },
+ {
+  "day": "20240124",
+  "kind": "nav",
+  "nav_hash": "f759afb186e7394525ae6781197df0c2386dc5bad798d59843e9f9a70ebb683d"
+ },
+ {
+  "day": "20240125",
+  "kind": "nav",
+  "nav_hash": "4dfb56607cc0a8cdb17cd049c6613a4e874cbf0b72f278f262a89fa1159321be"
+ },
+ {
+  "day": "20240126",
+  "kind": "nav",
+  "nav_hash": "871d0b02bef27c50074ce9b92342ebee21d0753c3176ba9f00b1ec8f52af3e0a"
+ },
+ {
+  "day": "20240129",
+  "kind": "nav",
+  "nav_hash": "89b5235068992755540a5642c4975a1194300903fe78625dc65986fea4d5f108"
+ },
+ {
+  "day": "20240130",
+  "kind": "nav",
+  "nav_hash": "163c714f256dc4e2c0c0255ea82cfb7eefcfc010ef1d3528d7ded2a87d1e8ac7"
+ },
+ {
+  "day": "20240131",
+  "kind": "nav",
+  "nav_hash": "c6890261cbb8ef2060bed9feec5ec9f099b55c153041262f4bfc8b5a9a8f77fc"
+ },
+ {
+  "day": "20240201",
+  "kind": "rebalance",
+  "universe_hash": "7a435b55d759f9c9836566f2861dc0e7a0e0aa829580a2e51d06187c6c2e5502",
+  "score_hash": "c8d466a1c262c3e64e66bdf12188d984dabfa1def7f8ef5fb5969742d30eb1ac",
+  "ranking_hash": "1327110ddaa3306243bf570fea77a5b867ae227d053c03e31291926f1fcfe65c",
+  "portfolio_hash": "39cf03238f444af638a4abb4a0659b3843f6c8702289157d1bc0e195e6c37e3b"
+ },
+ {
+  "day": "20240201",
+  "kind": "trades",
+  "trade_hash": "ae85edfc891a7838d66ac87b3c80d2e82d317f9f8d193c3d1902d5f537898c30"
+ },
+ {
+  "day": "20240201",
+  "kind": "nav",
+  "nav_hash": "0b5935e8bd78cfe63b65ab07d476817987ee42f1e61745408026c7a3db8c40d5"
+ },
+ {
+  "day": "20240202",
+  "kind": "nav",
+  "nav_hash": "f2e31f2c18b1383b6ddd40ef63aa978285266d2f5a8c9b97c44a8835ab88e6fc"
+ },
+ {
+  "day": "20240205",
+  "kind": "nav",
+  "nav_hash": "d8c7ef1637cb7168ccb5bb13d3f52fb721c762e4776f76b5faed0712f2a6ed67"
+ },
+ {
+  "day": "20240206",
+  "kind": "nav",
+  "nav_hash": "207c6b8d21493e75f04c17ecf45b27c6c58456a773937de1449d71eb393c86c5"
+ },
+ {
+  "day": "20240207",
+  "kind": "nav",
+  "nav_hash": "8e45e4853aa64949b25086479ce583ef4713694a089f759b0faa97b9d39ef3aa"
+ },
+ {
+  "day": "20240208",
+  "kind": "nav",
+  "nav_hash": "0b0f458088a3a5d8fe521fed802718290578e0a6d31d6662f1baf4f9decaf948"
+ },
+ {
+  "day": "20240219",
+  "kind": "nav",
+  "nav_hash": "59f62ecc3dc367c401a19fd11bc9fb4f9017ae00b67386d2033ca8f4c0066915"
+ },
+ {
+  "day": "20240220",
+  "kind": "nav",
+  "nav_hash": "e7c0df0479b80dc3d5578f4084ee88df3a37f20bca316b96ba7ef9b312fbb343"
+ },
+ {
+  "day": "20240221",
+  "kind": "nav",
+  "nav_hash": "877a75e7d9234b00833c8f64740f31f708397b2d2bdaefb8e894cc9f33021d06"
+ },
+ {
+  "day": "20240222",
+  "kind": "nav",
+  "nav_hash": "93cedcc7563a6dd18f7b0c60da551a9096f499acb8b8d9c8108f6764245be76a"
+ },
+ {
+  "day": "20240223",
+  "kind": "nav",
+  "nav_hash": "53c2ffba4494b3f8fe3a21b9b1586c8c3cc79b1dbc04196c0b261b8a5b5783cd"
+ },
+ {
+  "day": "20240226",
+  "kind": "nav",
+  "nav_hash": "75244160a62088181c433133177ff8a969a1d9482063fb4ea6ae3eaa7fcc74d0"
+ },
+ {
+  "day": "20240227",
+  "kind": "nav",
+  "nav_hash": "ea203682acbb019220ec4673e036265a33157b473b3a6cd6fe546ca94deb6392"
+ },
+ {
+  "day": "20240228",
+  "kind": "nav",
+  "nav_hash": "67ef27651a1785d5f28786399ee251a6123ebcc48b431aa18dae202e61a4b494"
+ },
+ {
+  "day": "20240229",
+  "kind": "nav",
+  "nav_hash": "745f2f07258aa81530661f7b4069e5814b6aaaabf3b942b88cef862b084a6f53"
+ },
+ {
+  "day": "20240301",
+  "kind": "rebalance",
+  "universe_hash": "cabaa6361f9367817bd54f6394c8f3f17ecf253a77f81ebd3f7837a05650948f",
+  "score_hash": "75c723dd0eb6f9af5020f424a93a3c89994a3a0b0067cc9f1b9c7450bd52f180",
+  "ranking_hash": "917812717ad2314d2cd880782f787408b6fd3d98639d8e8229c150a4431a3710",
+  "portfolio_hash": "3f4c1e987194603dbef620f7dced9d8b76e646ea701caf03e1aa632b8e0be870"
+ },
+ {
+  "day": "20240301",
+  "kind": "trades",
+  "trade_hash": "b232cab7a9d780a7cfdece628941f1a6b1513f0706d30292a9cacbc76cb52ad3"
+ },
+ {
+  "day": "20240301",
+  "kind": "nav",
+  "nav_hash": "52d8194cf5aa53985f95587fc92e943feb269951f3076d039197a2a887acba6f"
+ },
+ {
+  "day": "20240304",
+  "kind": "nav",
+  "nav_hash": "3939d42e1bac9c33958a69c98b527a505707afd5f43f13e84b083ef831b276e4"
+ },
+ {
+  "day": "20240305",
+  "kind": "nav",
+  "nav_hash": "473d9ba1f89d2240d08395adacc61fc3f235ff6b89bf98e3db4c9ad6e844eb92"
+ },
+ {
+  "day": "20240306",
+  "kind": "nav",
+  "nav_hash": "9735c2544a9417c22da108d8e9711dbf171b93b0d4eb1d62f0ad9cdf26ad190e"
+ },
+ {
+  "day": "20240307",
+  "kind": "nav",
+  "nav_hash": "56198ed7e6a43c1cd695b5597f7bcf641097ac6b2c035cc0a426f410a81953b3"
+ },
+ {
+  "day": "20240308",
+  "kind": "nav",
+  "nav_hash": "134550f33b6db49600dea54744b59e6514bd6505ca91a27996febc460622b7ea"
+ },
+ {
+  "day": "20240311",
+  "kind": "nav",
+  "nav_hash": "650113e5afef2209028d03c12d398bb5bfd363e5de4cc912edc900299c19ea84"
+ },
+ {
+  "day": "20240312",
+  "kind": "nav",
+  "nav_hash": "03c8cbdcb23d5538c9ee1ddebc614a99f6f90a70804b4a1f72dd5f8c14a42fa5"
+ },
+ {
+  "day": "20240313",
+  "kind": "nav",
+  "nav_hash": "5d2d6697671951a9d350648f2598273202ac870649d73a6531e55d0f960581e5"
+ },
+ {
+  "day": "20240314",
+  "kind": "nav",
+  "nav_hash": "2600a01c66689d18528ab4768f6d6226d9475eea42c36515a6b8d557502e9f90"
+ },
+ {
+  "day": "20240315",
+  "kind": "nav",
+  "nav_hash": "abe3981df61cf0156bd405babbb4570e62ebd25c95ebec9ec941b49cf3765b98"
+ },
+ {
+  "day": "20240318",
+  "kind": "nav",
+  "nav_hash": "0911d7f5b69520ca5af968ba6e7ef613e334c6343faeee8b1b4fcdcb33f649ea"
+ },
+ {
+  "day": "20240319",
+  "kind": "nav",
+  "nav_hash": "c23f33ea624cc5231b3ee222a267381b05fc64ee6fee3b686e9cc99bb25c8d9a"
+ },
+ {
+  "day": "20240320",
+  "kind": "nav",
+  "nav_hash": "0b1c671f46097688e2a9f26250673171ed21b4e8398a6d84b1a33a5676bd304c"
+ },
+ {
+  "day": "20240321",
+  "kind": "nav",
+  "nav_hash": "41edd1c27ed512eea18057af5d84dfe0c18493ac9b3d3081d02820ec17477950"
+ },
+ {
+  "day": "20240322",
+  "kind": "nav",
+  "nav_hash": "70f3ef808ff1bbc5ec4992ba0bdc99c6c34406a1bcfb06b6270d18dec75638e2"
+ },
+ {
+  "day": "20240325",
+  "kind": "nav",
+  "nav_hash": "e903012d812bb0e1158ee1d276af89dcf4267473461b8bc71f8589f9f9d85488"
+ },
+ {
+  "day": "20240326",
+  "kind": "nav",
+  "nav_hash": "f9dbf4c1b2ea44aa7c4c2a5586137b4292f688e1481d83763c1923d82a6b8120"
+ },
+ {
+  "day": "20240327",
+  "kind": "nav",
+  "nav_hash": "dded85f25078c9ff5010faef8dead993e780e8181030e808dabf970fd779b4e2"
+ },
+ {
+  "day": "20240328",
+  "kind": "nav",
+  "nav_hash": "0516e3a21890cab7078f92a31a22182dd7ac0652639e617f8b840e01d368f803"
+ },
+ {
+  "day": "20240329",
+  "kind": "nav",
+  "nav_hash": "09f0ec35ca4492426b8b74278ab15887b5073f5c5194adcfb1ed69e14069b0cc"
+ },
+ {
+  "day": "20240401",
+  "kind": "rebalance",
+  "universe_hash": "619033135510311dd161774573dcebf597ed6614d88e71adba16dcead5fbf644",
+  "score_hash": "34e0a5f63fea2e7f833e4487976f71643abe71e1d6da84c56265213ea7d99b95",
+  "ranking_hash": "eaf6f10d09f2ecd7dcbb7fd2e38c7b977356bca7601a5d4cc9a0ccde9a51a394",
+  "portfolio_hash": "0119b4130d308106a6ecc1cb244be205fca1dcec3580d1b511000469d8ed1c47"
+ },
+ {
+  "day": "20240401",
+  "kind": "trades",
+  "trade_hash": "6e4d83e49b33a4ad49f223484b743e0ed236419e321ea04e4d95d497a3d3a15f"
+ },
+ {
+  "day": "20240401",
+  "kind": "nav",
+  "nav_hash": "ad19883b38346a5833102a14dd8d7b0cec0a637f3a95fa246f9d70a715f18d52"
+ },
+ {
+  "day": "20240402",
+  "kind": "nav",
+  "nav_hash": "c8eee54df9c02dd96d9bc57a00efbb4b02181c160c92918fcaac4f5d9977ebbe"
+ },
+ {
+  "day": "20240403",
+  "kind": "nav",
+  "nav_hash": "3f9fa0a3fed06cbf6d62bfc6cdf390893af129500c72ae8711ec5ee01139d388"
+ },
+ {
+  "day": "20240408",
+  "kind": "nav",
+  "nav_hash": "cb85cd9fdbce356fb587f33c771c0224dbffaa3a0614cf6d82cfbd36eca83d48"
+ },
+ {
+  "day": "20240409",
+  "kind": "nav",
+  "nav_hash": "6176e6c082606d9c5c0bd42ca402d5aa1896c9f223b354a68bc0c1d228e9fe9b"
+ },
+ {
+  "day": "20240410",
+  "kind": "nav",
+  "nav_hash": "e27e506a0d7a034af94e6070b056402559bb4d84bdfc31722c03195e5f33f1d8"
+ },
+ {
+  "day": "20240411",
+  "kind": "nav",
+  "nav_hash": "b5c66ca6487c52300ef446087306be34f3f9139002abf0e922c5d4326bb7fa81"
+ },
+ {
+  "day": "20240412",
+  "kind": "nav",
+  "nav_hash": "8e6b0773c775fae369e8f5e1658dc461acf47d418618e6595dedbc90d121021d"
+ },
+ {
+  "day": "20240415",
+  "kind": "nav",
+  "nav_hash": "fe92619e08759ccf69ecf2bdb8598b689e427a962f796d579e1ba08902be5781"
+ },
+ {
+  "day": "20240416",
+  "kind": "nav",
+  "nav_hash": "762b7d2f8915ad97f5745937545eabbd02e7fee81a2011248121350c7ed4d8d5"
+ },
+ {
+  "day": "20240417",
+  "kind": "nav",
+  "nav_hash": "bcc789aaa9471eb0dfb8c62909ecf78399e97e13c1c8b6deb6f1440cb6be4aa3"
+ },
+ {
+  "day": "20240418",
+  "kind": "nav",
+  "nav_hash": "4be28023d4781b18e64dcb7e6f4ded0d9e403af687a09e36a1f4d791827f3d10"
+ },
+ {
+  "day": "20240419",
+  "kind": "nav",
+  "nav_hash": "6cbbeea7c55759b41860a90adc16e3368e5c18c27527ff71bff97aa565e8fa9a"
+ },
+ {
+  "day": "20240422",
+  "kind": "nav",
+  "nav_hash": "d2b43ac79ad789aa65cb577a11b5c9dd0ccdb852240d4079556609baa9eab156"
+ },
+ {
+  "day": "20240423",
+  "kind": "nav",
+  "nav_hash": "60277afb9da91f8708853c455b8cf924e6339ab97593e53a4efea80fa09e66a9"
+ },
+ {
+  "day": "20240424",
+  "kind": "nav",
+  "nav_hash": "72d5563a8e59203b653a3e625237c7e872c13b4982ce124a1ebf6ed06be9372f"
+ },
+ {
+  "day": "20240425",
+  "kind": "nav",
+  "nav_hash": "c04f82e3deb35a517b1d3f6b226fa2d75d5896e783f911badd1f45c423bd99ba"
+ },
+ {
+  "day": "20240426",
+  "kind": "nav",
+  "nav_hash": "fde0b98b48579d29206ae7c2525d91554a96d9c1a279ccc3ca04a9879a0917df"
+ },
+ {
+  "day": "20240429",
+  "kind": "nav",
+  "nav_hash": "2857046c56eaf5202f45bcefe1fbb9b6cab6fcbf6675031bab8d171b9810014d"
+ },
+ {
+  "day": "20240430",
+  "kind": "nav",
+  "nav_hash": "1aacb01867089de577859d1d1e6f2f38c04179f4808922173358b5faa63d5bdb"
+ },
+ {
+  "day": "20240506",
+  "kind": "rebalance",
+  "universe_hash": "f9bf51a24d75bb8e7016a857fe1cb579c1eb33c584e3c4ad9cbf9a031aee3d78",
+  "score_hash": "938faec066c32fd69b2e8a6f3a63acefec4d61fc35610f4d2b44854bf3b1ecd1",
+  "ranking_hash": "9e20f7e1f8837d751b1f20009de6ec2e29699e244b058cdb6485f3f0fb07fac6",
+  "portfolio_hash": "5c04301651b611295ac4ca8086121388c25fbaa46fcf54cac6d1aece04a4623b"
+ },
+ {
+  "day": "20240506",
+  "kind": "trades",
+  "trade_hash": "2e9929ef217f4e9b1e7f7b9898091ca73524ad166109e8c5d5be5469938b4246"
+ },
+ {
+  "day": "20240506",
+  "kind": "nav",
+  "nav_hash": "708145e1b89095b0f248739095aa9bffec8552fccad3a9fd00f0880e29d5200f"
+ },
+ {
+  "day": "20240507",
+  "kind": "nav",
+  "nav_hash": "0041d52417d2dc840775f7a368b2fe77a6e1fc04d60fcfb6e4b19fd84e8aa02e"
+ },
+ {
+  "day": "20240508",
+  "kind": "nav",
+  "nav_hash": "eb9ef88bca72882db16cb87524423430bc3543392b805657156d3f677b6114cc"
+ },
+ {
+  "day": "20240509",
+  "kind": "nav",
+  "nav_hash": "a662970c1871b0c4b1d35358916c6fdd0f33adffe66bc0443f03890e2466c87f"
+ },
+ {
+  "day": "20240510",
+  "kind": "nav",
+  "nav_hash": "0ac629095393057a4f128a88c84ceca871a064a4c523eb8019f137cf1fd0c0c2"
+ },
+ {
+  "day": "20240513",
+  "kind": "nav",
+  "nav_hash": "1b9d4c0680936ca291e8cc059732919a84030d5d93910cd237f3a0d6c42950e1"
+ },
+ {
+  "day": "20240514",
+  "kind": "nav",
+  "nav_hash": "025be700a5c8feb45d152b1bab11505173c999a8e29589857aedaff6d8cd15eb"
+ },
+ {
+  "day": "20240515",
+  "kind": "nav",
+  "nav_hash": "b2c344ddce5731cb9db24ed8546962052f1477bf63ad9b9d62d50453c524c8ca"
+ },
+ {
+  "day": "20240516",
+  "kind": "nav",
+  "nav_hash": "f67100c76bb7146439d314d48c4e495a575677f5b29647519c6dcb0d4b89c515"
+ },
+ {
+  "day": "20240517",
+  "kind": "nav",
+  "nav_hash": "01c7fe1215526c20d0960f3ceecbc4dd983c1b78aeb6650ee3fedd30eb1fc9e3"
+ },
+ {
+  "day": "20240520",
+  "kind": "nav",
+  "nav_hash": "1936b8b4d996c7c3af056b2c230ec2fd3e9b20501f58c2a90da99c69062ccbcf"
+ },
+ {
+  "day": "20240521",
+  "kind": "nav",
+  "nav_hash": "dfa8a12d4e3ee04359c4463a17b1ef002c46b1e87684cd61a789d33dcea039cb"
+ },
+ {
+  "day": "20240522",
+  "kind": "nav",
+  "nav_hash": "bcf1f3d062cc132d508278295c43f6f89a53b70e06bc63ec6dbbfca25cb0281a"
+ },
+ {
+  "day": "20240523",
+  "kind": "nav",
+  "nav_hash": "cd7e7b58852a2bc8a2f0c82d01cb51d4c2aa4dc50e3b27d3ee7893dc07d7a6bc"
+ },
+ {
+  "day": "20240524",
+  "kind": "nav",
+  "nav_hash": "5322da9189d3a16c95624767dedc57233127ec9e3daa8e5d673e68d47f2d5596"
+ },
+ {
+  "day": "20240527",
+  "kind": "nav",
+  "nav_hash": "754e78424e1681dd509b944081875b3747b759347ba7a3f34db721927ee42d8f"
+ },
+ {
+  "day": "20240528",
+  "kind": "nav",
+  "nav_hash": "463540f815a36378e78218d8b2c60f3b0444e1cc12ede5a5601a2ab652a61147"
+ },
+ {
+  "day": "20240529",
+  "kind": "nav",
+  "nav_hash": "6d7f441ea2ecaf7b7d0784e94524f5bfe7bc701840fd9f9d33bab8ce00dde184"
+ },
+ {
+  "day": "20240530",
+  "kind": "nav",
+  "nav_hash": "9c74b6dd7ef9520d71dcf06ac544a72d3215d0307eeb8327fdd2369271dd7bbc"
+ },
+ {
+  "day": "20240531",
+  "kind": "nav",
+  "nav_hash": "1953ee4f39fb03800e376eff37b0fe9c7355355de5ff8ce859ac52c5013dce89"
+ },
+ {
+  "day": "20240603",
+  "kind": "rebalance",
+  "universe_hash": "7473f69e6c6725c140acc04c035c4c84160a904bd3e574edba33d61db7b8c3b8",
+  "score_hash": "ef82bb9046eca2cd18f394b5a46e4272bf9330488e8b113ffcdb8b317235ae67",
+  "ranking_hash": "d7c9bde3ae6267c294c7dbc748567cc737f88da301594b2b691623cf814daba5",
+  "portfolio_hash": "c5868b9d780b5d2b955a9ccd908ae2b3448b6013de2f6d82adfab4184b750a3e"
+ },
+ {
+  "day": "20240603",
+  "kind": "trades",
+  "trade_hash": "479aa82d76895fdc0a4f39e64dfc1675e7d3e7408cbb9bd47482d8fbadd38687"
+ },
+ {
+  "day": "20240603",
+  "kind": "nav",
+  "nav_hash": "13d27fcc1a56d3d936a82305c935d81c38d52a4cdc9facf24376e89a05c8d1b4"
+ },
+ {
+  "day": "20240604",
+  "kind": "nav",
+  "nav_hash": "b21a365189aecbfbd2a956ca5358d93e8fa4d68485dc7f80a7d244bd98e705bd"
+ },
+ {
+  "day": "20240605",
+  "kind": "nav",
+  "nav_hash": "bb095194eb1c2023cb33752182c8926866f174959bf15db3395bde251ba7b792"
+ },
+ {
+  "day": "20240606",
+  "kind": "nav",
+  "nav_hash": "00f2a2e7cd3546c9e73f4b705bf9dba2d1ae3ab85d7c08d136fddf570ddc8797"
+ },
+ {
+  "day": "20240607",
+  "kind": "nav",
+  "nav_hash": "b56694de4436f83ffd213c3d257e11ecdd549aecadc4c28abacd01f02d657769"
+ },
+ {
+  "day": "20240611",
+  "kind": "nav",
+  "nav_hash": "f56f0867fb60e7e5abe171b7693f15bd8a279ee1021373349e8dc4a4489d5d35"
+ },
+ {
+  "day": "20240612",
+  "kind": "nav",
+  "nav_hash": "4c330bbd9de6cdffc8857d53e018a0ed31cc1a716e38d10ecb20243ec4941caa"
+ },
+ {
+  "day": "20240613",
+  "kind": "nav",
+  "nav_hash": "7b80fe615798a1e2ad9a2a381b56a8151c99a72358969a5235ab770d47b2ebb8"
+ },
+ {
+  "day": "20240614",
+  "kind": "nav",
+  "nav_hash": "ffecf793d62be182f2e03f3244f61427754ea8608ffa6b8b8a5318bf3e7c1a13"
+ },
+ {
+  "day": "20240617",
+  "kind": "nav",
+  "nav_hash": "2e63d460ac4791f05eb408ec84d7d45e5dffa015da2d03b75d781397caf13538"
+ },
+ {
+  "day": "20240618",
+  "kind": "nav",
+  "nav_hash": "60edb9ccd4ab86d0ede2046ecc683fc56830aa5d7be630ca2b8f3b0f4c306887"
+ },
+ {
+  "day": "20240619",
+  "kind": "nav",
+  "nav_hash": "debca7636ab3ba9a7530fbbcab2d76d64ecc9dbb1e960c02b3434d24ac384ba9"
+ },
+ {
+  "day": "20240620",
+  "kind": "nav",
+  "nav_hash": "769644bd1ab751be07d92bc4f53c146b7b611f9109406e647d07f354a1014716"
+ },
+ {
+  "day": "20240621",
+  "kind": "nav",
+  "nav_hash": "f2b5bbc55dd78a3f49515d895f853f1a0597afb93c4d7e4fc7e06e4444450dcf"
+ },
+ {
+  "day": "20240624",
+  "kind": "nav",
+  "nav_hash": "b31ed2369662cbb471dcce718f09e0915248d6002ba99046566b9818d13839ba"
+ },
+ {
+  "day": "20240625",
+  "kind": "nav",
+  "nav_hash": "9d9d0cdbda46d3d54db29d3580f6a0fb3270408276fe2f4f9975f423ec07fde1"
+ },
+ {
+  "day": "20240626",
+  "kind": "nav",
+  "nav_hash": "eb7c07b274fda5b9637337ec7347a0b4425d9b7b30f1bf8d4831b6b9996576f7"
+ },
+ {
+  "day": "20240627",
+  "kind": "nav",
+  "nav_hash": "a5100d3249520d10c085b65a9ca5d1eaee8a5e62821c752fd7633fbef5238b51"
+ },
+ {
+  "day": "20240628",
+  "kind": "nav",
+  "nav_hash": "0d409de87d79206a451c58fddc2470d8a22eca9165e3665876284750d2ddafb0"
+ },
+ {
+  "day": "20240701",
+  "kind": "rebalance",
+  "universe_hash": "d0ce979239b5055e3f6f0b6c56f354ba2ebb5fad9baa30777fa127685481acf0",
+  "score_hash": "f55cff0ea60dc65a95dc3850d206c7c72d7b250755117f8165144c67595b18fb",
+  "ranking_hash": "10a89cb6e7ebea39a460ed2389a4d6ae83121a47ed1e1e98a97773e22ade5903",
+  "portfolio_hash": "a8e087cd857f3ba64bd1f7d94a17dbc131e1ef3f41a06cb391e8c4f809045f51"
+ },
+ {
+  "day": "20240701",
+  "kind": "trades",
+  "trade_hash": "06a8ab2b2a8586afab04626fa8db7096276dba235a935e7adac6a0ec474728db"
+ },
+ {
+  "day": "20240701",
+  "kind": "nav",
+  "nav_hash": "6010654bfbf7c8e6aae75b32d7deedaf21ca571cc72061a079cabfa07c92f51d"
+ },
+ {
+  "day": "20240702",
+  "kind": "nav",
+  "nav_hash": "663188ea0e87425b9729077e2f559a2bf61ba25f35e0789183fbc37708166c31"
+ },
+ {
+  "day": "20240703",
+  "kind": "nav",
+  "nav_hash": "3fed8a8f3dd5a09503fe185487f04395a29f73b058f4a088e0f772d9f6fe3d5f"
+ },
+ {
+  "day": "20240704",
+  "kind": "nav",
+  "nav_hash": "499ee94113c78265a3749c0cb5ca9c6f4b9c269f2bb0804ddd8d20df28fb86a6"
+ },
+ {
+  "day": "20240705",
+  "kind": "nav",
+  "nav_hash": "6573fb2db1a22495cf82a3b8ff3d34d2bc9896f6fec0b306461db7baa0ba4494"
+ },
+ {
+  "day": "20240708",
+  "kind": "nav",
+  "nav_hash": "31df1f51167ff82f0ff1d1c3d6b68d6a4c95a72ea6a0c88dd068af94a532b2b6"
+ },
+ {
+  "day": "20240709",
+  "kind": "nav",
+  "nav_hash": "38e3af3ce2c003509ed1ce20f8c56be4ccf11ef22ee0ece7ca6bacd917c48615"
+ },
+ {
+  "day": "20240710",
+  "kind": "nav",
+  "nav_hash": "702d7db03cc1a64f7230512368c32a38a0e2c568b272725a38f5b2a9bfd392c3"
+ },
+ {
+  "day": "20240711",
+  "kind": "nav",
+  "nav_hash": "9e287d43ba84018b566ab939c1ca8937d262ce7dd9dd6ce062bf2dfab0543a47"
+ },
+ {
+  "day": "20240712",
+  "kind": "nav",
+  "nav_hash": "233ec845bd5c9a92604e8751420650e31b328ed8c9eaf35a1f16c2b51ea4fc41"
+ },
+ {
+  "day": "20240715",
+  "kind": "nav",
+  "nav_hash": "dbdb0212831a88ff4e18b3c1f7e4d94c860557fdaaf0919a41bdb7ea4abf4a27"
+ },
+ {
+  "day": "20240716",
+  "kind": "nav",
+  "nav_hash": "deb99bf938670c0250d4fbc3b5d6e625190fb84707c99ffdc97e1c26371fce9e"
+ },
+ {
+  "day": "20240717",
+  "kind": "nav",
+  "nav_hash": "b77b70dc151bfa4b32095762aa050c0e588b8b4da0dcee26c60ec83fe3e71a43"
+ },
+ {
+  "day": "20240718",
+  "kind": "nav",
+  "nav_hash": "b159c508edd6a3ab147230e2c2b619b865504152f9e38f855e495911c08e4dea"
+ },
+ {
+  "day": "20240719",
+  "kind": "nav",
+  "nav_hash": "3c22ff1c0ff6e60e5fe3aa8b62739d9e4fe511860730b1e503667e3d9d6cd61e"
+ },
+ {
+  "day": "20240722",
+  "kind": "nav",
+  "nav_hash": "6300f3fad141ee1ec6b07f3f923dc5f355077082b979176413abddc633d826d4"
+ },
+ {
+  "day": "20240723",
+  "kind": "nav",
+  "nav_hash": "75c42fac3bc4f076f9622228e8df1c50758d6d88b7f331d2fc855fb44d9486a3"
+ },
+ {
+  "day": "20240724",
+  "kind": "nav",
+  "nav_hash": "88d65a441469dd4a66888fc9c1a434ad0e9c57aba01d6d5babde8b6d859e14fc"
+ },
+ {
+  "day": "20240725",
+  "kind": "nav",
+  "nav_hash": "381708bedb31ff995fc6ec545f3a9f16d37bf0254952467fab4b433df7a1cb25"
+ },
+ {
+  "day": "20240726",
+  "kind": "nav",
+  "nav_hash": "2b16e57167f7ef0038050cf88c005584741ce907578a4daa0bd71353dbfe00f2"
+ },
+ {
+  "day": "20240729",
+  "kind": "nav",
+  "nav_hash": "3e427c87e7cf3ee373b7fd03dbb7a3b824182909e05e7505bb13908afb696d0f"
+ },
+ {
+  "day": "20240730",
+  "kind": "nav",
+  "nav_hash": "6675165e5bb98a0949f0e652c00f25812838b757326ed1cd6cbf645c32a294a6"
+ },
+ {
+  "day": "20240731",
+  "kind": "nav",
+  "nav_hash": "9068ee45c8ca99119fc54d07eaa410bee6d28b711c46f00dccd053b08a752e8c"
+ },
+ {
+  "day": "20240801",
+  "kind": "rebalance",
+  "universe_hash": "bc802971655bea125314fa84e1b4a95746b5c66005a7a3ce79bf85fcf07470fc",
+  "score_hash": "a733aeb330dd330a74ea68b28fe6c6ce91bc1cc0e922e04fca2c65d5c26f3ad0",
+  "ranking_hash": "92b479be6957cc3af366ed159b133fdada94fbb99cf8bf5750b3b294dd372839",
+  "portfolio_hash": "851aa8c0f9c1319ec275f21bb4131bb4e2f7ab7c467022d149c00764ddb33e50"
+ },
+ {
+  "day": "20240801",
+  "kind": "trades",
+  "trade_hash": "45cc25cd73168aec4c1354d4061ef4c6b9b008a6da0fa7aea0c6dcf6a7f9ca24"
+ },
+ {
+  "day": "20240801",
+  "kind": "nav",
+  "nav_hash": "fb02195f8263ee9127ddc43c14fdadac0bcb3cc7ab4f79d30417b9cff2f19dc9"
+ },
+ {
+  "day": "20240802",
+  "kind": "nav",
+  "nav_hash": "a595db4323e0cd302aea290acd0485e00f4181f5be8781b893cb59736d041a26"
+ },
+ {
+  "day": "20240805",
+  "kind": "nav",
+  "nav_hash": "f101e055d99a71a5e4b8907254e5abefbd9c3c89de42e284e9fed0bb3c15ff92"
+ },
+ {
+  "day": "20240806",
+  "kind": "nav",
+  "nav_hash": "70a72c8a2c43e315e0cb60ad7e1fc08f4c1c9375772445ce49d9fa65cd35a855"
+ },
+ {
+  "day": "20240807",
+  "kind": "nav",
+  "nav_hash": "4b839bbecf7db39b80bc596e355ac8d5722b62dd1f1e9ac1920d6a06d0cc1d08"
+ },
+ {
+  "day": "20240808",
+  "kind": "nav",
+  "nav_hash": "f7099dd4a0d23626c655ddba00a43306c265c1d596b5cc2179854dd18cd99fa7"
+ },
+ {
+  "day": "20240809",
+  "kind": "nav",
+  "nav_hash": "dcbafb6238596276bd2f9292639a3211771089dded3505e2a30163b3390ecdae"
+ },
+ {
+  "day": "20240812",
+  "kind": "nav",
+  "nav_hash": "e3f8f644a37cadc038afa711b70ebbba9830dcc5d99d81122ddc19bdd203ec25"
+ },
+ {
+  "day": "20240813",
+  "kind": "nav",
+  "nav_hash": "ce00ea1d38f7efaadb435ea86b501b065b72d23f381274231d2a44dbc1cd0f5c"
+ },
+ {
+  "day": "20240814",
+  "kind": "nav",
+  "nav_hash": "e8eb079aec23947a7ce6ababc6a7dc0f209dc2f0d600976e1d2c2f4f0410e778"
+ },
+ {
+  "day": "20240815",
+  "kind": "nav",
+  "nav_hash": "a0e89f6e3492c3792eafadbedc89235f3a7e38db57345b037bcee7ee943b8add"
+ },
+ {
+  "day": "20240816",
+  "kind": "nav",
+  "nav_hash": "1de47ffdc95214fa36010df0517657690cd09ef4333f0cc4fbcd46bd47b4eb59"
+ },
+ {
+  "day": "20240819",
+  "kind": "nav",
+  "nav_hash": "d73068d30cef875f0eea1c428f7552b3ce444597a335566dd50bbc2136dcd347"
+ },
+ {
+  "day": "20240820",
+  "kind": "nav",
+  "nav_hash": "62acd81639f93269036c73172ab6484b408405b907fa5039d81373ee61ff3858"
+ },
+ {
+  "day": "20240821",
+  "kind": "nav",
+  "nav_hash": "db76f03c9431638d2ca35054fe091efdd7dba2f9cbbfabd5913b4a7504b3379f"
+ },
+ {
+  "day": "20240822",
+  "kind": "nav",
+  "nav_hash": "0fda754b96b8b0a51e5b86468ecaaf1c6e6653768eb839123e49542ae828d006"
+ },
+ {
+  "day": "20240823",
+  "kind": "nav",
+  "nav_hash": "96a3ac4cad6a2c9b1b831e9c80ad925f17b29c2dea6c811f8b2f80047493acf7"
+ },
+ {
+  "day": "20240826",
+  "kind": "nav",
+  "nav_hash": "91ea5bacd75b8195f2da20cf1047a98ed4462c4ddc83a1921f60cf5062b9f5b5"
+ },
+ {
+  "day": "20240827",
+  "kind": "nav",
+  "nav_hash": "ffc2c120e698d7cfff47bd8febbdbf55301485c4d644210c1fa2b16b566c535d"
+ },
+ {
+  "day": "20240828",
+  "kind": "nav",
+  "nav_hash": "c80912b154980e1c83b08edab959083bc08720a35aab4d71a274a7f3d175cf9d"
+ },
+ {
+  "day": "20240829",
+  "kind": "nav",
+  "nav_hash": "57d1bb2a1e31523587fa6136493470f8410ec0fac7f1d099f29bdeca4cdc770a"
+ },
+ {
+  "day": "20240830",
+  "kind": "nav",
+  "nav_hash": "92f495ab0b1cfa9c93f89429cead04fb1382a9869180abaf8bd639f3bb68e1da"
+ },
+ {
+  "day": "20240902",
+  "kind": "rebalance",
+  "universe_hash": "7c8c1fb2e6554a453767b4a47af7d863cc76909c830a56626888d6b88895358c",
+  "score_hash": "dc37626a0624a9826fb89d49d5326ddc7e7e5b1ebd730008cf997713ba6f1f9f",
+  "ranking_hash": "121c4252682055e505455fa700b498ae9c9a4401561733fb2f442faa15336724",
+  "portfolio_hash": "57f90634902ea285b0aea4528f8df6a97d93c1d5b06692a103cea978dfbe0c11"
+ },
+ {
+  "day": "20240902",
+  "kind": "trades",
+  "trade_hash": "58eaee63d091aa948b05c24cd757ebd3c4a8d92edea7b255e7df05c9f79ee0b4"
+ },
+ {
+  "day": "20240902",
+  "kind": "nav",
+  "nav_hash": "eef51e6172073a08456b0fd5a2ec6f55ba00ff5876fbc261c4e02eb31fe0d0ea"
+ },
+ {
+  "day": "20240903",
+  "kind": "nav",
+  "nav_hash": "335d151fc6c65d33869e8f07856d4ebcf133ace1e40536fb7e9d19d29fdf80f1"
+ },
+ {
+  "day": "20240904",
+  "kind": "nav",
+  "nav_hash": "c47f4861aeeea3e035e2324b757a6617eab05dbfc142707bb8bf147089a7fc70"
+ },
+ {
+  "day": "20240905",
+  "kind": "nav",
+  "nav_hash": "f7073bffedc238bdf4d8f12d332dda0e7888fc853c8541d971764bb9d75389a5"
+ },
+ {
+  "day": "20240906",
+  "kind": "nav",
+  "nav_hash": "e6274c0133ffef600e9d3a670836f4162f1cfecfc79fc3ffed0057e5cbeaad0e"
+ },
+ {
+  "day": "20240909",
+  "kind": "nav",
+  "nav_hash": "09e92762623eacd424f24c654adba621b8858c18d52885b9b9827ee3e0d8a686"
+ },
+ {
+  "day": "20240910",
+  "kind": "nav",
+  "nav_hash": "5525ae3e2b5c11001126e59a623b532b8742b7382adf82bb32d9091b51bae985"
+ },
+ {
+  "day": "20240911",
+  "kind": "nav",
+  "nav_hash": "661261aeedcf65800c406c8afcf8365bebe21ac5ba0fb0e81e94b8a93c03bbac"
+ },
+ {
+  "day": "20240912",
+  "kind": "nav",
+  "nav_hash": "99683afbe15bccf26cfe0d10b549523a929e2f0e0b6201d413306304f11e62b0"
+ },
+ {
+  "day": "20240913",
+  "kind": "nav",
+  "nav_hash": "54c68fef4d038285385a5745aeb5018f6afccef6bd13a984cc8e801e15cc84fd"
+ },
+ {
+  "day": "20240918",
+  "kind": "nav",
+  "nav_hash": "fb69683d064ba813731fe34adf031c655192a63a5bc72c37d788114eec2f38f2"
+ },
+ {
+  "day": "20240919",
+  "kind": "nav",
+  "nav_hash": "58cec2a1113bfdfbca45e25219e4f191a25bc1d3e314be3901a583eb95d20739"
+ },
+ {
+  "day": "20240920",
+  "kind": "nav",
+  "nav_hash": "c8e44cc53523b01ac9b4386a86b192e173555c2cdb5b4c6fdb2fce82fcd5eb4b"
+ },
+ {
+  "day": "20240923",
+  "kind": "nav",
+  "nav_hash": "34f8105399326f916235433d62cd39d0f7fa8e4553d412071982ce8e41c1c146"
+ },
+ {
+  "day": "20240924",
+  "kind": "nav",
+  "nav_hash": "982c02c36133bba4a1d3fdea11c3e3a82842260d58072c041eea6e6e9deded5d"
+ },
+ {
+  "day": "20240925",
+  "kind": "nav",
+  "nav_hash": "755004950986998ca97074510dcf0b0e110ebce1760ce2c6a5073ccdf60417a0"
+ },
+ {
+  "day": "20240926",
+  "kind": "nav",
+  "nav_hash": "9045b99c1be1bd6db3ce200af43ac5c49e5de5962f5528527ff7f10ac4627368"
+ },
+ {
+  "day": "20240927",
+  "kind": "nav",
+  "nav_hash": "0052b6359845605c27112ab5db5fb406e275dd6db60faae55bb6569e443d8ee9"
+ },
+ {
+  "day": "20240930",
+  "kind": "nav",
+  "nav_hash": "365cce92fc2b2a5a9123d735cec4fc37f23ead7bfa24eec21618ee383be48bd5"
+ },
+ {
+  "day": "20241008",
+  "kind": "rebalance",
+  "universe_hash": "02abd96baab0adb6de651617e425f1d66fb504f919959a132a5979b0c37dc28e",
+  "score_hash": "8258a85a19268a2e611d19eded41b08321e4fbc9cac83fbea6d07750e1787afb",
+  "ranking_hash": "84a84f976220bcb720b4f6edb231baf46025ea73a369f548b571ae2dc752b89e",
+  "portfolio_hash": "703b209bb73917412d4bbd5a65adbb658147549e3d0a585bafc95fad440866ca"
+ },
+ {
+  "day": "20241008",
+  "kind": "trades",
+  "trade_hash": "d17ea26f7bd96e1f41f9f74ca8d4e3dab83e63e51db5479e111d358b5348cc03"
+ },
+ {
+  "day": "20241008",
+  "kind": "nav",
+  "nav_hash": "bf06f263c06c2ed7c611a6e771ef4d0f56b4cc35db1419e369a57c3996c21f52"
+ },
+ {
+  "day": "20241009",
+  "kind": "nav",
+  "nav_hash": "1467e2fa49c74581f03c0752fa0b24484659b452d55c3988e9d99e13744b111c"
+ },
+ {
+  "day": "20241010",
+  "kind": "nav",
+  "nav_hash": "8c76b98a50fb06b98a2eef484b9225dac6e74e229315e67c5b65b0844f747607"
+ },
+ {
+  "day": "20241011",
+  "kind": "nav",
+  "nav_hash": "462668788d77008e060de5b705de694045daa17b32b5052bb484fab7d8026740"
+ },
+ {
+  "day": "20241014",
+  "kind": "nav",
+  "nav_hash": "9197044f157d6287aaea6a236696e637bb48042e702625809bb724948ebbe96d"
+ },
+ {
+  "day": "20241015",
+  "kind": "nav",
+  "nav_hash": "278054f1f7371baa87713e9e33ad60bea07c2e970e6b208146c1f26df9cfc891"
+ },
+ {
+  "day": "20241016",
+  "kind": "nav",
+  "nav_hash": "e8a80716c6d20c5f99176339925b893a60f578f05956a6bc40d6f3cd67abd7ab"
+ },
+ {
+  "day": "20241017",
+  "kind": "nav",
+  "nav_hash": "a48f9d8536e308e77906ed7bcbfbe9f7392a5a92dcef10bd4cc43daf3a61cd0b"
+ },
+ {
+  "day": "20241018",
+  "kind": "nav",
+  "nav_hash": "5c5206f8f36c900bcf31b28d1958b9a2a6ee5b8ccc53235aa8f9010b7417152b"
+ },
+ {
+  "day": "20241021",
+  "kind": "nav",
+  "nav_hash": "6fdb575e61fd574f4d33aa4c943e110e7c16513f8b75a00043becc3a67ca1168"
+ },
+ {
+  "day": "20241022",
+  "kind": "nav",
+  "nav_hash": "6d879d6953d42f566ee8a8a12da9b638aec645308f8bd9fb611b4bb489e2704b"
+ },
+ {
+  "day": "20241023",
+  "kind": "nav",
+  "nav_hash": "5be283bb235cad56344d46cebebd1c799c8cfa7695c7b23c13e9706220bace2d"
+ },
+ {
+  "day": "20241024",
+  "kind": "nav",
+  "nav_hash": "8ff189b5571683f828e399df7d1c4c44bea9cf03ee1772e46a149fbf564caf20"
+ },
+ {
+  "day": "20241025",
+  "kind": "nav",
+  "nav_hash": "599ef90366fa89cf9c512853ea5fb605e8f5c093ee7bb5ea3725b19fc37c7307"
+ },
+ {
+  "day": "20241028",
+  "kind": "nav",
+  "nav_hash": "2b43c2e3b1d37e3cee3f7cc777cda5eff3d0607168218dbbaddb3bb063345e42"
+ },
+ {
+  "day": "20241029",
+  "kind": "nav",
+  "nav_hash": "af1b7bff58d568afc14e78c6fdec685a111a587079bceb757405377165241dcf"
+ },
+ {
+  "day": "20241030",
+  "kind": "nav",
+  "nav_hash": "36a1e800c083955f2822269891054192192c60e0afdc9bfd3007222ffa9983a0"
+ },
+ {
+  "day": "20241031",
+  "kind": "nav",
+  "nav_hash": "99aaa3acc1995622c7d5a2e597896e0f9c453e6d9302840c1bef98127db5c19b"
+ },
+ {
+  "day": "20241101",
+  "kind": "rebalance",
+  "universe_hash": "ead8fa6d3203b89ac07e981e5f51f8cb87234b89871d89c9fe3ca3597dc12e8c",
+  "score_hash": "ff02e9b860159b328bd2fce794903dfbed32a3d9f566c5da410194c81ddad385",
+  "ranking_hash": "dad697c99952d7472f3ee60e03931ef6b38228807c9d5a1699f740a6891ebb25",
+  "portfolio_hash": "b0beafcba388ce7ec14fb3b0b99e290fe1736627fc2dfe58cfd446cd0a782c2e"
+ },
+ {
+  "day": "20241101",
+  "kind": "trades",
+  "trade_hash": "9aba446e18d500dad219688cf05cebabbacf39d0daa59e78e686c78591934527"
+ },
+ {
+  "day": "20241101",
+  "kind": "nav",
+  "nav_hash": "6cb1d9335cc1d78c021ed5b4097f39168f7881c37c8a7f0dcff24a0c7ed5e496"
+ },
+ {
+  "day": "20241104",
+  "kind": "nav",
+  "nav_hash": "bf9abf337588dfba66a1670cc5db63e832dc273bb05017e6faa6a3cd1c63ee4a"
+ },
+ {
+  "day": "20241105",
+  "kind": "nav",
+  "nav_hash": "fa22568cf610bafee48b405f18094807b7e909d2969fad45d3a0c08bea92c651"
+ },
+ {
+  "day": "20241106",
+  "kind": "nav",
+  "nav_hash": "d3b50258ec0a70e37d04f3ffb96654c766f71f9667259217b39683255a7686dd"
+ },
+ {
+  "day": "20241107",
+  "kind": "nav",
+  "nav_hash": "e8d83895a1357f84822934cd247df8fec8779f35938e261e774370ea08d59847"
+ },
+ {
+  "day": "20241108",
+  "kind": "nav",
+  "nav_hash": "de70cfbb6e8e5a3392fe14b672c31c078a5156c47bd9fed6f543daa452234dcb"
+ },
+ {
+  "day": "20241111",
+  "kind": "nav",
+  "nav_hash": "41ffd634597f46ac38840b728ef0255f50a82aa70da20b570566c5733ee4f312"
+ },
+ {
+  "day": "20241112",
+  "kind": "nav",
+  "nav_hash": "d4367e98f1438e05857733ed9359a6d1b9ec92ef0851f8f201584a23806f5e7f"
+ },
+ {
+  "day": "20241113",
+  "kind": "nav",
+  "nav_hash": "aac8704bb77792e6a6aa7f4002a6d075cbc3799662e113cd5cb706a6a5ea63fe"
+ },
+ {
+  "day": "20241114",
+  "kind": "nav",
+  "nav_hash": "ec9488a6ccee1aa83e47a00d4c1c26470f1c6ed7417953168e732d4bddb64db4"
+ },
+ {
+  "day": "20241115",
+  "kind": "nav",
+  "nav_hash": "b1c225590488018256635e581bf228f309043696e714d8fa61cfe346d93c4687"
+ },
+ {
+  "day": "20241118",
+  "kind": "nav",
+  "nav_hash": "e447224523f0a9012389fd610885e451e72bcd7a64c9a53e3af5ce7499c1c88b"
+ },
+ {
+  "day": "20241119",
+  "kind": "nav",
+  "nav_hash": "48180f11689652f81cb143c01df80d44d954113f4c6ccfd720e7481db4761e8f"
+ },
+ {
+  "day": "20241120",
+  "kind": "nav",
+  "nav_hash": "236358e59e2f1b8bf6de358046f0808ee8fde71ed7efcdb4838afef2348b9ab6"
+ },
+ {
+  "day": "20241121",
+  "kind": "nav",
+  "nav_hash": "52245eaef3df88bfee7bc7e72a3767696ad30b79afb94fe8aeca6529e2ce33d1"
+ },
+ {
+  "day": "20241122",
+  "kind": "nav",
+  "nav_hash": "9d1f8dfc26e118beb65be03c9da94aa1221041ef7b5bbd526deaccb1a91ffb63"
+ },
+ {
+  "day": "20241125",
+  "kind": "nav",
+  "nav_hash": "94309212f737a49ba67c4b15309211860704dc2539569f3060b2f44f03f66afc"
+ },
+ {
+  "day": "20241126",
+  "kind": "nav",
+  "nav_hash": "75f6842cbeb2f2a14ac398f00adb3509f514c93e42e75a3c1a1927c7408f1aad"
+ },
+ {
+  "day": "20241127",
+  "kind": "nav",
+  "nav_hash": "6563e251c227d1cd7e14592d6470bc19ea1bcc843ff36739c9d6915d6037709e"
+ },
+ {
+  "day": "20241128",
+  "kind": "nav",
+  "nav_hash": "5cb8926b8d864a7d0021278449387f922bd97e57df0aaee7d84aa59613ff1c74"
+ },
+ {
+  "day": "20241129",
+  "kind": "nav",
+  "nav_hash": "bc9efe96ded31bd286746a9b6b4816e1990f0df06dce0ef3659baab13ddafc2a"
+ },
+ {
+  "day": "20241202",
+  "kind": "rebalance",
+  "universe_hash": "636ba421c6223869a93b36602de789377a32ae7bb346a839019c44f27a1e3a76",
+  "score_hash": "4fc48d6a018bdaa7d1badc45a1ba2a8029ec64d67915b76e01d9402482c7f948",
+  "ranking_hash": "4d8fbd2687335b418d170028aced36c8b52d402cd284e2ec13187688df1853da",
+  "portfolio_hash": "27a5914fc21b8878369bd3d7d4542e51e7e02fc7c39272d4d4c5b8ab2a5187c1"
+ },
+ {
+  "day": "20241202",
+  "kind": "trades",
+  "trade_hash": "9d660a11fac716c20d00521c8362b4cdb937a1f241fb533e87f0a847b18a4c50"
+ },
+ {
+  "day": "20241202",
+  "kind": "nav",
+  "nav_hash": "c4d01e7307ad23bb8d2b66b8061561a5eef50a4fc19110d85439ab9607381fbf"
+ },
+ {
+  "day": "20241203",
+  "kind": "nav",
+  "nav_hash": "b88c10d8ebfcd52318856264b64666f725972530205e3c0d2219106a04192ad9"
+ },
+ {
+  "day": "20241204",
+  "kind": "nav",
+  "nav_hash": "398839ad6ac0820da7458fe358f0b4767d91dd45e631b7fe8086a91e2d8d4d4a"
+ },
+ {
+  "day": "20241205",
+  "kind": "nav",
+  "nav_hash": "dd7f9463226af5fbff1b9460cd7a88fb65265b857045c68e43fd2006984dac1b"
+ },
+ {
+  "day": "20241206",
+  "kind": "nav",
+  "nav_hash": "c33504fdad67a5b280e8c2dc8c17da9a9e663ea52c10c67131d79b12d9017bde"
+ },
+ {
+  "day": "20241209",
+  "kind": "nav",
+  "nav_hash": "1c5ea6e7f83667e08e4cbb81973862ef0ebe8a77f109f7af1f333202ec508eb8"
+ },
+ {
+  "day": "20241210",
+  "kind": "nav",
+  "nav_hash": "b91b2e57a7790ae6eb03d1516ec53effe1dd8ed12d88210a99366edb117568f6"
+ },
+ {
+  "day": "20241211",
+  "kind": "nav",
+  "nav_hash": "41d523022e60b3d87a765a77c0c133d0bfafeff7de7a6a874109ab2f6acaa953"
+ },
+ {
+  "day": "20241212",
+  "kind": "nav",
+  "nav_hash": "f44ee0cd46aad4cadfe2137ffad9b5ab0d3e69e8c7dc1ff38578ac67f5fb3c53"
+ },
+ {
+  "day": "20241213",
+  "kind": "nav",
+  "nav_hash": "4be65be128f9cf8b96f4e13822a6519cf0b679d58beff0df658c4a9771ad296a"
+ },
+ {
+  "day": "20241216",
+  "kind": "nav",
+  "nav_hash": "410b95fc8b86100fa4dc2f9676bc93b8665f8c694ee065ae1d54808029ecd18a"
+ },
+ {
+  "day": "20241217",
+  "kind": "nav",
+  "nav_hash": "ff8300b4c3642ca97a7075a70e8afd9d5446792690879b9309fa097debbdad09"
+ },
+ {
+  "day": "20241218",
+  "kind": "nav",
+  "nav_hash": "f1963eadb1b29137e6949b0a003814757c29c35270c0a694167baa2ed8e5d51e"
+ },
+ {
+  "day": "20241219",
+  "kind": "nav",
+  "nav_hash": "f7d3c5bd72b0e2d5a4dc727fa0733683e6164b691646dad4c7e8fa85dd1aefa6"
+ },
+ {
+  "day": "20241220",
+  "kind": "nav",
+  "nav_hash": "6de941e0f7772c0496436cda27a2cb0b98994cb2326f4b923609c8f9ed13c0ec"
+ },
+ {
+  "day": "20241223",
+  "kind": "nav",
+  "nav_hash": "98ee638aa0cdad73c8ce94b99d9141d66618cac56fdc9ead78a272491b74df28"
+ },
+ {
+  "day": "20241224",
+  "kind": "nav",
+  "nav_hash": "1a8de090b589ae944a38649dd20a6e71f3b77d63a662059a6015e7fb99adc684"
+ },
+ {
+  "day": "20241225",
+  "kind": "nav",
+  "nav_hash": "51aa03722fe93dce5bce5282a0efdf693104f55cec5fad44c098e727b0ff31a9"
+ },
+ {
+  "day": "20241226",
+  "kind": "nav",
+  "nav_hash": "075ee474e349a3a74920133692d06205dbf93a29af8c90f1bf7f3bc71d798e54"
+ },
+ {
+  "day": "20241227",
+  "kind": "nav",
+  "nav_hash": "f8ebcd075b18a757a1489f207ecadc021cd3906cac46df3ec582026601a7da4c"
+ },
+ {
+  "day": "20241230",
+  "kind": "nav",
+  "nav_hash": "164e4baae60e836c8085620d0162789f59a2973eee00b780a122c9849f80ca29"
+ },
+ {
+  "day": "20241231",
+  "kind": "nav",
+  "nav_hash": "82794858f4e739c1ff35ac529a6aaa1f29d09191c5446394744a627952ecc9fc"
+ },
+ {
+  "day": "20250102",
+  "kind": "rebalance",
+  "universe_hash": "d45c643e90ebe96614990882250444643f73954a5bff16bf298d90733f4f7769",
+  "score_hash": "3fbc5a2f4064ba3ace0cf13ea3fe348f9c00d8558f8268128e6a15b562e36fdb",
+  "ranking_hash": "a4aeda1f79b61b1d70e5e420b20550c69e067cd83da8b9491624e492877c0ff2",
+  "portfolio_hash": "83eca3a8fe3561511b1a818dc1a8bcec6f946767712c014fed407390337f375e"
+ },
+ {
+  "day": "20250102",
+  "kind": "trades",
+  "trade_hash": "dc15beb958c36c55fb287c950a5b8f58ffd72ae8ff38872300c048ec245d275a"
+ },
+ {
+  "day": "20250102",
+  "kind": "nav",
+  "nav_hash": "77c4027db166e4a95abc3e8128cf914034b8550248306aae900b0a84ebfb327d"
+ },
+ {
+  "day": "20250103",
+  "kind": "nav",
+  "nav_hash": "a0eb63ce394e5a1ce74eb507b354a533ad71bcaffc7cd32ad20c58149d6c86ce"
+ },
+ {
+  "day": "20250106",
+  "kind": "nav",
+  "nav_hash": "e109ab67ccd14d48302afa7f5f246082a4effad8c450a3325f0268ae5dc0484d"
+ },
+ {
+  "day": "20250107",
+  "kind": "nav",
+  "nav_hash": "21f3242bde2d3691b4863d0504324a1b3223d496bf9261e0352cd88362495f11"
+ },
+ {
+  "day": "20250108",
+  "kind": "nav",
+  "nav_hash": "1356cb7be79cdd3c97d2aff3d14de3f0548b465289478d396d15f4ed202825a6"
+ },
+ {
+  "day": "20250109",
+  "kind": "nav",
+  "nav_hash": "a99bd1f4ec2632724e0b6354a742acf9a92b6e92e24e4716d3539f0e4e6379c6"
+ },
+ {
+  "day": "20250110",
+  "kind": "nav",
+  "nav_hash": "d3da5d326ee48a3d90a1feb4d791aaca34f6ddd230d6d866625e4f529751b3fc"
+ },
+ {
+  "day": "20250113",
+  "kind": "nav",
+  "nav_hash": "d387f698c8d025b47d1deae6bc717b47dfc28212be07aec6479e87d9c82ad2d0"
+ },
+ {
+  "day": "20250114",
+  "kind": "nav",
+  "nav_hash": "df130683e60f327bc8fc7003dfde78215ce02fe84381ef4dc2c0a3486ec1ff34"
+ },
+ {
+  "day": "20250115",
+  "kind": "nav",
+  "nav_hash": "611aa694f4ff7b0f957bdd9a88f2661a4614a3092ea6a9f7254474edcc1a06d2"
+ },
+ {
+  "day": "20250116",
+  "kind": "nav",
+  "nav_hash": "5b57d081bf4a07087e5f143ca5f94e72bc0b1aaf62e1302f7f3f81d6408caa47"
+ },
+ {
+  "day": "20250117",
+  "kind": "nav",
+  "nav_hash": "a6fc5890f00a837f01852680e5a37df7b9f118f4aa365fa95703da7c2251babb"
+ },
+ {
+  "day": "20250120",
+  "kind": "nav",
+  "nav_hash": "db27f82bca401d4ec01ba767463c10a14339b34b23f74f3cd841bf429ac2eec6"
+ },
+ {
+  "day": "20250121",
+  "kind": "nav",
+  "nav_hash": "b521f9d11eadb2ceedab472632cc0d1492f4a82f9db170ebbbbe7ff70fa1d6f7"
+ },
+ {
+  "day": "20250122",
+  "kind": "nav",
+  "nav_hash": "210768a9fe06bd2f67ee00bc45c4a92124706d6916344e20b0d95bbdd86c925f"
+ },
+ {
+  "day": "20250123",
+  "kind": "nav",
+  "nav_hash": "be413596839a77b768fb13e83fb4e52d579b0e4756698c0f0f953a0e8da63b7f"
+ },
+ {
+  "day": "20250124",
+  "kind": "nav",
+  "nav_hash": "18bf8c95f68ab3e434b1e7f719fd8867cbc08ea91ae2ab8194a9b7807d9773ba"
+ },
+ {
+  "day": "20250127",
+  "kind": "nav",
+  "nav_hash": "e3e800a1f431a3cb9f0f8e9b223e2e88a2fa58b5fcd7cb83f9c85554729ebd22"
+ },
+ {
+  "day": "20250205",
+  "kind": "rebalance",
+  "universe_hash": "d5038f7d887ba958f2ddfb18b40554aebe6331c3a571a874bc23dc5c2cf4dbf6",
+  "score_hash": "46df35ee9c3ef04a94044ebecef6bfcd33c6470a031a2bd129bacf6f26523dd8",
+  "ranking_hash": "8b50e29c9b528be95e4aaf527f1f2996d1a32f7a6ce5feaecb25bea25e82bbeb",
+  "portfolio_hash": "701b59013f640cd28ca6418e3fe6ae63ed69e996a487bc967cd830aeb119ad9f"
+ },
+ {
+  "day": "20250205",
+  "kind": "trades",
+  "trade_hash": "c3a824a0425c7cc93479f6e1ddd02ab5afaec23bb71ee864fc878d9468844fd0"
+ },
+ {
+  "day": "20250205",
+  "kind": "nav",
+  "nav_hash": "60bf608ee1c3b4555f72d236b357d06bc1b1afb579d6223e444767bdbb9da780"
+ },
+ {
+  "day": "20250206",
+  "kind": "nav",
+  "nav_hash": "7a40eb4a7a97e87748c84d78a030c4085d9530ea6a2f40b59ea23631d000dcc2"
+ },
+ {
+  "day": "20250207",
+  "kind": "nav",
+  "nav_hash": "53a15a0fd3605a42d1b2a48e0552c905578d1c7da4307d420c3d834a28bb2b4a"
+ },
+ {
+  "day": "20250210",
+  "kind": "nav",
+  "nav_hash": "730cd0932c6430f211444c9f842b5e36b5940c35d5319e3829f4cf6cd735ae43"
+ },
+ {
+  "day": "20250211",
+  "kind": "nav",
+  "nav_hash": "f5b31acadc72706bce28eaa7dcf24474d58dc66bf653331b11db42e982ecd326"
+ },
+ {
+  "day": "20250212",
+  "kind": "nav",
+  "nav_hash": "e258f505f111445d1f181428266fdf830740bbbfabc1ad5531582b4b7db27dd0"
+ },
+ {
+  "day": "20250213",
+  "kind": "nav",
+  "nav_hash": "c2929a2007c8d99380d0a74a97d55493320b49543f81cb477d3de2021eb2e802"
+ },
+ {
+  "day": "20250214",
+  "kind": "nav",
+  "nav_hash": "06d58685c48f407ddedb9bc7e118302e48599ff811a3e2f13880f39cd2429d9f"
+ },
+ {
+  "day": "20250217",
+  "kind": "nav",
+  "nav_hash": "b10c48244919da0848a14f0a98e4f4f8f0e3c47052da5cbf935c9ce09c4fe716"
+ },
+ {
+  "day": "20250218",
+  "kind": "nav",
+  "nav_hash": "464d75ba2b593e0793ef9b3ff7d5d2e7393ec8489a9500ed0498e68ec5d59516"
+ },
+ {
+  "day": "20250219",
+  "kind": "nav",
+  "nav_hash": "bea18ce08b7c0cfb5c4c246f7bb8f4ee9f7c73edf922ca9b1b80a38e98f4da97"
+ },
+ {
+  "day": "20250220",
+  "kind": "nav",
+  "nav_hash": "b9606e16e53389b98795d38f346a1021e1ecc8b0314e848e292c85b2fc63e7e9"
+ },
+ {
+  "day": "20250221",
+  "kind": "nav",
+  "nav_hash": "8b1354ed26884c41498ccea64ed8cf696a6c11a920d0878631fdd83556dde40d"
+ },
+ {
+  "day": "20250224",
+  "kind": "nav",
+  "nav_hash": "f0c957f842ec5437ceb2c86f71d2963e88a3b511ce8b9767138ec741b4be6fe8"
+ },
+ {
+  "day": "20250225",
+  "kind": "nav",
+  "nav_hash": "18ed59fcfed13026b5e4d86cb7ba80bcab358c9ec609e33e2b84797789be3206"
+ },
+ {
+  "day": "20250226",
+  "kind": "nav",
+  "nav_hash": "29bf6664000d2b0ebc9ea97c922346bf88983678ad70d8e8e7e2219d8b659899"
+ },
+ {
+  "day": "20250227",
+  "kind": "nav",
+  "nav_hash": "24003924edf92079eee1ca498cdfd50642e9c0f984cbac10318c7a306d7f0119"
+ },
+ {
+  "day": "20250228",
+  "kind": "nav",
+  "nav_hash": "d74edc43de319418ecec7e6ced84d5f9f538a99eb7b3638b62da2417b365cf39"
+ },
+ {
+  "day": "20250303",
+  "kind": "rebalance",
+  "universe_hash": "8ab70f51c1cf5bb8100a0dd59808c4aaad101d258abd3f1a4d078cc02291cae5",
+  "score_hash": "9019ed7970fb4e67b1d92f78a0db36ba739d1db92da26dcb51e9bbcad6822443",
+  "ranking_hash": "30d97d906e40689ca1e036fbc68f78eca26caefc683d3ceaa992574505a2b7d1",
+  "portfolio_hash": "240687d9ef4601989eeb1b78418a357f08942e183b973701fee6689e8da1cac3"
+ },
+ {
+  "day": "20250303",
+  "kind": "trades",
+  "trade_hash": "5b2819b2c1cee80ef868f801acf3f84c58c855fed352d0d0a4cab5ffb6485d78"
+ },
+ {
+  "day": "20250303",
+  "kind": "nav",
+  "nav_hash": "6b731b89af8e9df5be41d44a9d29af4f1af34111c39b91c2e902a6c96b277f92"
+ },
+ {
+  "day": "20250304",
+  "kind": "nav",
+  "nav_hash": "4bc0c8b596a761c9f8d0c85e563253cff1a9a3159eb13f2c75f31eb6e850b18b"
+ },
+ {
+  "day": "20250305",
+  "kind": "nav",
+  "nav_hash": "f63cce1091099da6ca0867e37b958ba3a31aad71a39bf26b2b4452ce53d64155"
+ },
+ {
+  "day": "20250306",
+  "kind": "nav",
+  "nav_hash": "7caf227b6e4762dee95c6e7bb9ff93793b2acc6c6eb3e65089f09d94acf01292"
+ },
+ {
+  "day": "20250307",
+  "kind": "nav",
+  "nav_hash": "064841752d5570d2b327c1b77fc2865be2fde21a6c0de13b08aea399416c77b0"
+ },
+ {
+  "day": "20250310",
+  "kind": "nav",
+  "nav_hash": "f28d822414af26de7bc9f690019ef84950c38baae45dc2699ec8d5c343c2ff15"
+ },
+ {
+  "day": "20250311",
+  "kind": "nav",
+  "nav_hash": "0ae7c50d32cde040ef942176f3e01366883181acad6883e667c42678168bceea"
+ },
+ {
+  "day": "20250312",
+  "kind": "nav",
+  "nav_hash": "dcdd5dff032378ce712ca610eb55f9ee804577de30c0878a4f6ba45da863ba2a"
+ },
+ {
+  "day": "20250313",
+  "kind": "nav",
+  "nav_hash": "4e14a9a7311d65bd9f54d6d2edd7531b569a8a12fade258959177defcd48a13b"
+ },
+ {
+  "day": "20250314",
+  "kind": "nav",
+  "nav_hash": "26340d15a4b04ffa96a5f1b61c141044302801229c98d6c9beb4363dfa590a3c"
+ },
+ {
+  "day": "20250317",
+  "kind": "nav",
+  "nav_hash": "a9a9ff6a49f6644651127a01c0e6c598016ffc394d68e42cb704e80abb56ac34"
+ },
+ {
+  "day": "20250318",
+  "kind": "nav",
+  "nav_hash": "c2bd7766eb3e4766944ca1e2e3613b7d7bcdae0294a601700e4ce8e1046e4db8"
+ },
+ {
+  "day": "20250319",
+  "kind": "nav",
+  "nav_hash": "541e063dbdcd39f6ae7ee9237153406014dc9d6cf66b3ee51f649ee3ff3d7710"
+ },
+ {
+  "day": "20250320",
+  "kind": "nav",
+  "nav_hash": "86c67a0753f640de04dd053ad8fcde2ea646bfb8db4da7c098f6ab71020d6076"
+ },
+ {
+  "day": "20250321",
+  "kind": "nav",
+  "nav_hash": "13a8ec8d8e8e5447e4389ba369203b08c39d37cf8a255900b292d8638737f304"
+ },
+ {
+  "day": "20250324",
+  "kind": "nav",
+  "nav_hash": "33c1a4ddd3ee25b59effbb7e59b6b80591751f0541552f24f106eddd97bdf035"
+ },
+ {
+  "day": "20250325",
+  "kind": "nav",
+  "nav_hash": "3e296fc4639618fa5345b946a03e46109254c88b6a1948152ca6b675cd8edaa4"
+ },
+ {
+  "day": "20250326",
+  "kind": "nav",
+  "nav_hash": "bf846afea952590e68ca6f15272c82b2c1b1a7420d06645c02f978d123513dfd"
+ },
+ {
+  "day": "20250327",
+  "kind": "nav",
+  "nav_hash": "e32031351afc8711afb3dda844464ff4a3d3023509fa3438500b4259d304f408"
+ },
+ {
+  "day": "20250328",
+  "kind": "nav",
+  "nav_hash": "9f339819b9f7603cf7784be0e94f7d15da9555489e3fc28d66404d283d129070"
+ },
+ {
+  "day": "20250331",
+  "kind": "nav",
+  "nav_hash": "996378fae0c4a75445cbad7abb3c9604dc533f024dcef9818cd2194b2f7a2fdd"
+ },
+ {
+  "day": "20250401",
+  "kind": "rebalance",
+  "universe_hash": "f2e171f75e5c1a45d8685e22ca514ec70ab73fca90b6fa8bc21c86b0305ff113",
+  "score_hash": "1460eef5258a9605189dac618c194607eaaaafc38bfe256ec560ed368908f032",
+  "ranking_hash": "6dd088b13b527b8098fa21dd4fa787096905487e30ac4a0236b9bd134319c476",
+  "portfolio_hash": "064d9dc3138fb704ee7c3f80833dda5786f6b9e41535db0fa2a8cbbea12a8e7e"
+ },
+ {
+  "day": "20250401",
+  "kind": "trades",
+  "trade_hash": "57febbca2e97ea3fe4a3aee3b7b1d5ab1df52978730f43104dbacda38aa6a5ce"
+ },
+ {
+  "day": "20250401",
+  "kind": "nav",
+  "nav_hash": "239102472f315d0d0b91369f0721c56d16be765c22907ef3ca4ee76b0458a0d5"
+ },
+ {
+  "day": "20250402",
+  "kind": "nav",
+  "nav_hash": "8a7ce8309d12ffcd0a5c246fdc48ce81ab6e64df6a10d6d9f9e17e4101f9174a"
+ },
+ {
+  "day": "20250403",
+  "kind": "nav",
+  "nav_hash": "138324dd999c538124d78b69457b1afdf2896ac580d7979ce31cd5f9f7e2dafd"
+ },
+ {
+  "day": "20250407",
+  "kind": "nav",
+  "nav_hash": "cc12ce53344f6c9875096d42b8615294deda073b37c382006646ccd8cfbee460"
+ },
+ {
+  "day": "20250408",
+  "kind": "nav",
+  "nav_hash": "34181d855b53901a4a49d6fd2261e5ed2204a0e06761ad429ef3513241d55850"
+ },
+ {
+  "day": "20250409",
+  "kind": "nav",
+  "nav_hash": "0872ca69ff8c594f951d0d944fc07442f208a381af204f8ca4f95e3ff68280c7"
+ },
+ {
+  "day": "20250410",
+  "kind": "nav",
+  "nav_hash": "cc1a24c75b8eec1e78853135988b3f39f7dbe4a04bf20385debc9943636467c7"
+ },
+ {
+  "day": "20250411",
+  "kind": "nav",
+  "nav_hash": "12b092b74aeb309c7cbd89332d0414ed98f086b08bccfcd09b14da31fbdafd47"
+ },
+ {
+  "day": "20250414",
+  "kind": "nav",
+  "nav_hash": "756f7ea3a9a88757d1dfe5417089c1494925e1c64b7fd32b67232d22e064250c"
+ },
+ {
+  "day": "20250415",
+  "kind": "nav",
+  "nav_hash": "9e97ccba4f876f14327a6b853ee9540233f100654762d4ac0cd9405c4fd0bb16"
+ },
+ {
+  "day": "20250416",
+  "kind": "nav",
+  "nav_hash": "9ab4cbed9d53f9d345a4462a55675dd199927dc847b39f051f95cdcfeb5509ee"
+ },
+ {
+  "day": "20250417",
+  "kind": "nav",
+  "nav_hash": "0449178a48fe4e90431e32c2f9afd9e10b13c1fb82eca146476dca261964d9b3"
+ },
+ {
+  "day": "20250418",
+  "kind": "nav",
+  "nav_hash": "bef42084cb93a8064ecf8c578dfcdfa45c4ab74cc9ba19b9229dd2e036479c8f"
+ },
+ {
+  "day": "20250421",
+  "kind": "nav",
+  "nav_hash": "1457973d1410f9e38092934d128f58860ac4e369dfad3a7403aa98da9c336d71"
+ },
+ {
+  "day": "20250422",
+  "kind": "nav",
+  "nav_hash": "27b49592e95f95e579d80e4fe5fa2336ed82fbe3b78f7ba010e8192da85f9375"
+ },
+ {
+  "day": "20250423",
+  "kind": "nav",
+  "nav_hash": "f23bd160b58940a64dd3cc9cdbee2a6b5a1ddd306e1f9297a32f158cbb2cf890"
+ },
+ {
+  "day": "20250424",
+  "kind": "nav",
+  "nav_hash": "6d172f0b6be4a9c33be8a24b1f04a2bec390d41774c80afd866e33e2ba454b90"
+ },
+ {
+  "day": "20250425",
+  "kind": "nav",
+  "nav_hash": "882256f868482888d29a57a24363f248ff4ac0c5f995d910d2d937429fa36be3"
+ },
+ {
+  "day": "20250428",
+  "kind": "nav",
+  "nav_hash": "de7fae3da894aa1b866266bdf1970e3d21da9cc1789c2dfa389d401285faa697"
+ },
+ {
+  "day": "20250429",
+  "kind": "nav",
+  "nav_hash": "ffa93efce7ad74aff2a555cb23d1056c0d004c26f48c62c371b40d21ba018aff"
+ },
+ {
+  "day": "20250430",
+  "kind": "nav",
+  "nav_hash": "366c3ebc5de92edc28032a793e2156da010eb1f4692499f0264ae11fe2f9e2b7"
+ },
+ {
+  "day": "20250506",
+  "kind": "rebalance",
+  "universe_hash": "3aecf0040c9fda034fc971fe330d5b215060911dc9b599543feb4f656a3000ac",
+  "score_hash": "e90b3ceb0c54876143a53b7bf72652be50eb561ebb63d5e82831a188097991ab",
+  "ranking_hash": "bf10af5cdec7899eadd7cc4e5f43bb5c0d730afcf5f28e765390cf81d92cd67f",
+  "portfolio_hash": "2a2458c31776830ad8e4598632a10051e22cc6a18005101de5d7e8095e774c3c"
+ },
+ {
+  "day": "20250506",
+  "kind": "trades",
+  "trade_hash": "0be47d7a682bc7d20ef772e10be3e2509c77614b5682dcfd678316d06c34aa32"
+ },
+ {
+  "day": "20250506",
+  "kind": "nav",
+  "nav_hash": "4e9dd215cdde042a80a59936a0277848bb4bf3356d50c5575d14a1adb2812e66"
+ },
+ {
+  "day": "20250507",
+  "kind": "nav",
+  "nav_hash": "b8c44d6e252efc252a2c750150bed5b504ecd5885f6457a5e963a13207c36baa"
+ },
+ {
+  "day": "20250508",
+  "kind": "nav",
+  "nav_hash": "8f21a2572834a595dc2003b2015339ad58fe15ccb96dd8c41088e37628511a76"
+ },
+ {
+  "day": "20250509",
+  "kind": "nav",
+  "nav_hash": "bdb1ad0528d5373c775f39e3ff83efaf160058d6fc6760a96a775d56382857f1"
+ },
+ {
+  "day": "20250512",
+  "kind": "nav",
+  "nav_hash": "e2fcb09e678e3e0c1f4a591a9bc3690380ea309f6d288244e4b7aac1cfe7f8d5"
+ },
+ {
+  "day": "20250513",
+  "kind": "nav",
+  "nav_hash": "1958e59dc45681eb383df22a575b2618b938529072b0d934ea1de80edb8cbaee"
+ },
+ {
+  "day": "20250514",
+  "kind": "nav",
+  "nav_hash": "4d4f9bf4d27cfc470c6e7f3c8bb5845efd768e60d439f20bd012b367cc9f9219"
+ },
+ {
+  "day": "20250515",
+  "kind": "nav",
+  "nav_hash": "479a11c4a7f0540ef6c1c1eb07865bc3fcc1f4ab745c3a656426b6ab7369579e"
+ },
+ {
+  "day": "20250516",
+  "kind": "nav",
+  "nav_hash": "985680f5cef40bbc504c4faf154d85dc4290352cdd3217867be23182b93fa0a2"
+ },
+ {
+  "day": "20250519",
+  "kind": "nav",
+  "nav_hash": "b419426f963958aa23de40d6296427e3acd199cd49eb19502510251b56fac4dd"
+ },
+ {
+  "day": "20250520",
+  "kind": "nav",
+  "nav_hash": "cc51a703af6f96593d9b7bc0b8378bb4c693431d2c2f3757092852753ccdd158"
+ },
+ {
+  "day": "20250521",
+  "kind": "nav",
+  "nav_hash": "bc3b1fe5cb7daa00bf6bf8f46a4f105ec213b3aa25bf1eeff9b6612d4806b610"
+ },
+ {
+  "day": "20250522",
+  "kind": "nav",
+  "nav_hash": "6f807400cdf28ea24c5853760b088e48a1068afff0112d932ba43f6a14247422"
+ },
+ {
+  "day": "20250523",
+  "kind": "nav",
+  "nav_hash": "ff37a751a4a6f0b861ee5812f92a60b2f8eb5202a1788b29564121cfa7309f42"
+ },
+ {
+  "day": "20250526",
+  "kind": "nav",
+  "nav_hash": "ede06157df52a60c5f2d04ef32ae398483b5c1b9a7646dac4d33083152f43285"
+ },
+ {
+  "day": "20250527",
+  "kind": "nav",
+  "nav_hash": "e48f30ce27f14cb0f54d29b2bbf42aeb21b46fa7c52345e4cee6c781353d28ce"
+ },
+ {
+  "day": "20250528",
+  "kind": "nav",
+  "nav_hash": "c0564ba9654bbca60432385badcfe612069573bc3fc3ba8b27fd5df0de2773a2"
+ },
+ {
+  "day": "20250529",
+  "kind": "nav",
+  "nav_hash": "7c95a3ed3279d14393ae469a7d0fe3763713e66654f03856a56f0c15e3335c81"
+ },
+ {
+  "day": "20250530",
+  "kind": "nav",
+  "nav_hash": "9b6d3cf54e15bfefa7cc2e581eb243931eec566b95b731af8eb341b977fec9ed"
+ },
+ {
+  "day": "20250603",
+  "kind": "rebalance",
+  "universe_hash": "4c61eeea6cd8518e847b5cefdd126dc8c4ebfd7759a954f488afa7d55675c052",
+  "score_hash": "dd7633f4c5fa169d158a040b23da7eb7a3a1e3e97f4ef2715b7b76c81b772169",
+  "ranking_hash": "2473a2b42e4c0b6c0367ea9f9287954aa36e61cc3361748fcf9ce69ed685966c",
+  "portfolio_hash": "44dcf0a8c6eb2f576452f61daf9685efc48738d3e6eb5e96e06003f7f92d3432"
+ },
+ {
+  "day": "20250603",
+  "kind": "trades",
+  "trade_hash": "9ead98b12e3c41ce33da0f73f37272886fceb141a56de0f5e9480ed559d488c7"
+ },
+ {
+  "day": "20250603",
+  "kind": "nav",
+  "nav_hash": "e7d5c0c4429566090c67131f697d8a2235fe79340cbcc303e5ae6a3b93af10d4"
+ },
+ {
+  "day": "20250604",
+  "kind": "nav",
+  "nav_hash": "0c615ef384ff08b84a1509d255397fa6704f855fd4900ee9adf0ab94bf053c59"
+ },
+ {
+  "day": "20250605",
+  "kind": "nav",
+  "nav_hash": "77665fa9fc82523fa6e1e17863db32811c75930d6a2254bf64156a3c9f461a75"
+ },
+ {
+  "day": "20250606",
+  "kind": "nav",
+  "nav_hash": "b353821b6cacf300f01882b54d4f45302dba6585187141ea5f85fb45d5ea3dea"
+ },
+ {
+  "day": "20250609",
+  "kind": "nav",
+  "nav_hash": "249e71b7c1d30ad6fb2cfda85425063889a73a13bd61c20ed82d562ccdaac95e"
+ },
+ {
+  "day": "20250610",
+  "kind": "nav",
+  "nav_hash": "46b70f060b09e2b4a8004d47682de7cb3e17ade768d51f7698e08a0c077443f9"
+ },
+ {
+  "day": "20250611",
+  "kind": "nav",
+  "nav_hash": "fc2bfe835edfd97aa1791bb7a4d81dc98b786acbbb9d7ad381860597cc8b6920"
+ },
+ {
+  "day": "20250612",
+  "kind": "nav",
+  "nav_hash": "2875d193fe4784413d1cb1b5395a7191fa60c61f175bbc1b9138b920f9f6adea"
+ },
+ {
+  "day": "20250613",
+  "kind": "nav",
+  "nav_hash": "f3e2c3c7953d3e176dca091174956f1088047b80dea7eefb632b72d57bb30913"
+ },
+ {
+  "day": "20250616",
+  "kind": "nav",
+  "nav_hash": "4e66df512e0658a2a538fe3f902d473e33f490487e772d09e9d9feef73cc5d83"
+ },
+ {
+  "day": "20250617",
+  "kind": "nav",
+  "nav_hash": "0f8acd163697cb642581d434126888beb1516d8cff1a817d6ef3f9cb10d65d48"
+ },
+ {
+  "day": "20250618",
+  "kind": "nav",
+  "nav_hash": "cb3377427276f1126a885340ffcff2d6189efb25ebb6325b69d7027a34e99e46"
+ },
+ {
+  "day": "20250619",
+  "kind": "nav",
+  "nav_hash": "8346ed5d1c44e9fc2ff7373118cf6db715a7a8de34a74949c4c41580a568578d"
+ },
+ {
+  "day": "20250620",
+  "kind": "nav",
+  "nav_hash": "e30aa65eb77b0e0a3fb71933d801e81957811c60837969214f8a690a3009c044"
+ },
+ {
+  "day": "20250623",
+  "kind": "nav",
+  "nav_hash": "45ee803f337d115fcc3ac8e5649b370af2b97a0c2e94cd2ca04f80f753918467"
+ },
+ {
+  "day": "20250624",
+  "kind": "nav",
+  "nav_hash": "98d62bc5b7d0ea22ba9b04d42666687e45f79733fc3401a50c646fedb5aee2dd"
+ },
+ {
+  "day": "20250625",
+  "kind": "nav",
+  "nav_hash": "6ab7b7c75270eaddcde8b49ec69b2f41b6ba8c29ee2da24873796546cad16e00"
+ },
+ {
+  "day": "20250626",
+  "kind": "nav",
+  "nav_hash": "6f8275b53e6e1acf4c09dbf8e033653f0ac465444472d17771a6072023ee44d9"
+ },
+ {
+  "day": "20250627",
+  "kind": "nav",
+  "nav_hash": "0199bde0401f6fd9ab3c450f03c34d0a5b68a286ff6a5e623380cc3822bc3465"
+ },
+ {
+  "day": "20250630",
+  "kind": "nav",
+  "nav_hash": "24135550c97350438ee211d2b521a207ff7daf2260777ba740f7f86dc47478d9"
+ },
+ {
+  "day": "20250701",
+  "kind": "rebalance",
+  "universe_hash": "dea7a15ed4d22528d5a10993ddb014dad4d0f1ac1005b49880a791bc7ab866e1",
+  "score_hash": "dfcd541aad223ac2116fa131f705e6a3e9f2515e41b951c46e1be3fc21c94b38",
+  "ranking_hash": "ec5b2b89b17cb5765e846426643d45ba0aa54be82d1fd6b7239db52f1aab0709",
+  "portfolio_hash": "ff76adf09072194251a0a6588a15b02df58da318768e9a812540932c9b1c8f1f"
+ },
+ {
+  "day": "20250701",
+  "kind": "trades",
+  "trade_hash": "9d7ed8a909570466f1e8701ac3dee881d4cea7a26156ee1e613f65d09a960b88"
+ },
+ {
+  "day": "20250701",
+  "kind": "nav",
+  "nav_hash": "8629ce7466f42ebc1cb59bb6f07902a80e608d9495669bd0ff127a948f939f4a"
+ },
+ {
+  "day": "20250702",
+  "kind": "nav",
+  "nav_hash": "579d29914d37dabcd64c8cff7aba7035100397c6fba98d7f761b5734f8f2f647"
+ },
+ {
+  "day": "20250703",
+  "kind": "nav",
+  "nav_hash": "470b95b0cfa94d32ab1f0dcb7973b5f6207ad9938bbcb6ea4819049783a17ace"
+ },
+ {
+  "day": "20250704",
+  "kind": "nav",
+  "nav_hash": "ceb056a6d8fe3eb12471e01cae5f749210a5f26ab160279a2378e477421a219c"
+ },
+ {
+  "day": "20250707",
+  "kind": "nav",
+  "nav_hash": "46fc60501fe65b69f12bdb84d7a3761d82652deeb544f670c98199686f83e4fe"
+ },
+ {
+  "day": "20250708",
+  "kind": "nav",
+  "nav_hash": "d4561b7362009e43ffb7c9b00f9225949d8b860c5a4f4bc3ff9194e3837ccc18"
+ },
+ {
+  "day": "20250709",
+  "kind": "nav",
+  "nav_hash": "5af19c1ce685c40a2d9223fdaae39275f3cd7c172f7026ecef9547ad174f3783"
+ },
+ {
+  "day": "20250710",
+  "kind": "nav",
+  "nav_hash": "2e5623ef714c948561c8929a7d9f9ac7e3c40e74b01dafad6e9d6e628178f935"
+ },
+ {
+  "day": "20250711",
+  "kind": "nav",
+  "nav_hash": "f008d8c852690fc6ee3cf6167374a573489438b7f7f6b9c0a8aa7aa24f7a6afe"
+ },
+ {
+  "day": "20250714",
+  "kind": "nav",
+  "nav_hash": "6b3ad10b861b7a0b279611c861f8a39ff0a1fcebde22c343014babfc3c058854"
+ },
+ {
+  "day": "20250715",
+  "kind": "nav",
+  "nav_hash": "2ff244009e9e726c2cd269b75b6daebe36d907fa7ba194a6218e1c75690d2d48"
+ },
+ {
+  "day": "20250716",
+  "kind": "nav",
+  "nav_hash": "d82f19dbe156e4b590458bc67b3efdfe8b08ecf8ae615e9ee431b98019022b3d"
+ },
+ {
+  "day": "20250717",
+  "kind": "nav",
+  "nav_hash": "ba831d9f08846f657c96236ccffd174abe9041abf620341f7caa3661188672d6"
+ },
+ {
+  "day": "20250718",
+  "kind": "nav",
+  "nav_hash": "3f23adcb49b89812fa70875feb937ba1bb91a79c93b26deaa92a569372c2e8dc"
+ },
+ {
+  "day": "20250721",
+  "kind": "nav",
+  "nav_hash": "b9c1faa51c44084a7ddb9b2b1ba5da7a7bed1ac70173c9075616eb04e84d7de4"
+ },
+ {
+  "day": "20250722",
+  "kind": "nav",
+  "nav_hash": "03a0960e48374e88225427f078edd81ba3e06fb8c7857b84a807eaeadc33cac3"
+ },
+ {
+  "day": "20250723",
+  "kind": "nav",
+  "nav_hash": "4acb4919913830bc380c2fbacd8251106d234312d79eb08207cec5e94ab78c61"
+ },
+ {
+  "day": "20250724",
+  "kind": "nav",
+  "nav_hash": "4c888322cc84e60214db043c241c73572cf5436c57fc2b8574c133cac56ca8b7"
+ },
+ {
+  "day": "20250725",
+  "kind": "nav",
+  "nav_hash": "95eda365dad615994bf1efe540ba2917f134c876fbdb825fea042a15acc78675"
+ },
+ {
+  "day": "20250728",
+  "kind": "nav",
+  "nav_hash": "cf0c5cd5f9c7acb877e5ff15815389eacffcb718636195ca32657f8ad0bb3815"
+ },
+ {
+  "day": "20250729",
+  "kind": "nav",
+  "nav_hash": "cf02ca1fcaa9e222d50f23d71ec5903f269542be05555510bd64075ed90747fd"
+ },
+ {
+  "day": "20250730",
+  "kind": "nav",
+  "nav_hash": "86f4bdb887813d530c08868e93d76899735c862d8edb44e878101fa482f5731c"
+ },
+ {
+  "day": "20250731",
+  "kind": "nav",
+  "nav_hash": "2476b77ed4775fdce2c570ead520faae9b4f5ed29fae1e6a8a2aa09dfb5b5d5a"
+ },
+ {
+  "day": "20250801",
+  "kind": "rebalance",
+  "universe_hash": "1488467d78ef8a00abf2f1f1828b49c39283d340b6c13e5e8f44b3ed975f33d4",
+  "score_hash": "6c136b0295a887f8cc9eccfc9c6682e21a1906f890c3eda8ce22d83225560df5",
+  "ranking_hash": "fc9cf9625235f3a4e9420c298170ec6f70025caddf7b675f639c3a3d16f913bf",
+  "portfolio_hash": "95299aacab28bf2d5c7d50f767ddc9762f6b333823d569e8206f2faa6ca57445"
+ },
+ {
+  "day": "20250801",
+  "kind": "trades",
+  "trade_hash": "8477d75ad0518d4257cdcb6b2a230991cc07d26a8bc5a24731a3ad340a292d5c"
+ },
+ {
+  "day": "20250801",
+  "kind": "nav",
+  "nav_hash": "c6fda58ca6db8d918641ab4e184544daffb4017855de8a61f145d9aa35192f31"
+ },
+ {
+  "day": "20250804",
+  "kind": "nav",
+  "nav_hash": "416acdbe256cf011668ac39d0e359ac059625b0c39a40fd4894843d455c30dfe"
+ },
+ {
+  "day": "20250805",
+  "kind": "nav",
+  "nav_hash": "7dcecaf2461d0e10aa166f4ef7d8850088601caa33e21f04faa975a7c11224f2"
+ },
+ {
+  "day": "20250806",
+  "kind": "nav",
+  "nav_hash": "21b419228fb154c058800087d0407f1decfa89f36c74d5c156f170ae82f6de9e"
+ },
+ {
+  "day": "20250807",
+  "kind": "nav",
+  "nav_hash": "16369e961a9008a846658271549d1f6173fdafc4fbed3d65808244344e1bdd6a"
+ },
+ {
+  "day": "20250808",
+  "kind": "nav",
+  "nav_hash": "e5b1a28707bf8bc43f8824b1c09d88c4d8cd6fc0caeaa6be50ae075165c0e749"
+ },
+ {
+  "day": "20250811",
+  "kind": "nav",
+  "nav_hash": "506440f47cf6680c15becc30181a356e9272818cff95033d8e4016551919f089"
+ },
+ {
+  "day": "20250812",
+  "kind": "nav",
+  "nav_hash": "d5b593ea5120fe3c20a4de320e4f0bfbe60ae19b0383007b9a5f0d9ca6369c02"
+ },
+ {
+  "day": "20250813",
+  "kind": "nav",
+  "nav_hash": "9f1800a04a1912f489b688a704d8c1fdbc69171562e788fd31410027388b6511"
+ },
+ {
+  "day": "20250814",
+  "kind": "nav",
+  "nav_hash": "15691b685723262201c8f6e40d150205f970862c2e12231475b21d06523fe9d7"
+ },
+ {
+  "day": "20250815",
+  "kind": "nav",
+  "nav_hash": "2de122b618a5d22b83152b37d953264c2551882944940178b82e05521a5da3e2"
+ },
+ {
+  "day": "20250818",
+  "kind": "nav",
+  "nav_hash": "7c1c55f6a7b955e59665af67615dd036974ee4148b1195b64e62e722032106e4"
+ },
+ {
+  "day": "20250819",
+  "kind": "nav",
+  "nav_hash": "85ee237e08717db4c5909c44053d98c597f5d3c14c25238fc11d3de7d3ca4b56"
+ },
+ {
+  "day": "20250820",
+  "kind": "nav",
+  "nav_hash": "aca9b150b2205a802ff233050fe43b8029aa4e95307605c4cf8547146372709c"
+ },
+ {
+  "day": "20250821",
+  "kind": "nav",
+  "nav_hash": "298e82b9820cfd244a6d4d790d5148bc39c4282c3827894927c90af084d16c55"
+ },
+ {
+  "day": "20250822",
+  "kind": "nav",
+  "nav_hash": "e6500cf67b0cfe8df1467a2eb5285defddb5adc078949b87e6249db7ea94fc33"
+ },
+ {
+  "day": "20250825",
+  "kind": "nav",
+  "nav_hash": "8b3c3bdd71b1742510911f2720dce5f59218f1243e689cd366932290fe1b259a"
+ },
+ {
+  "day": "20250826",
+  "kind": "nav",
+  "nav_hash": "319bf86b7f947711dd6f1cbce5048bcccf98ef3ccfdf538ab3eee32996fd7707"
+ },
+ {
+  "day": "20250827",
+  "kind": "nav",
+  "nav_hash": "f2aebd4e58a857ab4d46bc52d68f4a37b0f88f192bb0adf6bd7f82dd351d83f0"
+ },
+ {
+  "day": "20250828",
+  "kind": "nav",
+  "nav_hash": "caccd23bc22ebe5f9c592ede41ba65f6ec9d12ceb15c360a40d8ad15ec2df8ff"
+ },
+ {
+  "day": "20250829",
+  "kind": "nav",
+  "nav_hash": "9c0ecacdd5222b5dca64d05019500f68d26b496507dd4512c80455f348398561"
+ },
+ {
+  "day": "20250901",
+  "kind": "rebalance",
+  "universe_hash": "253439905bd93ffd69e9427ff0c8cf72e33ba662dd9b87aae0c0cb718593b5a4",
+  "score_hash": "9219be3be2490b5133163fac7b5557d1378e2356d22223eaedc800183a33c727",
+  "ranking_hash": "d27bbff1f8dff04f9cce6f4e357e49e35bd973a690c57d480bec8d49e5689f4a",
+  "portfolio_hash": "c0d30b46d93bf2846b861bec103dac570db341c833919813562b8c7cd7bd4660"
+ },
+ {
+  "day": "20250901",
+  "kind": "trades",
+  "trade_hash": "556fd241184b1b3daae4eb9b2e9d784c7095a7effe624fe96f5ac64061169a43"
+ },
+ {
+  "day": "20250901",
+  "kind": "nav",
+  "nav_hash": "b3bcc664d8cc4e0cec288d9a58ad00d11d8a3b4694ffadf72ea29811ce046cf2"
+ },
+ {
+  "day": "20250902",
+  "kind": "nav",
+  "nav_hash": "ae3397e2cf30a2760400e01012d1fac4580aa0e4eec393d91645c5aa5f522fa9"
+ },
+ {
+  "day": "20250903",
+  "kind": "nav",
+  "nav_hash": "78c86620232be6e7fb6e5f71de7a27c8ee88eb98589f34f71f5e6a86d8a02a74"
+ },
+ {
+  "day": "20250904",
+  "kind": "nav",
+  "nav_hash": "bf1fa2fef4d997a19620a68a3386be36399952eda25f5be255080518ed66f758"
+ },
+ {
+  "day": "20250905",
+  "kind": "nav",
+  "nav_hash": "584c63a248db28b01510c0a370727269457d0443bc8014bc5d220e6113e17782"
+ },
+ {
+  "day": "20250908",
+  "kind": "nav",
+  "nav_hash": "fb721514a7a4589b6147ccd4bbcf43e3130839fc3d21edb3ef517ab7e88339c6"
+ },
+ {
+  "day": "20250909",
+  "kind": "nav",
+  "nav_hash": "0cc3d6002700fcd4147ebc70d34595197d5293af0361acb88015a82d7044e8a0"
+ },
+ {
+  "day": "20250910",
+  "kind": "nav",
+  "nav_hash": "abdb74c1a5e22950c346ad11010e43dd2d9734ee8d8860b7618bc173118039ac"
+ },
+ {
+  "day": "20250911",
+  "kind": "nav",
+  "nav_hash": "cca18198541b959301aa74900144d8e7542005098df6c626e0050d24c2cbe06b"
+ },
+ {
+  "day": "20250912",
+  "kind": "nav",
+  "nav_hash": "3b71665ffd445e2d97c655fb758525a0f989cf2537109d23c31e1803ca9b3e71"
+ },
+ {
+  "day": "20250915",
+  "kind": "nav",
+  "nav_hash": "216d1023a795a3066c9bcd8af5e2552cb68820984df6463c804c49cc18fb9ce0"
+ },
+ {
+  "day": "20250916",
+  "kind": "nav",
+  "nav_hash": "3cb979911ef742ae7fb1792db75f3900879be9ec6ed3aa5d2482fd00aa775c29"
+ },
+ {
+  "day": "20250917",
+  "kind": "nav",
+  "nav_hash": "858ec1f899228aca65cd4d26c6614f40e741b96001a22ac69fbcb3e07a49bc0f"
+ },
+ {
+  "day": "20250918",
+  "kind": "nav",
+  "nav_hash": "e3637ad3cfa67810d7352f3e4dd8e27dad2ed8f7a85eaefeb073c10dd3ddfdd0"
+ },
+ {
+  "day": "20250919",
+  "kind": "nav",
+  "nav_hash": "a64e12c49fda2971c8c819b4aef41f93e26ec8ca62b835a2335879ec6801218c"
+ },
+ {
+  "day": "20250922",
+  "kind": "nav",
+  "nav_hash": "e4f3e6205b61b23b8993ef13166627dc02f4c8f9b045442511b3f9167a90c841"
+ },
+ {
+  "day": "20250923",
+  "kind": "nav",
+  "nav_hash": "f4ae63bfbb3b635cce25a8afa5e6d1296322b0ec8a63585f37fd6542b5c0ec50"
+ },
+ {
+  "day": "20250924",
+  "kind": "nav",
+  "nav_hash": "7d447f0b2c53c312fba3273a2a346f822c5ca1f3237eb22589c5a7c6c38a937d"
+ },
+ {
+  "day": "20250925",
+  "kind": "nav",
+  "nav_hash": "f1445dec47189123df24421cfdfeaed3870ba59de61016bc0a043c5de8459ed3"
+ },
+ {
+  "day": "20250926",
+  "kind": "nav",
+  "nav_hash": "8c63643a5ab130a74925cdbd297b37d72f957d177b9c80015724d18d20bf1d48"
+ },
+ {
+  "day": "20250929",
+  "kind": "nav",
+  "nav_hash": "c18f1b329d86e6a424c29e5406cc50d081fa7a0303a1ca24065dcdce51f9e690"
+ },
+ {
+  "day": "20250930",
+  "kind": "nav",
+  "nav_hash": "2435cb9b088dc249802c573bb72e84f5e5c009d7d409a8901601b58bee9d7131"
+ },
+ {
+  "day": "20251009",
+  "kind": "rebalance",
+  "universe_hash": "397f03ffb7b9f4d061c250893cd0e23ffc04b5b80ac156906ff789f1909fd52e",
+  "score_hash": "a9c740704abf4cc09a1bcf212f38f4e7f001dabaeb55843fc8437c0fef428a05",
+  "ranking_hash": "1df502644991d2900b5e6f2ee0fcc839080f8d0f153c97709f163b0d6345cc84",
+  "portfolio_hash": "1fd91c8358b7e2485a3e3e1b9f4edd15b7fac1c2bd86e3496896a763ff24f77f"
+ },
+ {
+  "day": "20251009",
+  "kind": "trades",
+  "trade_hash": "6b2a8a71b37ef7866d098764ccd7792219de089c295d9c50d408eada2f57f044"
+ },
+ {
+  "day": "20251009",
+  "kind": "nav",
+  "nav_hash": "68258d6bc784f52fa57793eb5413593fcb2dc8b3154c65415c674579bcefc3e4"
+ },
+ {
+  "day": "20251010",
+  "kind": "nav",
+  "nav_hash": "a026eef5605d192fc59a3a1a535c69f4dab0b8876a03f8862a2ecbdd162d8111"
+ },
+ {
+  "day": "20251013",
+  "kind": "nav",
+  "nav_hash": "327b1155877d5de3bab00d7331d18a8c02a14de01a712405b1e77dcd8fa344d5"
+ },
+ {
+  "day": "20251014",
+  "kind": "nav",
+  "nav_hash": "d469d306701ba115401c6d2612adbc49d36df0c92e523d79aa2f37e02666a30d"
+ },
+ {
+  "day": "20251015",
+  "kind": "nav",
+  "nav_hash": "67f66d3be18df5a0c868d51ec76fc9ed918d5f0bcce89d18ae89dc72ddf0ced0"
+ },
+ {
+  "day": "20251016",
+  "kind": "nav",
+  "nav_hash": "b8f2262d56071353dc38dfd3cc88a16e8ec5bf865f4b67f80da57c1873e1bce3"
+ },
+ {
+  "day": "20251017",
+  "kind": "nav",
+  "nav_hash": "7272bf24b83fa19d047c50cd1a0287de7eeea0c7601cd9eb0966cd6beb64af22"
+ },
+ {
+  "day": "20251020",
+  "kind": "nav",
+  "nav_hash": "3f74f9f472cfa5edb87576de1b0b95b5b99be57e4aee7f82667acf3a653d3503"
+ },
+ {
+  "day": "20251021",
+  "kind": "nav",
+  "nav_hash": "137a257d35e4fc680cd7f8ef849a6a7f4d892bdcc27edbf3febb8ee3ce087409"
+ },
+ {
+  "day": "20251022",
+  "kind": "nav",
+  "nav_hash": "6099d33f58e687415c234caa0ae5d8fafcb4d93fd8f2f338359ac8247225310c"
+ },
+ {
+  "day": "20251023",
+  "kind": "nav",
+  "nav_hash": "9aaa799b190e3a2d2f5c40d2d34c716366e46fbf9135baabe4a75179ebbbe877"
+ },
+ {
+  "day": "20251024",
+  "kind": "nav",
+  "nav_hash": "203c14be202d9056222b2411aae3f46f434792c891ef4acb030ecc2161e8b4c6"
+ },
+ {
+  "day": "20251027",
+  "kind": "nav",
+  "nav_hash": "927bf1f8436e33f12c3ccdd71cc66d24cffeaac570c7e94fef3c839e627aa682"
+ },
+ {
+  "day": "20251028",
+  "kind": "nav",
+  "nav_hash": "505b066661740804c401f8ec8160b965ed6f714af45301d7a327ca2594a1db14"
+ },
+ {
+  "day": "20251029",
+  "kind": "nav",
+  "nav_hash": "59a31ae18378fc1d6a44da3e3e919f4074f0e396018cce81de57a1a1dadaa370"
+ },
+ {
+  "day": "20251030",
+  "kind": "nav",
+  "nav_hash": "d558c0eb63bc9f6cb39034ec41a3c0dd9fc7267f73766f16ac4376d93f71dbd8"
+ },
+ {
+  "day": "20251031",
+  "kind": "nav",
+  "nav_hash": "57c5261cf693baf9591e44642ab740d83629c66613975b1a7744170fe4ed801a"
+ },
+ {
+  "day": "20251103",
+  "kind": "rebalance",
+  "universe_hash": "56b626742803a8f8ed7ccb7f3f1bca31cf0cb430c008236c3994c36cebfa2ba0",
+  "score_hash": "35dbfd8e1a9b861cec101485b9327d711cd453d493b0cd66ff859f1892dacd6b",
+  "ranking_hash": "5bf8a0a46130bd5763c39170cc2b873a86c5c34ccda83a5e580370c6de05f4a1",
+  "portfolio_hash": "24c82b4cb5188145d9c838d7f37ad20f612b395d1b127689c8d76a90bd02f5f8"
+ },
+ {
+  "day": "20251103",
+  "kind": "trades",
+  "trade_hash": "1cbdd806511283e251006fa9fd7696bf4a81b6b8ab1bc90e8072438ea0150be1"
+ },
+ {
+  "day": "20251103",
+  "kind": "nav",
+  "nav_hash": "3e9cafbc9234e10be992f7247a7b326b1b29ff83d397daea25f6231f709912b0"
+ },
+ {
+  "day": "20251104",
+  "kind": "nav",
+  "nav_hash": "18aedac6aeb3ed689e39375842e50319560c6629565cedc5e05c9f12d2e17f99"
+ },
+ {
+  "day": "20251105",
+  "kind": "nav",
+  "nav_hash": "58a5195576944bf4983179abe016704c2ae3d927fceaa2787bdd4e24e755ccad"
+ },
+ {
+  "day": "20251106",
+  "kind": "nav",
+  "nav_hash": "099c5c14e6c7cda64e0263ef61ce513bfda0f1b2905f5ff9f1b380d96028a27f"
+ },
+ {
+  "day": "20251107",
+  "kind": "nav",
+  "nav_hash": "eb461a4bce2bf2b7a92f46f777ca1896154694ef87a64c5143ceb7f4091d457f"
+ },
+ {
+  "day": "20251110",
+  "kind": "nav",
+  "nav_hash": "ecab49eac15b951c56c01f7a896d37c26228fc629259b5bee4f6f7bfeb0467d8"
+ },
+ {
+  "day": "20251111",
+  "kind": "nav",
+  "nav_hash": "0f2d720b6e46fe0a5b2866945f43e5b49fdf753dcc3403742baa73233334e725"
+ },
+ {
+  "day": "20251112",
+  "kind": "nav",
+  "nav_hash": "b659463cd72a655f037063c8c2cfae15fdd383c424c5ad66b79b3ce8fec494e6"
+ },
+ {
+  "day": "20251113",
+  "kind": "nav",
+  "nav_hash": "8ffd6c29659739025bffe1d11ccae1592d401f27426332168e1cc7d03e45b2af"
+ },
+ {
+  "day": "20251114",
+  "kind": "nav",
+  "nav_hash": "2a2ac535ad3a58d88c7d8e2bfb7a0e1ac1167b8f4d1241732d1173b8f37315c1"
+ },
+ {
+  "day": "20251117",
+  "kind": "nav",
+  "nav_hash": "8e192d654ade93908329833f1aa3a4669ecd2c0ae656eaebf934f39b1df5756b"
+ },
+ {
+  "day": "20251118",
+  "kind": "nav",
+  "nav_hash": "6c0f97e42a8782e75f3b557b5cfb2565e5e38dccb89191bd34777d88dc61cd09"
+ },
+ {
+  "day": "20251119",
+  "kind": "nav",
+  "nav_hash": "0e78ca05673d24a743dbb67544ba647a5af6bf8f77ce3dd40c979d7accd96463"
+ },
+ {
+  "day": "20251120",
+  "kind": "nav",
+  "nav_hash": "a9909250e5060afc2ee74e266da6a6aca439b469e428d2b23a953361767ce3cd"
+ },
+ {
+  "day": "20251121",
+  "kind": "nav",
+  "nav_hash": "e8b073ba42b16ac788bd7473df24d7703e8af22b0294fc546402a3b24d0fddda"
+ },
+ {
+  "day": "20251124",
+  "kind": "nav",
+  "nav_hash": "0e659f374fe988ad113cdd5ba7060761f6a582134c3729f8e3f87fa83b703c9c"
+ },
+ {
+  "day": "20251125",
+  "kind": "nav",
+  "nav_hash": "be14c991a800eb3aa1c4aa492c3d17e3358bc7c5589328bc3989f137238dcc92"
+ },
+ {
+  "day": "20251126",
+  "kind": "nav",
+  "nav_hash": "bfeea786fab756d51aaf127707b6604e8db6500fd643f5298f26addfddf9865f"
+ },
+ {
+  "day": "20251127",
+  "kind": "nav",
+  "nav_hash": "e5c10debeca048e53c0062e315dd88acbdc8c89f1b810296a96250cc0accd9c2"
+ },
+ {
+  "day": "20251128",
+  "kind": "nav",
+  "nav_hash": "5feaab20285267ffac71a681567e053d49f517fd138fb3f6a733f591408c9126"
+ },
+ {
+  "day": "20251201",
+  "kind": "rebalance",
+  "universe_hash": "1dada19673ec6c270d263355698a70d760b209355e1cb04553e605c0779e051f",
+  "score_hash": "4e66cfb7dc5b1ac2550db2e1178343e1d8723fb16845d389512008d138537a66",
+  "ranking_hash": "43eec89a960f4228f52b4c21a2c459da0b9f8c41a72db37d00e6dbae6dbcd404",
+  "portfolio_hash": "8f2ef262b659796f9f6208258125931690dac440429bd8e7e039ba38412c527b"
+ },
+ {
+  "day": "20251201",
+  "kind": "trades",
+  "trade_hash": "fcde03c7b1fbdbbf627d6dd956efb326af4862ba029d5f93625716b2c09df68f"
+ },
+ {
+  "day": "20251201",
+  "kind": "nav",
+  "nav_hash": "c29c7388555c2034d7025fdadd1529ec679b944bf3ec5aaa58ed8c73449f3e1b"
+ },
+ {
+  "day": "20251202",
+  "kind": "nav",
+  "nav_hash": "7db110be2befb64e8a16bd94fc96cf5be3cdbde85c80b8f238393fd6a3ff19ca"
+ },
+ {
+  "day": "20251203",
+  "kind": "nav",
+  "nav_hash": "bb01fb47242f9c66e919092125db09119a1fa8618a1953dfc62a2db20a036f6a"
+ },
+ {
+  "day": "20251204",
+  "kind": "nav",
+  "nav_hash": "d8888ab4b86f017842d22cb375715a8601cdc23b39f4e0579e7b831f4441b4bd"
+ },
+ {
+  "day": "20251205",
+  "kind": "nav",
+  "nav_hash": "d37e49e63ce05cea557504449e03d70a78b9552047ec6e39a11d4359ff54ba62"
+ },
+ {
+  "day": "20251208",
+  "kind": "nav",
+  "nav_hash": "f1f858db0e2a16ce099851ab23e4344ca11755be5bc02a8dc80a102cd90f160b"
+ },
+ {
+  "day": "20251209",
+  "kind": "nav",
+  "nav_hash": "a04b512b84b2f52391677f70c7490d2806b228c49c7f765d885f723a9cac4413"
+ },
+ {
+  "day": "20251210",
+  "kind": "nav",
+  "nav_hash": "c67a42c330107a9fac3b174dee4272670558b6a357a7fa83519fbf7f01354d81"
+ },
+ {
+  "day": "20251211",
+  "kind": "nav",
+  "nav_hash": "4000d5a3364a7156d64a167af7d7440b964b784567aaa6623b9b8f2100d691df"
+ },
+ {
+  "day": "20251212",
+  "kind": "nav",
+  "nav_hash": "bbebf4f2c59eccf4de5170ec19c581270b2d6f2a4d7e6c72846a072ade4318a1"
+ },
+ {
+  "day": "20251215",
+  "kind": "nav",
+  "nav_hash": "54ac4f7f1ab01ec39523be4cb62eeb2581c82b4f5c9901a1d484493220c88343"
+ },
+ {
+  "day": "20251216",
+  "kind": "nav",
+  "nav_hash": "a6a27225c4cf18a827897310460695beb9c7703c35b37439679a84510e820ceb"
+ },
+ {
+  "day": "20251217",
+  "kind": "nav",
+  "nav_hash": "3e5fc6aeaff631bcabe67879e29c2badd6d37007b7040b553451e10c7be8ae81"
+ },
+ {
+  "day": "20251218",
+  "kind": "nav",
+  "nav_hash": "21fee3cba447c965ab8eb3cd9e27d168210aa74b324a997b3eeffa5a71f0593a"
+ },
+ {
+  "day": "20251219",
+  "kind": "nav",
+  "nav_hash": "5043517011907ca14363e6680e33ec065930858f6f5d9f4ffa65ac351add300f"
+ },
+ {
+  "day": "20251222",
+  "kind": "nav",
+  "nav_hash": "bdbd70f4360f985525d52ec81aa23d708575853b1e0580692e8b8312e648f0ed"
+ },
+ {
+  "day": "20251223",
+  "kind": "nav",
+  "nav_hash": "84c1fbdf1bd84c7ce948d7817ffe527e774daf6dc595c9a5619e39c1b77b0e78"
+ },
+ {
+  "day": "20251224",
+  "kind": "nav",
+  "nav_hash": "46af22ff3ab5cc6ec20abcb4ac2cb57cfd56362f2961515d2c047e3a6a24210f"
+ },
+ {
+  "day": "20251225",
+  "kind": "nav",
+  "nav_hash": "64117134bb53b4dd5d514bda52f8a3c63115baa17abc65d6ac835bf44f780bf8"
+ },
+ {
+  "day": "20251226",
+  "kind": "nav",
+  "nav_hash": "88ff424ae37525868ed3b0ec2854dfd6c3218986e034558c7b8e020c08613e49"
+ },
+ {
+  "day": "20251229",
+  "kind": "nav",
+  "nav_hash": "ad1772277b5a6b966afedbe657a403f68ea8d48f1b90eb616775a94f71d55598"
+ },
+ {
+  "day": "20251230",
+  "kind": "nav",
+  "nav_hash": "1d1c2119142d90b626f3dd2000a3e8e81dd8891016f697b9b0c183799fe4aef3"
+ },
+ {
+  "day": "20251231",
+  "kind": "nav",
+  "nav_hash": "60587c6a849589cc3a450083e65618d9da44f6ed0e25ff89959770631f3b7ef5"
+ }
+]

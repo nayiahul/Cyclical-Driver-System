@@ -1,0 +1,196 @@
+{
+  "baseline_id": "b_full_pit_20260901",
+  "data_snapshot_id": "tdx_v20260901_q2",
+  "generated_at": "2026-09-01T15:21:01.416270",
+  "validation_status": "INVALID_FOR_VALIDATION",
+  "note": "B full PIT: VALID_FOR_VALIDATION, 2022-2025",
+  "git": {
+    "commit": "2190d3aa8a5281be16f8dc79fed9c67e4bdf8bc2",
+    "tag": null,
+    "dirty": true
+  },
+  "environment": {
+    "python": "3.10.19",
+    "platform": "macOS-26.0.1-arm64-arm-64bit",
+    "packages": {
+      "pandas": "2.3.3",
+      "numpy": "2.2.6",
+      "loguru": "0.7.3"
+    },
+    "pip_freeze": "environment.txt"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "data/cache/tdx_financials.csv",
+        "sha256": "74a715d91d936db0a173643a142b5bb42c64a9b524448674f623af5d83429e35",
+        "size_bytes": 301689810,
+        "rows": 297185,
+        "min_date": "1989-12-31",
+        "max_date": "2026-06-30"
+      },
+      {
+        "path": "data/cache/financial_data.csv",
+        "sha256": "5803fe694ac59452bc8ea6ffe7d3d27a7d5f5a2e4e2a15d0d7695cd397977bb4",
+        "size_bytes": 5504612,
+        "rows": 181560,
+        "min_date": "2012-03-31",
+        "max_date": "2026-03-31"
+      },
+      {
+        "path": "data/cache/disclosure_calendar.csv",
+        "sha256": "4ee9fd1eaf98a97f12a49f8eac25b8e08c5b38216f9295f37d879427d19e2c97",
+        "size_bytes": 1642358,
+        "rows": 65693,
+        "min_date": "20230331",
+        "max_date": "20251231"
+      },
+      {
+        "path": "data/cache/quality_snapshot.csv",
+        "sha256": "741b1674faab4a835219343e02b57efad852dc21a95a5f8b58fc4c5a8b230ff5",
+        "size_bytes": 239372,
+        "rows": 2576,
+        "min_date": "20251231",
+        "max_date": "20251231"
+      },
+      {
+        "path": "data/cache/stock_list.csv",
+        "sha256": "8f1cbd3eed03ae9e161612a5dd4d466f9b4d8f1dcac3aa7ec2bfd1ca2468f2c4",
+        "size_bytes": 157010,
+        "rows": 5515,
+        "min_date": null,
+        "max_date": null
+      },
+      {
+        "path": "data/cache/trade_calendar.csv",
+        "sha256": "f379e7e29de3c8e58a1ace7760c8996478c1dd087277718e3d626f6ab9a6f2dc",
+        "size_bytes": 79184,
+        "rows": 8797,
+        "min_date": "19901219",
+        "max_date": "20261231"
+      },
+      {
+        "path": "data/cache/sw_stock_industry.csv",
+        "sha256": "dc4b9d1640dbf92f302d75704bebcc06c0c1aa769df26f2c7a1831d9c6e664b5",
+        "size_bytes": 322552,
+        "rows": 5467,
+        "min_date": null,
+        "max_date": null
+      },
+      {
+        "path": "data/cache/sw_hierarchy.csv",
+        "sha256": "c5f728e08aa127c5d3984f4fb3b02ed57e3d2fcd2e95ec90388db51b22c309d1",
+        "size_bytes": 23998,
+        "rows": 337,
+        "min_date": null,
+        "max_date": null
+      },
+      {
+        "path": "data/cache/sw_industry_map.csv",
+        "sha256": "5325510075c16d5dd49d5aed37c428c5c09326b92124ed0c9e9c352f73e45143",
+        "size_bytes": 86615,
+        "rows": 4881,
+        "min_date": null,
+        "max_date": null
+      },
+      {
+        "path": "data/cache/sw_industry_map_full.csv",
+        "sha256": "dc6fc043fc4f7f4f18d4cf7237e596794dd8744af6d7f3698f58eeae95ef1341",
+        "size_bytes": 96368,
+        "rows": 5490,
+        "min_date": null,
+        "max_date": null
+      },
+      {
+        "path": "data/cache/bond_10y.csv",
+        "sha256": "252ab9924ed031314be53e8af9f102dce9af33ef55f90d05932bc9761fe600a6",
+        "size_bytes": 108384,
+        "rows": 6090,
+        "min_date": "2002-01-04",
+        "max_date": "2026-05-22"
+      },
+      {
+        "path": "data/cache/etf_511010_bond.csv",
+        "sha256": "04f39f59cfd5144727745ffe7c7db64f90b1f84750d0b6192d7199002932e4fa",
+        "size_bytes": 38340,
+        "rows": 2033,
+        "min_date": "2018-01-02",
+        "max_date": "2026-05-25"
+      },
+      {
+        "path": "data/cache/index_000922_dividend.csv",
+        "sha256": "f0d2063333712143bb27ac934cd7ffc4c1be4a61741219da7f6378e7f97eb104",
+        "size_bytes": 195237,
+        "rows": 3423,
+        "min_date": "2005-01-04",
+        "max_date": "2019-01-30"
+      },
+      {
+        "path": "data/cache/index_399006.csv",
+        "sha256": "468c4e59954f6958369391e6fe709039811ab9510a0c080981843fa212a94991",
+        "size_bytes": 221501,
+        "rows": 3877,
+        "min_date": "2010-06-01",
+        "max_date": "2026-05-22"
+      },
+      {
+        "path": "data/cache/index_399300.csv",
+        "sha256": "b699d5c3fb5fc8afd710995a283636b7717ebee4715349ef9724754e30a6871e",
+        "size_bytes": 117256,
+        "rows": 5906,
+        "min_date": "2002-01-04",
+        "max_date": "2026-05-14"
+      },
+      {
+        "path": "data/cache/margin_data.csv",
+        "sha256": "5661985375f22c06b27b61107c66d5e414fa4fe374d1b165a8e8b520e80bdb43",
+        "size_bytes": 199332,
+        "rows": 3707,
+        "min_date": "2010-03-31",
+        "max_date": "2026-05-13"
+      },
+      {
+        "path": "data/cache/market_pe.csv",
+        "sha256": "b1781ce408ba76eeee0b708b8a59ed050e0a673f9ede09169136f34d529d5d86",
+        "size_bytes": 27917,
+        "rows": 1650,
+        "min_date": "2019-07-22",
+        "max_date": "2026-05-14"
+      },
+      {
+        "path": "data/cache/pdf_financials.csv",
+        "sha256": "884bcf3e81096881c9a672deffc8e1e94569b102624a6deb3c69b104393c5b53",
+        "size_bytes": 714,
+        "rows": 25,
+        "min_date": null,
+        "max_date": null
+      },
+      {
+        "path": "config/params.py",
+        "sha256": "3088670a4fbd462efd7d5cb0b8e952e0ac051b8663b9dea0bde765280ce73d10",
+        "size_bytes": 2961,
+        "rows": null,
+        "min_date": null,
+        "max_date": null
+      },
+      {
+        "path": "config/tdx_fields.csv",
+        "sha256": "712cb3d274b2dd16b235b3c21a652d71bfb4a369037b8798e5eb97a06f4e5bf9",
+        "size_bytes": 5511,
+        "rows": 93,
+        "min_date": null,
+        "max_date": null
+      }
+    ],
+    "price_dir": {
+      "path": "/Users/nayiahlu/Desktop/stocks",
+      "kind": "price_dir",
+      "n_files": 5225,
+      "total_bytes": 1161614059,
+      "aggregate_sha256": "54a76bd65a9dbb2a46989f7cd99abdf4f39187746eac155776c731302b4e7603",
+      "sample_min_date": "2021-01-04",
+      "sample_max_date": "2026-08-31",
+      "note": "min/max 为全文件首/末行日期采样"
+    }
+  }
+}

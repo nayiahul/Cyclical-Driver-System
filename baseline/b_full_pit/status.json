@@ -1,0 +1,26 @@
+{
+  "baseline_id": "b_full_pit",
+  "baseline_commit": "caee7ba",
+  "data_snapshot_id": "tdx_v20260901_q2",
+  "generated_at": "2026-09-01T15:14:00",
+  "validation_status": "VALID_FOR_VALIDATION",
+  "note": "完整 PIT 状态 (Gate 2-4 全部完成): 价格 as_of + 披露日治理 + 乖离/流动性恢复",
+  "pit_status": {
+    "market": "PASS",
+    "financial": "PASS (主回测路径, growth_os 已修)",
+    "universe": "U0 (幸存者偏差已声明)"
+  },
+  "results": {
+    "total_return": 0.1167,
+    "annual_return": 0.0291,
+    "max_drawdown": -0.2388,
+    "calmar": 0.122,
+    "sharpe": 0.0415
+  },
+  "attribution": {
+    "price_leakage_A_to_A1": -1.122,
+    "rule_activation_A1_to_B1": -0.085,
+    "financial_leakage_B1_to_B": 0.0,
+    "total_A_to_B": -1.207
+  }
+}
