@@ -632,5 +632,16 @@ Phase 4: 人工反馈闭环
 - [x] Gate 0-A：性能优化（commit `b47e4c0`，三层验证全 PASS）
 - [x] 方向校准：Research System Evolution（本节）
 - [x] P2 Issue Log 建立（`baseline/P2_ISSUE_LOG.md`，8 项）
-- [ ] Gate 0-D：PRE-PIT Baseline A 生成中（2022-2025，audit 开启）
-- [ ] Gate 0-D 完成后：暂停 B1/B/C 收益归因，设计“PIT 后研究信号质量验收方案”
+- [x] Gate 0-D：PRE-PIT Baseline A（commit `b7ba7a2` 归档，INVALID_FOR_VALIDATION）
+- [x] Research Audit：污染样本画像（Confirmation 强 / Discovery 弱）
+- [x] Gate 1：测试基建（commit `7127cc2`，characterization 9 GREEN + PIT RED）
+- [x] Gate 2：PIT Contract v1（commit `d6dd7cc`，pit/ 数据可信层）
+- [x] Gate 3：Market Leakage 迁移（commit `5ad171e`，PE/乖离/流动性 + P2-001）
+- [x] B1 baseline（commit `b7ba7a2`，收益 132.4%→11.7%，Top100 重合 27%）
+- [x] Gate 4：growth_os 财务披露治理（commit `caee7ba`，P0-2 修复）
+- [x] Research System Architecture v1 + Data Asset Architecture v1（commit `caee7ba`/`1a9130d`）
+- [x] TDX 财务刷新至 2026Q2 中报（commit `7beecab`，snapshot `tdx_v20260901_q2`）
+- [ ] A1 baseline（价格 PIT 专用，运行中）
+- [ ] B baseline（完整 PIT，运行中）
+- [ ] A/A1/B1/B 四版本归因（三因素拆分）
+- [ ] Phase 2：三引擎验证（H0 互补 / H1 认知差）
