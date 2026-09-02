@@ -142,6 +142,24 @@ def main():
     except Exception as e:
         logger.warning(f"P Shadow 观察区失败: {e}")
 
+    # ---- E v2 Shadow 旁路标注 (Step 12-C: 展示不决策) ----
+    try:
+        from growth_os.expectation_state import ExpectationV2Shadow
+        e2 = ExpectationV2Shadow()
+        top50["e2_attention"] = ""
+        top50["e2_expectation"] = ""
+        top50["e2_price_state"] = ""
+        for idx in top50.index:
+            c = str(top50.loc[idx, "code"]).zfill(6)
+            r = e2.classify(c, T_DATE)
+            top50.loc[idx, "e2_attention"] = r.attention
+            top50.loc[idx, "e2_expectation"] = r.expectation
+            top50.loc[idx, "e2_price_state"] = r.price_state
+        n_high = (top50["e2_attention"].str.contains("A2|A3")).sum()
+        logger.info(f"E v2 Shadow: {n_high} 只高关注(非E0真忽略)")
+    except Exception as e:
+        logger.warning(f"E v2 Shadow 失败: {e}")
+
     # ---- Daily Research Book ----
     os.makedirs(OUT, exist_ok=True)
     lines = [
@@ -151,13 +169,22 @@ def main():
         "",
         "## 研究队列总览",
         "",
-        "| 代码 | 雷达 | L | E | 优先级 | 驱动 |",
-        "|---|---|---|---|---|---|",
+        "| 代码 | 雷达 | L | E v1 | Attention | E v2 | Price | P | 优先级 |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for _, r in top50.iterrows():
-        drv = str(r["drivers"])[:55].replace("|", "/") if pd.notna(r["drivers"]) else ""
+        drv = str(r["drivers"])[:40].replace("|", "/") if pd.notna(r["drivers"]) else ""
+        attn = str(r.get("e2_attention", "")).replace("A2高关注", "A2").replace("A3极热", "A3")
+        attn = attn.replace("A0未关注", "A0").replace("A1初始", "A1")
+        exp2 = str(r.get("e2_expectation", "")).replace("E3已透支", "E3").replace("E2高预期", "E2")
+        exp2 = exp2.replace("E1部分定价", "E1").replace("E0未定价", "E0")
+        ps = str(r.get("e2_price_state", "")).replace("PS0新高区", "PS0").replace("PS1正常", "PS1")
+        ps = ps.replace("PS2回撤", "PS2").replace("PS3深度回撤", "PS3")
+        p_ = r.get("paradigm", "") if "paradigm" in r else ""
+        p_state = f"{p_} {r.get('p_state', '')}" if p_ else "—"
         lines.append(f"| {r['code']} | {r['radar']} | {r['lifecycle_state']} | "
-                     f"{r.get('expectation_state', '')} | {r['research_priority']} | {drv} |")
+                     f"{r.get('expectation_state', '')} | {attn} | {exp2} | {ps} | {p_state} | "
+                     f"{r['research_priority']} |")
 
     if shadow_rows:
         lines += ["", "---", "", "## P Shadow 观察区（Step 11-D: 只观察不决策）",
