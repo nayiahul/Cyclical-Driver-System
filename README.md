@@ -1,96 +1,139 @@
-# 周期驱动因子系统
+# Growth OS — 个人 AI 投研操作系统（v3.5 Shadow）
 
-A股主动基本面景气策略选股系统。目标函数：最大化 Calmar（约束：回撤 ≤ 35%）。
+从 5000+ A 股中，发现"变化、错杀、认知差"，生成**研究任务**（非买入信号），
+并通过 Decision Ledger 积累**可复盘的判断记忆**。
 
-## 两条筛选链路
+> 这不是选股模型，是研究资源分配器：系统做公司级筛选，人工做行业前瞻判断，
+> 每次判断都被记录、回填、校准。
 
-| | `screener.py` | `growth_os/run_screen.py` |
-|---|---|---|
-| 定位 | 轻量扫描 — 发现"市场在奖励什么" | 深度诊断 — 验证"值不值得买" |
-| 框架 | 三维：景气度 × 壁垒 × 估值 | 六层漏斗：L1→L5 分层诊断 |
-| 输出 | Top 200 CSV + 拐点模式 Top 50 | Top N CSV + 归因卡片 + 仓位建议 |
-| 速度 | ~7 分钟 | ~19 分钟 |
+---
 
-**两者交集是最值得重点研究的标的。**
+## 系统架构（L/E/P 三轴，v3.5）
 
-## 快速开始
+```
+PIT 数据层（披露日治理 + as_of 截断，零未来函数）
+    ↓
+Discovery（探针：订单/CAPEX/毛利/ROIC）
+    ↓
+Lifecycle L（L0-L5 企业变化阶段）
+    ↓
+Expectation E（E0-E3 市场认知程度）
+    ↓
+Paradigm P（AI_OPTICAL_CYCLE，Shadow only，只观察不决策）
+    ↓
+Opportunity Matrix（L×E → 研究优先级）
+    ↓
+Research Book（Top50 + 双雷达 + Memo 七模块）
+    ↓
+Decision Ledger（人工判断留痕）→ Outcome Review → Calibration
+```
+
+## 实证基线（全部经过历史验证）
+
+| 能力 | 证据 |
+|---|---|
+| PIT 数据可信 | 85% 历史收益泄漏归因；财报披露日治理 |
+| 认知差窗口 | L1×E0/E1 升级率 53.2-53.9% vs 基线 47.5%（+6pp） |
+| 错杀识别 L5 | 恢复率 50.2% / 错误率 8.7% / Recovery Efficiency 53% |
+| AI 光模块范式 | 61 次压制样本 fwd6 +36.4%（市场 5 倍）；反事实验证有效 |
+| 职责边界 | 行业前瞻归人工（徐工/融捷分歧实证：人工判断正确） |
+
+## 每日运行（~10 分钟）
 
 ```bash
 source .venv/bin/activate
 
-# 轻量扫描
-python -m screener                          # 默认：Top 200
-python -m screener growth                   # 拐点爆发模式 Top 50
+# 1. 全市场研究池（~3 min）→ output/research_pool_*.csv
+python tools/run_research_scan.py
 
-# 深度诊断
-python -m growth_os.run_screen --top 20     # 全市场筛选 + 六层漏斗
+# 2. 研究书 Top50 + P Shadow 观察区（~1 min）→ output/research_book_*.md
+python tools/build_daily_research_book.py
 
-# 个股体检
-python -m growth_os.run_screen --code 300308
+# 3. 判断留痕 3-5 只（质量 > 数量）→ data/ledger/decisions.jsonl
+python tools/decision_cli.py --book output/research_book_YYYYMMDD.csv --resume
+```
 
-# 回测
-python main.py                              # 完整回测 2015-2024
+**决策纪律**：每天 3-5 个高价值判断 → 30 天 ~100 条有效样本 → T+30 Review（2026-10-02）。
+
+## 研究书输出示例
+
+```
+Growth Radar（变化发生 + 市场未确认）: L1×E0/E1 → A 级
+Recovery Radar（错杀恢复）:           L5×E0/E1 → A 级
+
+每份 Memo 七模块:
+  1 Identity（L/E/P 状态）  2 Why Now（企业侧+市场侧）
+  3 Thesis（Bull/Base/Bear） 4 Evidence（可溯源）
+  5 Catalyst（已知事件）     6 Thesis Broken（证伪条件）
+  7 Research Action + 置信度
 ```
 
 ## 项目结构
 
 ```
-screener.py                  # 轻量扫描器（三维框架）
-signals.py                   # Alpha信号：S1-S7
-valuation_filter.py          # 估值排雷（8条硬约束）
-growth_os/                   # 核心引擎
-├── run_screen.py            # 深度诊断入口（六层漏斗）
-├── pre_filter.py            # 预过滤器（A/B/C/D成长路径门控）
-├── funnel.py                # 漏斗打分
-├── scorecard.py             # GrowthScorecard
-├── report.py                # 个股体检报告
-├── regime_router.py         # Regime路由
-└── data.py                  # 数据加载
-regime/                      # 市场状态判断
-backtest/                    # 回测引擎
-config/
-├── params.py                # 全局参数
-└── strategic_industries.py  # 六大方向 × 申万三级行业映射（人工维护）
-diagnostics/                 # 诊断分析
-output/                      # 输出结果
-data/cache/                  # 数据缓存
+pit/                    # 数据可信层（MarketData/FinancialData/Universe/Industry/PITGuard）
+growth_os/
+├── state_machine.py    # Lifecycle L 状态机（行业范式参数化）
+├── expectation_state.py # Expectation E 状态（RPS+成交额代理）
+├── l5_recovery.py      # L5 错杀恢复引擎（四层判定）
+├── paradigm_shadow.py  # P 层 Shadow（AI_OPTICAL_CYCLE，只观察）
+├── lifecycle_research.py # L/E 双轴标注 + Opportunity Matrix
+├── memo_engine.py      # Investment Memo（七模块，每句可溯源）
+├── ledger.py           # Outcome Ledger（T+30/90/180/365 回填）
+└── growth_probes.py    # 探针（订单领先/CAPEX效率/毛利韧性/客户集中）
+screener.py             # 历史轻量扫描器（保留）
+backtest/               # 历史回测引擎（用于假设验证，非交易）
+tools/
+├── run_research_scan.py        # 每日全市场扫描
+├── build_daily_research_book.py # 研究书生成
+├── decision_cli.py             # 判断留痕 CLI
+└── *.py                        # 审计工具（L5/Expectation/P层 全链可复跑）
+data/
+├── ledger/             # 人工判断（decisions.jsonl）
+├── ledger_historical/  # 历史回填复盘（100 条）
+└── cache/              # 数据缓存（gitignore）
+docs/                   # 55 份研究文档（设计/验证/边界/版本）
+tests/                  # 29 测试（characterization + PIT + schema）
 ```
 
-## 核心概念
+## 核心方法论（演进沉淀）
 
-### 六大战略方向
+1. **先验证后接入**：每个新能力走 7 步验证链（假设→候选→历史→子类→人工→反事实→Shadow）
+2. **指标纪律**：评价函数错误可判死有效模型（L5 恢复率 26.7%→50.2% 修正）
+3. **不建综合评分**：多正交状态（L/E/P）+ 人工判断，拒绝 `score = Σ w·factor`
+4. **负结果即资产**：行业层三数据源失败 → 确认"行业前瞻归人工"边界
+5. **防污染**：P 层 Shadow only——不改变 L/E 决策，30 天观察后才转正
 
-系统通过 `config/strategic_industries.py` 维护与 [streamlit项目01](https://github.com/nayiahul/Cyclical-Driver-System) 同步的**六大科技方向 × 申万2021版三级行业映射**：
+## 版本状态
 
-1. AI全产业链（算力基建 + 大模型 + 智能终端）
-2. 电力与新能源（能源底座）
-3. 芯片半导体（国产替代）
-4. 机器人与高端制造
-5. 生命科学 + AI
-6. 商业航天与低空经济
+| 版本 | 状态 |
+|---|---|
+| v3.0 L/E 双轴 | ✅ Production |
+| v3.5 Shadow（P 层观察期） | ✅ 运行中（2026-09-02 ~ 10-02） |
+| v4.0 L/E/P 三轴 | ⏳ 待 T+30 Review 决策 |
 
-启动时自动校验映射完整性，覆盖缺口在日志中告警。
+## 核心文档索引
 
-### 因子体系
+| 文档 | 内容 |
+|---|---|
+| `docs/GROWTH_OS_V35_RUNTIME.md` | 运行期冻结 + 每日清单 + 观察指标 |
+| `docs/GROWTH_OS_V3_SUMMARY.md` | 九阶段演进总结 |
+| `docs/PARADIGM_LAYER_V0_SPEC.md` | P 层设计规范（防污染四禁令） |
+| `docs/LIFECYCLE_V3_MODEL.md` | L/E 双轴模型 |
+| `docs/EXPECTATION_AUDIT_V1.md` | E 引擎验证（+6pp） |
+| `docs/L5_BOUNDARY_REPORT.md` | 能力边界确认 |
+| `docs/CALIBRATION_PROTOTYPE_V1.md` | 校准原型（6 样本） |
+| `docs/PDR_Remediation_Plan.md` | PDR 全程（数据可信修复） |
 
-| 因子 | 维度 | 说明 |
-|------|------|------|
-| S1 | 景气度 | 利润加速度：近3季扣非净利润同比线性回归，斜率>0且R²>0.6 |
-| S2 | 景气度 | 产能扩张：合同负债TTM yoy + CAPEX yoy |
-| S5 | 壁垒 | 盈利稳定性：近12季ROE标准差，行业内反向Z-Score |
-| S7 | 壁垒 | 现金流质量：经营现金流/营收，行业内Z-Score |
-| RPS60 | 景气度 | 60日相对价格强度，行业内百分位 |
+## 历史模块（保留供参考）
 
-### 战略池分层
+- `screener.py` / `signals.py`（S1-S7）/ `backtest/` —— 演化前的因子/回测体系，
+  现在用于假设验证而非交易决策。PDR 证明其历史收益 85% 来自未来函数泄漏，
+  修复后真实年化 2.9%——**研究系统定位由此确立**。
 
-六大方向核心行业享受：
-- **独立因子权重**：moat 降 10pp，momentum 提 5pp
-- **S1 阈值放宽**：R² 0.6→0.4
-- **保底名额**：Top N 中 ≥40% 来自战略池
-- **行业指数RPS**：真空期混入个股RPS，降低纯价格动量依赖
+## 数据说明
 
-## 配置维护
-
-`config/strategic_industries.py` 是系统唯一的"主观判断"层。维护指南在文件头部。运行 `python -m screener` 时自动检查：
-- 命名漂移（申万改版）
-- 覆盖缺口（候选池中未映射的疑似相关行业）
+- 财务：TDX（`~/Downloads/tdxfin`，当前 2026Q2 中报，披露日治理）
+- 行情：akshare 腾讯源（2021+，as_of 截断）
+- 行业：SW 静态映射 + 行业指数日线（8 个关键行业）
+- 新鲜度：行情 T-1，财务为最新已披露报告期
