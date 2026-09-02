@@ -1,0 +1,42 @@
+# COHR 当前仓位与状态配置（C 类状态变量 — 与协议分离）
+# 修改此文件即可更新状态，无需改协议
+
+ticker: COHR
+name: Coherent Corp.
+market: NYSE
+
+position:
+  shares: 1
+  cost_basis: 390.0        # USD
+  status: HOLD_ERROR_POSITION   # 持有但承认是高成本错误买入
+  strategy: EXIT_OR_WATCH       # 择机退出 or 等待真正安全边际
+
+# 04 Alpha 触发线（用户 04 SOP 固定美股池规则）
+triggers:
+  review_line: 335.0        # ≤335 观察/研究
+  golden_pit_line: 300.0    # ≤300 重点黄金坑重评 ← 当前已触发(268)
+  cost_basis_anchor: 390.0  # 仅参考, 不是决策依据
+
+# 决策状态（每日更新）
+decision_state:
+  last_check_date: "2026-09-03"
+  golden_pit_review: TRIGGERED   # 268 < 300 → 必须完整重评
+  price: 268.64                  # 2026-09-03 实时核验
+  verdict: PENDING_REVIEW        # 待本次重评输出
+
+# 重新买入等待区（卖出后参考）
+rebuy_watch:
+  enabled: false
+  note: 必须同时满足 价格明显回落 + 基本面无坏 + FCF/OCF 改善证据 才重新评估
+
+# 重估触发条件（协议：仅在以下情况重新估值）
+revaluation_triggers:
+  - earnings
+  - guidance_change
+  - ai_longterm_change
+  - gross_margin_assumption_change
+  - fcf_margin_change
+  - wacc_change
+  - price_major_move
+  - new_major_deal
+  - competitive_landscape_change
