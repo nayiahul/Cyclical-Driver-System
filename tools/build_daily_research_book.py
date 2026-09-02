@@ -84,6 +84,64 @@ def main():
     r_top = out[out["radar"] == "recovery_radar"].sort_values("ra_score", ascending=False).head(25)
     top50 = pd.concat([g_top, r_top]).sort_values(["radar", "ra_score"], ascending=[True, False])
 
+    # ---- P Shadow 标注 (Step 11-D: 只观察不决策) ----
+    try:
+        from growth_os.paradigm_shadow import ParadigmShadowLayer
+        psh = ParadigmShadowLayer()
+        # discovery 从 drivers 无法反推 → 直接以 drivers 含'订单'标记近似
+        out["_disc_approx"] = out["drivers"].str.contains("订单|需求漏斗", na=False).astype(float)
+        top50 = psh.annotate(top50, T_DATE)
+        # 按 code 合并 discovery 近似
+        disc_map = dict(zip(out["code"].astype(str).str.zfill(6), out["_disc_approx"]))
+        top50["_disc"] = top50["code"].astype(str).str.zfill(6).map(disc_map)
+        # 用真实探针评估 (重算核心标的)
+        from growth_os.paradigm_shadow import AI_OPTICAL_CORE
+        core = [c for c in top50["code"].astype(str).str.zfill(6) if c in AI_OPTICAL_CORE]
+        for c in core:
+            import numpy as np
+            from growth_os.growth_probes import probe_order_leadership, probe_capex_efficiency, probe_margin_resilience
+            ps = [probe_order_leadership(c, T_DATE), probe_capex_efficiency(c, T_DATE),
+                  probe_margin_resilience(c, T_DATE)]
+            disc = float(np.mean([1.0 if p["level"]=="green" else 0.5 if p["level"]=="yellow" else 0.0 for p in ps]))
+            r = psh.evaluate(c, T_DATE, disc)
+            mask = top50["code"].astype(str).str.zfill(6) == c
+            top50.loc[mask, "paradigm"] = r.paradigm
+            top50.loc[mask, "p_state"] = f"P{r.p_state}"
+            top50.loc[mask, "p_evidence"] = "; ".join(r.evidence)
+            top50.loc[mask, "p_broken"] = "; ".join(r.broken_flags)
+        logger.info(f"P Shadow 标注: {len(top50[top50['paradigm']=='AI_OPTICAL_CYCLE'])} 只 AI_OPTICAL")
+    except Exception as e:
+        logger.warning(f"P Shadow 标注失败: {e}")
+
+    # ---- P Shadow 观察区 (Step 11-D: 即使 L0 也列出, 只观察不决策) ----
+    shadow_rows = []
+    try:
+        from growth_os.paradigm_shadow import ParadigmShadowLayer, AI_OPTICAL_CORE
+        import numpy as np
+        from growth_os.growth_probes import probe_order_leadership, probe_capex_efficiency, probe_margin_resilience
+        psh = ParadigmShadowLayer()
+        pool_all = pd.read_csv(POOL)
+        pool_all["code"] = pool_all["code"].astype(str).str.zfill(6)
+        for code in AI_OPTICAL_CORE:
+            # 全池中找该标的
+            prow = pool_all[pool_all["code"] == code]
+            ps = [probe_order_leadership(code, T_DATE),
+                  probe_capex_efficiency(code, T_DATE),
+                  probe_margin_resilience(code, T_DATE)]
+            disc = float(np.mean([1.0 if p["level"]=="green" else 0.5 if p["level"]=="yellow" else 0.0 for p in ps]))
+            r = psh.evaluate(code, T_DATE, disc)
+            shadow_rows.append({
+                "code": code, "name": AI_OPTICAL_CORE[code],
+                "L": prow["lifecycle_state"].values[0] if len(prow) else "L0",
+                "E": prow["expectation_state"].values[0] if len(prow) and "expectation_state" in prow else "?",
+                "sys_pri": prow["research_priority"].values[0] if len(prow) else "C(压制)",
+                "P": f"P{r.p_state}", "disc": round(disc, 2),
+                "broken": "; ".join(r.broken_flags) if r.broken_flags else "无",
+            })
+        logger.info(f"P Shadow 观察区: {len(shadow_rows)} 只 AI_OPTICAL 核心")
+    except Exception as e:
+        logger.warning(f"P Shadow 观察区失败: {e}")
+
     # ---- Daily Research Book ----
     os.makedirs(OUT, exist_ok=True)
     lines = [
@@ -100,6 +158,15 @@ def main():
         drv = str(r["drivers"])[:55].replace("|", "/") if pd.notna(r["drivers"]) else ""
         lines.append(f"| {r['code']} | {r['radar']} | {r['lifecycle_state']} | "
                      f"{r.get('expectation_state', '')} | {r['research_priority']} | {drv} |")
+
+    if shadow_rows:
+        lines += ["", "---", "", "## P Shadow 观察区（Step 11-D: 只观察不决策）",
+                  "", "| 代码 | 名称 | L | E | 系统优先级 | P状态 | discovery | Broken |",
+                  "|---|---|---|---|---|---|---|---|"]
+        for srow in shadow_rows:
+            lines.append(f"| {srow['code']} | {srow['name']} | {srow['L']} | {srow['E']} | "
+                         f"{srow['sys_pri']} | {srow['P']} | {srow['disc']:.2f} | {srow['broken']} |")
+        lines += ["", "> Shadow 模式: 标签附加, Priority 不改变。30 天观察期 (2026-09-02 ~ 10-02)。", ""]
 
     lines += ["", "---", "", "# 各标的研究 Memo", ""]
     for _, r in top50.iterrows():
