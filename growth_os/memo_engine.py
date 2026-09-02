@@ -76,8 +76,8 @@ class InvestmentMemoEngine:
         else:
             why_now = [
                 f"变化: {len(greens)} 个探针转绿（{'/'.join(g['name'] for g in greens) if greens else '待确认'}）",
-                "市场状态: RPS 未确认（预期差窗口）",
-                "逻辑: 经营变化可能领先于市场确认",
+                f"市场状态: RPS 未确认（当前分位 {pe['pct']}，预期差窗口）",
+                "实证: 变化×RPS 正交增量 +2.1pp（Discovery Audit, 2022-2025 样本）",
             ]
 
         # ---- 3. Thesis (Bull/Base/Bear) ----
@@ -133,6 +133,7 @@ class InvestmentMemoEngine:
         return {
             "identity": identity,
             "why_now": why_now,
+            "action_note": "Research Action 为研究动作建议（非事实断言），需人工执行验证", 
             "thesis": thesis,
             "evidence": evidence,
             "catalyst": catalyst,
@@ -178,5 +179,6 @@ class InvestmentMemoEngine:
         ] + [f"- {v}" for v in memo["thesis_broken"].values()] + [
             "",
             "## Research Action",
+            f"> {memo.get('action_note', '')}",
         ] + [f"- {a}" for a in memo["research_action"]]
         return "\n".join(lines)
