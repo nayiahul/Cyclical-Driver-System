@@ -53,7 +53,9 @@ class InvestmentMemoEngine:
                  risks: str = "",
                  expectation_state: str = None,
                  vol_z: float = None,
-                 priority_note: str = "") -> dict:
+                 priority_note: str = "",
+                 e2_attention: str = "",
+                 e2_price_state: str = "") -> dict:
         ind = self._ind_map.get(code, "未知")
         probes = self._probes(code, t_date)
         pe = self._pe_info(code, t_date)
@@ -113,6 +115,17 @@ class InvestmentMemoEngine:
 
         # 合并企业侧 + 市场侧
         why_now = why_now + market_side
+
+        # E v2 Shadow Warning (只提醒, 不决策 — Runtime Freeze 输出层治理)
+        if e2_attention in ("A2高关注", "A3极热"):
+            warning = (f"⚠️ Shadow Check(v2): Attention={e2_attention}"
+                       f" {e2_price_state} — 该标的历史关注度较高,"
+                       f" 当前更接近'高关注回调/预期重新定价',"
+                       f" 需验证下跌原因, 而非简单视为市场遗漏")
+        else:
+            warning = None
+        if warning:
+            why_now.append(warning)
 
         # ---- 3. Thesis (Bull/Base/Bear) ----
         if radar == "recovery_radar":

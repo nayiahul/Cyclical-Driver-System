@@ -63,15 +63,20 @@ def main():
 
         e_state = row.get("expectation_state", "")
         vol_z = None
+        e2_attn, e2_ps = "", ""
         try:
-            from growth_os.expectation_state import ExpectationStateEngine
+            from growth_os.expectation_state import ExpectationStateEngine, ExpectationV2Shadow
             vol_z = ExpectationStateEngine().classify(code, T_DATE).vol_z
+            e2r = ExpectationV2Shadow().classify(code, T_DATE)
+            e2_attn, e2_ps = e2r.attention, e2r.price_state
         except Exception:
             pass
         memo = eng.generate(code, T_DATE, row["radar"], row["research_stage"],
                             row["research_priority"], row["drivers"], row["risks"],
                             expectation_state=e_state, vol_z=vol_z,
-                            priority_note=str(row.get("priority_note", "")))
+                            priority_note=str(row.get("priority_note", "")),
+                            e2_attention=e2_attn,
+                            e2_price_state=e2_ps)
         rows.append({**row.to_dict(), "ra_score": round(ra, 3),
                      "n_green": n_green, "n_red": n_red,
                      "confidence": memo["confidence"],
