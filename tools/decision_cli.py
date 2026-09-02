@@ -93,6 +93,9 @@ def main():
         else:
             conviction = prompt_choice("Conviction", CONVICTIONS)
 
+        # 特殊样本类型 (默认 STANDARD; MODEL_EXCEPTION 供人工覆盖系统判定时使用)
+        d_type = prompt_choice("Decision Type", ["STANDARD", "MODEL_EXCEPTION"])
+
         thesis = prompt_text("Thesis (你的判断依据, 简短)", optional=True)
         counter = prompt_text("Counter Thesis (什么情况下你的判断是错的?)", optional=True)
         check = prompt_text("Check Points (要验证什么, 逗号分隔)", optional=True)
@@ -102,6 +105,7 @@ def main():
             "research_date": research_date,
             "radar": row["radar"],
             "state_at_memo": row["lifecycle_state"],
+            "decision_type": d_type,
             "decision": decision,
             "conviction": conviction,
             "thesis": thesis,
