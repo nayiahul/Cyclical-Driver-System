@@ -23,13 +23,18 @@ class FinancialData:
 
     def __init__(self, raw=None):
         self._raw = raw if raw is not None else load_tdx_raw()
+        self._avail_cache: dict[str, pd.DataFrame] = {}  # t_date → 已治理表
 
     def _available(self, t_date: str) -> pd.DataFrame:
+        if t_date in self._avail_cache:
+            return self._avail_cache[t_date]
         if self._raw is None:
             return pd.DataFrame()
         df = self._raw.copy()
         df["code"] = df["code"].astype(str).str.zfill(6)
-        return filter_available_reports(df, t_date)
+        out = filter_available_reports(df, t_date)
+        self._avail_cache[t_date] = out
+        return out
 
     def snapshot(self, code: str, t_date: str) -> Optional[dict]:
         """截至 t_date 的最新财报快照（含 lineage 字段）。"""

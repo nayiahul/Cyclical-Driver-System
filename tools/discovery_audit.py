@@ -74,7 +74,7 @@ def fwd_ret(code, day, months, all_reb):
 
 def main():
     all_reb = get_rebalance_dates("20220101", "20251231")
-    sampled = [d for i, d in enumerate(all_reb) if i % 4 == 0][:6]
+    sampled = [d for i, d in enumerate(all_reb) if i % 4 == 0][:12]  # 2022-2025 覆盖
     rows = []
     for day in sampled:
         t_date = get_t_date(day)
@@ -105,7 +105,7 @@ def main():
         print(f"{day}: {len(codes)} 候选, 完成", flush=True)
 
     df = pd.DataFrame(rows)
-    df.to_csv("baseline/discovery_audit.csv", index=False)
+    df.to_csv("baseline/discovery_audit_2022_2025.csv", index=False)
     print(f"saved {len(df)} rows", flush=True)
 
     # ============ E1: 单变量 ============
