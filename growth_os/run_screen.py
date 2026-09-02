@@ -209,6 +209,20 @@ def screen_all(t_date: str, top_n: int = 100, min_market_cap: float = 20.0,
     else:
         logger.warning(f"通过L1标的({len(result_df)})不足top_n({top_n})，展示全部")
 
+    # v1.0 Research Layer: 双轨标注 (不改排序, 只加研究标签列)
+    try:
+        from growth_os.lifecycle_research import (
+            LifecycleResearchLayer, prewarm_financial_cache,
+        )
+        prewarm_financial_cache(t_date)
+        layer = LifecycleResearchLayer(ind_map=get_industry())
+        # 历史 RPS 峰值 (L5 需要) — 用当前候选池近似: 无历史则 L5 跳过 Layer1
+        result_df = layer.annotate(result_df, t_date)
+        logger.info(f"Lifecycle 标注完成: "
+                    f"{result_df['research_stage'].value_counts().to_dict()}")
+    except Exception as e:
+        logger.warning(f"Lifecycle 标注失败 (不影响主输出): {e}")
+
     # 输出主观察池
     os.makedirs(DATA_PATHS["output_dir"], exist_ok=True)
     out_path = os.path.join(DATA_PATHS["output_dir"],
