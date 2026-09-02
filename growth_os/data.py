@@ -42,6 +42,7 @@ def load_tdx_financials(force_reload: bool = False) -> pd.DataFrame:
 
 
 _snapshot_cache: dict = {}
+_avail_cache: dict = {}  # t_date → filter_available_reports 全表 (性能)
 
 def get_financial_snapshot(t_date: str) -> pd.DataFrame:
     """获取截至 t_date 的最新财务数据快照（带缓存）。
@@ -53,7 +54,9 @@ def get_financial_snapshot(t_date: str) -> pd.DataFrame:
         return _snapshot_cache[t_date]
 
     df = load_tdx_financials()
-    df = filter_available_reports(df, t_date)  # Gate 4: 披露日语义
+    if t_date not in _avail_cache:
+        _avail_cache[t_date] = filter_available_reports(df, t_date)  # Gate 4: 披露日语义
+    df = _avail_cache[t_date]
     snapshot = df.sort_values("report_date_str").groupby("code").tail(1).copy()
     _snapshot_cache[t_date] = snapshot
     logger.info(f"财务快照 {t_date}: {len(snapshot)} 只股票")
@@ -77,8 +80,10 @@ def get_quarterly_series(code: str, field: str, n_quarters: int = 12,
     df = load_tdx_financials()
     if t_date:
         # Gate 4: 披露日语义（仅保留截至 t_date 已披露的报告，P0-2 修复）
-        avail = filter_available_reports(df, t_date)
-        df = avail
+        # 性能: 全表过滤结果按 t_date 缓存 (北交所等无数据股票避免重复全表重扫)
+        if t_date not in _avail_cache:
+            _avail_cache[t_date] = filter_available_reports(df, t_date)
+        df = _avail_cache[t_date]
     mask = df["code"] == code
     series = df[mask].sort_values("report_date_str").set_index("report_date_str")[field]
     _quarterly_cache[cache_key] = series

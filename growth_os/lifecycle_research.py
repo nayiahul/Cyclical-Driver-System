@@ -46,11 +46,12 @@ _PREWARM_FIELDS = [
 def prewarm_financial_cache(t_date: str):
     """预热 growth_os.data 季度缓存（一次过滤 + groupby，探针全部命中）。"""
     import growth_os.data as gdata
-    from data_governance import filter_available_reports, load_tdx_raw
+    from data_governance import filter_available_reports
 
     if t_date in gdata._snapshot_cache:
         return
-    raw = load_tdx_raw()
+    # 必须用 growth_os.data 自己的加载器: 填充其 _tdx_cache (探针依赖)
+    raw = gdata.load_tdx_financials()
     avail = filter_available_reports(raw, t_date)
     avail["code"] = avail["code"].astype(str).str.zfill(6)
     gdata._snapshot_cache[t_date] = (

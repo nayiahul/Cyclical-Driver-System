@@ -24,6 +24,7 @@ class FinancialData:
     def __init__(self, raw=None):
         self._raw = raw if raw is not None else load_tdx_raw()
         self._avail_cache: dict[str, pd.DataFrame] = {}  # t_date → 已治理表
+        self._by_code_cache: dict[str, dict] = {}  # t_date → {code: 排序后的表}
 
     def _available(self, t_date: str) -> pd.DataFrame:
         if t_date in self._avail_cache:
@@ -54,8 +55,13 @@ class FinancialData:
         avail = self._available(t_date)
         if avail.empty:
             return pd.Series(dtype=float)
-        sub = avail[avail["code"] == code].sort_values("report_date_str")
-        if sub.empty or field not in sub.columns:
+        if t_date not in self._by_code_cache:
+            self._by_code_cache[t_date] = {
+                c: g.sort_values("report_date_str")
+                for c, g in avail.groupby("code")
+            }
+        sub = self._by_code_cache[t_date].get(code)
+        if sub is None or field not in sub.columns:
             return pd.Series(dtype=float)
         return (
             sub.tail(n_quarters)
