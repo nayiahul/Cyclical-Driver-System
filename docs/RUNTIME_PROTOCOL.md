@@ -68,3 +68,21 @@ python tools/decision_cli.py --book ... --resume  # ③ 3-5 只判断
 3. P Shadow 价值（8 只观察标的的研究行为）
 4. Issue 队列验证（E v2 是否替换 v1 / Probe 门槛设计）
 5. 决策: v4.0 三轴是否启动
+
+## Rule 7：事件扫描（研究层必做 — FCC 教训 2026-09-02）
+
+**背景**: 中际旭创案例 — FCC 禁令(8/4)是最大下跌驱动, 但 akshare 个股新闻不覆盖
+外媒政策事件, 系统财务数据更无法发现。政策/制裁类事件 = 第一级风险变量。
+
+**规则**: 任何 DEEP_RESEARCH 标的研究前必须执行:
+```bash
+python tools/event_scan.py --code XXXXXX --name 名称 --keywords "行业关键词,政策关键词"
+```
+双源: ① akshare 公告+个股新闻 (公司事件) ② AnySearch Web (政策/行业外媒事件)
+
+**风险响应**: 扫描结果含 ⚠️ 高风险(政策/制裁/立案)时:
+1. 事件记入 Ledger counter_thesis / check_points
+2. 研究结论必须显式评估该事件影响 (不能只依赖财务)
+3. 重大政策事件(如 FCC 禁令) = 人工研究优先项 (Rule 4 边界)
+
+**设计原则**: 事件信息 = 研究层输入, 不进入自动评分 (防噪声, 与 RPI 教训一致)
