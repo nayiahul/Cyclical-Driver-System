@@ -59,6 +59,16 @@ class InvestmentMemoEngine:
         reds = [p for p in probes if p["probe"]["level"] == "red"]
         yellows = [p for p in probes if p["probe"]["level"] == "yellow"]
 
+        # Evidence Trace: 每项证据带 value/source/as_of (Research Outcome Ledger 基础)
+        def _trace(probe: dict) -> dict:
+            return {
+                "claim": probe["name"],
+                "label": probe["probe"].get("label", ""),
+                "level": probe["probe"].get("level", ""),
+                "source": "growth_probe(tdx_financials, disclosure-governed)",
+                "as_of": t_date,
+            }
+
         # ---- 1. Identity ----
         identity = {
             "code": code, "industry": ind, "radar": radar,
@@ -100,6 +110,11 @@ class InvestmentMemoEngine:
             "yellow": [f"△ {y['name']}: {y['probe']['label']}" for y in yellows],
             "red": [f"✗ {r['name']}: {r['probe']['label']}" for r in reds],
             "pe": pe,
+            "trace": [_trace(p) for p in probes] + [
+                {"claim": "PE-TTM", "value": pe["current"],
+                 "source": "price_file_peTTM(tencent)", "as_of": t_date}
+                if pe["current"] else None
+            ],
         }
 
         # ---- 5. Catalyst (已知事件, 不预测) ----
