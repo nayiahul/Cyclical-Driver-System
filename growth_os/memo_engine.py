@@ -50,7 +50,10 @@ class InvestmentMemoEngine:
     # ---------- Memo 组装 ----------
     def generate(self, code: str, t_date: str, radar: str,
                  state: str, priority: str, drivers: str = "",
-                 risks: str = "") -> dict:
+                 risks: str = "",
+                 expectation_state: str = None,
+                 vol_z: float = None,
+                 priority_note: str = "") -> dict:
         ind = self._ind_map.get(code, "未知")
         probes = self._probes(code, t_date)
         pe = self._pe_info(code, t_date)
@@ -73,6 +76,7 @@ class InvestmentMemoEngine:
         identity = {
             "code": code, "industry": ind, "radar": radar,
             "state": state, "priority": priority,
+            "expectation_state": expectation_state,
         }
 
         # ---- 2. Why Now (按雷达) ----
@@ -89,6 +93,26 @@ class InvestmentMemoEngine:
                 f"市场状态: RPS 未确认（当前分位 {pe['pct']}，预期差窗口）",
                 "实证: 变化×RPS 正交增量 +2.1pp（Discovery Audit, 2022-2025 样本）",
             ]
+
+        # v3: Market Awareness (期望认知层)
+        if expectation_state is not None:
+            awareness = {
+                "expectation_state": expectation_state,
+                "pricing_status": ("NOT_PRICED" if expectation_state in ("E0", "E1")
+                                   else "PARTIALLY_PRICED" if expectation_state == "E2"
+                                   else "PRICED"),
+            }
+            market_side = [
+                f"市场认知: {expectation_state}"
+                f"（{'市场忽略/少数关注' if expectation_state in ('E0','E1') else '市场确认' if expectation_state=='E2' else '一致预期'}）",
+                f"研究定位: {priority_note or '预期差窗口'}",
+            ]
+        else:
+            awareness = {"expectation_state": "UNKNOWN", "pricing_status": "UNKNOWN"}
+            market_side = []
+
+        # 合并企业侧 + 市场侧
+        why_now = why_now + market_side
 
         # ---- 3. Thesis (Bull/Base/Bear) ----
         if radar == "recovery_radar":
@@ -168,6 +192,9 @@ class InvestmentMemoEngine:
             "",
             "## Why Now",
         ] + [f"- {x}" for x in memo["why_now"]] + [
+            f"**市场认知**: {memo['identity'].get('expectation_state', '?')} "
+            f"| **研究定位**: {memo['identity'].get('priority', '?')}",
+        ] + [
             "",
             "## Thesis",
             f"- Bull: {memo['thesis']['Bull']}",

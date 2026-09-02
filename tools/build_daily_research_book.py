@@ -21,13 +21,13 @@ from growth_os.lifecycle_research import prewarm_financial_cache
 from industry import get_sw_industry
 
 T_DATE = "20260831"
-POOL = "output/research_pool_20260901.csv"
+POOL = "output/research_pool_v3_20260901.csv"  # v3: 含 expectation_state
 OUT = "output/research_book_20260901"
 
 def main():
     df = pd.read_csv(POOL)
     df["code"] = df["code"].astype(str).str.zfill(6)
-    logger.info(f"研究池: {len(df)} 只")
+    logger.info(f"研究池: {len(df)} 只 (v3: L/E 双轴)")
 
     prewarm_financial_cache(T_DATE)
     ind = get_sw_industry()
@@ -61,8 +61,17 @@ def main():
                   + 0.2 * (1 - pe_pct)
                   + 0.2 * (1 - n_red / 3))
 
+        e_state = row.get("expectation_state", "")
+        vol_z = None
+        try:
+            from growth_os.expectation_state import ExpectationStateEngine
+            vol_z = ExpectationStateEngine().classify(code, T_DATE).vol_z
+        except Exception:
+            pass
         memo = eng.generate(code, T_DATE, row["radar"], row["research_stage"],
-                            row["research_priority"], row["drivers"], row["risks"])
+                            row["research_priority"], row["drivers"], row["risks"],
+                            expectation_state=e_state, vol_z=vol_z,
+                            priority_note=str(row.get("priority_note", "")))
         rows.append({**row.to_dict(), "ra_score": round(ra, 3),
                      "n_green": n_green, "n_red": n_red,
                      "confidence": memo["confidence"],
@@ -84,13 +93,13 @@ def main():
         "",
         "## 研究队列总览",
         "",
-        "| 代码 | 雷达 | 状态 | RA | 置信度 | 驱动 |",
+        "| 代码 | 雷达 | L | E | 优先级 | 驱动 |",
         "|---|---|---|---|---|---|",
     ]
     for _, r in top50.iterrows():
-        drv = str(r["drivers"])[:60].replace("|", "/") if pd.notna(r["drivers"]) else ""
-        lines.append(f"| {r['code']} | {r['radar']} | {r['research_stage']} | "
-                     f"{r['ra_score']:.2f} | {r['confidence']:.0%} | {drv} |")
+        drv = str(r["drivers"])[:55].replace("|", "/") if pd.notna(r["drivers"]) else ""
+        lines.append(f"| {r['code']} | {r['radar']} | {r['lifecycle_state']} | "
+                     f"{r.get('expectation_state', '')} | {r['research_priority']} | {drv} |")
 
     lines += ["", "---", "", "# 各标的研究 Memo", ""]
     for _, r in top50.iterrows():
