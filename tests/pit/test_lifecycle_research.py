@@ -26,8 +26,8 @@ class TestSchema:
         layer = LifecycleResearchLayer(ind_map={})
         df = pd.DataFrame({"code": ["000001", "000002"], "score": [80, 70]})
         out = layer.annotate(df, "20240102")
-        for col in ["lifecycle_state", "research_stage", "research_priority",
-                    "radar", "drivers", "risks"]:
+        for col in ["lifecycle_state", "expectation_state", "research_stage",
+                    "research_priority", "radar", "drivers", "risks"]:
             assert col in out.columns, f"缺少列 {col}"
         assert "score" in out.columns, "原列被删除"
         assert len(out) == 2

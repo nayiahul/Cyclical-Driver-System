@@ -34,7 +34,27 @@ from growth_os.state_machine import (
     InvestmentStateModel, PARADIGM_MAP, PRIORITY, STATE_LABELS,
 )
 from growth_os.l5_recovery import L5RecoveryEngine
+from growth_os.expectation_state import ExpectationStateEngine
 from screener import compute_rps60
+
+# Lifecycle v3: L × E Opportunity Matrix (EXPECTATION_AUDIT 实证)
+# 返回 (priority, 说明)
+OPPORTUNITY_MATRIX = {
+    # (L, E档) -> priority
+    ("L1", "E0"): ("A", "变化发生+市场忽略(预期差窗口)"),
+    ("L1", "E1"): ("A", "变化发生+少数关注"),
+    ("L1", "E2"): ("C", "变化真实但市场已定价⚠️"),
+    ("L1", "E3"): ("D", "一致预期(故事已消化)"),
+    ("L2", "E0"): ("A", "确认中但市场仍忽略"),
+    ("L2", "E1"): ("B", "确认中+关注启动"),
+    ("L2", "E2"): ("C", "确认+已定价"),
+    ("L5", "E0"): ("A", "错杀+市场恐慌(最佳窗口)"),
+    ("L5", "E1"): ("A", "错杀+关注初现"),
+    ("L5", "E2"): ("B", "恢复已部分交易⚠️"),
+    ("L3", "E2"): ("C", "一致预期区"),
+    ("L3", "E3"): ("D", "过度交易区"),
+}
+_DEFAULT_PRI = ("C", "矩阵未覆盖")
 
 # 探针/财务字段预热（性能：避免逐股全表过滤）
 _PREWARM_FIELDS = [
@@ -95,6 +115,7 @@ class LifecycleResearchLayer:
             ind_map=ind_map,
         )
         self.l5 = L5RecoveryEngine(ind_map=ind_map)
+        self.expect = ExpectationStateEngine()
 
     def annotate(self, df: pd.DataFrame, t_date: str,
                  hist_rps_max: dict = None) -> pd.DataFrame:
@@ -119,32 +140,46 @@ class LifecycleResearchLayer:
                                             hist_rps_map=hist_rps_max)
         }
 
-        # 3. 逐票状态
+        # 3. 逐票状态 (v3: L 状态 + E 状态 + Opportunity Matrix priority)
+        expect_map = self.expect.classify_many(codes, t_date, rps_map)
         states, stages, pris, radars = [], [], [], []
         drivers, risks = [], []
+        e_states, e_notes = [], []
         for c in codes:
             rps = rps_map.get(c, np.nan)
             l5r = l5_results.get(c)
+            e = expect_map.get(c)
+            e_st = e.state if e else "E0"
+            e_states.append(e_st)
             if l5r is not None and l5r.state.startswith("L5"):
-                state, pri = "L5", l5r.priority
+                state = "L5"
                 drv = [f"错杀恢复: {x}" for x in l5r.reasons[:3]]
                 rk = l5r.risks[:3]
             else:
                 s = self.sm.evaluate(c, t_date, rps=rps)
-                state, pri = s.state, s.priority
+                state = s.state
                 drv = s.reasons[:3]
                 rk = s.risks[:3]
+            # v3 矩阵: (L, E) → priority
+            pri, note = OPPORTUNITY_MATRIX.get((state, e_st), _DEFAULT_PRI)
+            if l5r is not None and l5r.state.startswith("L5"):
+                # L5 引擎自带优先级作为基线, 矩阵修正
+                if pri != "A":
+                    pri = l5r.priority if l5r.priority != "A" else pri
             states.append(state)
             stages.append(STAGE_LABELS.get(state, state))
             pris.append(pri)
             radars.append(RADAR_MAP.get(state, "watch"))
             drivers.append("; ".join(drv) if drv else "")
             risks.append("; ".join(rk) if rk else "")
+            e_notes.append(note)
 
         out["lifecycle_state"] = states
+        out["expectation_state"] = e_states
         out["research_stage"] = stages
         out["research_priority"] = pris
         out["radar"] = radars
         out["drivers"] = drivers
         out["risks"] = risks
+        out["priority_note"] = e_notes
         return out
