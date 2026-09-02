@@ -7,3 +7,8 @@ output/
 *.egg-info/
 data/archive/
 .codegraph/
+
+# 研究报告归档(保留), 其余 output 忽略
+!output/
+output/*
+!output/research/

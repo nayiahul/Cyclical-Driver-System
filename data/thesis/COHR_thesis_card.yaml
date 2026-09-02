@@ -1,0 +1,55 @@
+# COHR Thesis Card（结构化，供 XIS 事件映射与复盘）
+
+company: COHR
+name: Coherent Corp.
+market: NYSE
+created: 2026-09-03
+updated: 2026-09-03
+
+core_thesis:
+  name: "AI 光互联需求持续增长 → COHR 从器件商升级为平台公司"
+  evidence:
+    - "datacenter revenue +59% YoY ($1.62B, 占总收入79%)"
+    - "800G 规模化 + 1.6T 量产放量"
+    - "订单可见度: 管理层称已排至 2028"
+    - "PhotonLink 平台 (9/21 ECOC) — CPO/NPO 全链路"
+  counter_evidence:
+    - "FCF 仍受扩产 CapEx 压制 (投资期非收获期)"
+    - "hyperscaler capex 若放缓 → 需求逻辑动摇"
+    - "1.6T 价格竞争 (ASP 压力)"
+
+key_assumptions:
+  - id: A1
+    name: "AI 数据中心需求持续扩张"
+    evidence: "云厂商 capex 2026E +90% (TrendForce)"
+    status: active
+  - id: A2
+    name: "1.6T 高毛利产品放量接棒 800G"
+    evidence: "1.6T 已量产, FY27 双位数增长指引"
+    status: active
+  - id: A3
+    name: "美国市场可及性维持 (FCC 政策风险)"
+    evidence: "美限中国光模块 → 潜在份额受益; 自身非制裁对象"
+    status: watch   # 地缘政策双刃: 份额↑ vs 材料/InP 限制风险
+  - id: A4
+    name: "CapEx 投资转化为 FCF (现金流复利验证)"
+    evidence: "OCF 改善中; FCF 待 FY27Q1 验证"
+    status: watch   # 最大未验证项
+
+falsify_conditions:
+  - "FCF 持续为负且 CapEx 回报率 < 收入增速 (投资不产生回报)"
+  - "毛利率跌破 35% (1.6T 价格战失控)"
+  - "hyperscaler capex 指引连续两季下修"
+  - "datacenter 份额流失 (LITE/新进入者)"
+  - "中国限制 InP/关键材料 导致扩产成本失控"
+
+x_monitors:
+  policy: ["FCC", "出口管制", "中美贸易", "InP材料限制"]
+  industry: ["1.6T价格", "CPO/硅光路线", "云厂商capex", "LITE/新易盛竞争"]
+  company: ["FY27Q1财报(FCF/库存/净债务)", "PhotonLink落地", "SEC Form4"]
+
+market_error_type:
+  primary: "2_估值压缩型"    # 公司没坏, PE 从 78x 收缩至 48x
+  secondary:
+    - "6_技术路线担忧"        # CPO/硅光 vs 传统可插拔
+    - "4_政策冲击型"          # 中美光模块/材料政策双向影响

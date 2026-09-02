@@ -1,0 +1,55 @@
+# COHR Trigger State（触发线状态机 — 决策前 Gate 数据源）
+
+ticker: COHR
+updated: 2026-09-03
+
+price:
+  current: 268.64
+  prev_close: 272.03
+  ytd_high: 440.00
+  avg200: 274.45
+
+# ── 当前触发状态 ──
+triggers:
+  - name: golden_pit_review
+    condition: "price <= 300"
+    status: TRIGGERED        # 268 < 300
+    trigger_date: 2026-09-03
+    action_required: review_completed
+    review_ref: "output/research/cohr_golden_pit_review_20260903.md"
+
+  - name: watch_zone
+    condition: "price <= 335"
+    status: TRIGGERED        # 268 < 335 (观察/研究区)
+    note: "04 SOP 固定池规则: ≤335 观察研究"
+
+# ── 下一步触发点 ──
+next_triggers:
+  - type: price_range
+    range: "300-335"
+    action: "evaluate_exit — 但按价值框架: 须同时满足 估值重新偏贵 + 基本面无进一步改善"
+    note: "若 FY27 EPS 上修至 8+, 300 对应 Forward PE 37.5x, 非极端贵 — 不能仅因价格到线机械卖出"
+
+  - type: event
+    name: "FY27Q1 earnings"
+    check:
+      - FCF (核心: 投资是否开始产生现金回报)
+      - inventory 趋势
+      - net debt
+      - datacenter 增速是否维持 50%+
+      - GM 是否守住 40% (non-GAAP)
+
+  - type: event
+    name: "PhotonLink 发布 (9/21 ECOC)"
+    check:
+      - CPO/NPO 客户反馈与订单转化
+      - 平台叙事 vs 实际收入贡献 (避免题材溢价)
+
+# ── 操作状态 ──
+action_state:
+  current: "review_completed — 判定: 接近黄金坑但估值条件未完全达标"
+  position: "持有 1 股 @390 (错误高成本仓位), 择机退出策略维持"
+  verdict_history:
+    - date: 2026-09-03
+      price: 268.64
+      verdict: "G1 候选成立(基本面侧), 估值条件缺 → 黄金坑'接近'非'已出现'"

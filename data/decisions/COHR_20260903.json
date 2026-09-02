@@ -1,0 +1,18 @@
+{
+  "ticker": "COHR",
+  "date": "2026-09-03",
+  "decision_type": "GOLDEN_PIT_REVIEW",
+  "trigger": {"line": 300, "status": "TRIGGERED", "price": 268.64},
+  "market_error_type": {"primary": "2_估值压缩型", "secondary": ["6_技术路线担忧", "4_政策冲击型"]},
+  "verdict": "接近黄金坑(基本面达标), 估值条件未完全满足",
+  "position_action": "持有1股@390, 择机退出(三条件同满足才卖)",
+  "new_money": "不买",
+  "checkpoints_next": ["FY27Q1财报: FCF/inventory/net debt/GM", "PhotonLink 9/21 落地"],
+  "falsify": ["FCF持续为负", "GM<35%", "capex连续下修", "份额流失", "InP限制"],
+  "files": {
+    "thesis_card": "data/thesis/COHR_thesis_card.yaml",
+    "trigger_state": "data/triggers/COHR_trigger_state.yaml",
+    "report": "output/research/cohr_golden_pit_review_20260903.md"
+  },
+  "status": "COMPLETED"
+}
