@@ -1,0 +1,53 @@
+# MAC-001 — 宏观信号校准样本: US10Y 期限溢价冲击
+# 类比恒瑞 CAL-001: 微观信号(合同负债)会骗人, 宏观信号(单利率)同样会骗人
+
+calibration_id: MAC-001
+name: US10Y_term_premium_surge
+date_recorded: 2026-09-03
+status: PENDING_VALIDATION
+
+# ── 事件事实（核验） ──
+event:
+  variable: US10Y
+  level: "4.75-4.80% (9/1 达4.80%)"
+  context: "2025年1月以来最高; 30Y 曾破5.3%"
+  drivers:
+    - fiscal_supply (联邦债务近$40T, CBO赤字$1.9T, 长债增发) — 主因
+    - term_premium_rise (长端熊陡: 短端平/长端飙升)
+    - inflation_sticky + oil 扰动 (中东地缘)
+  source: TradingEconomics/CNBC/Goldman/CBO (2026-08~09 核验)
+
+# ── 归因分级（防单变量误判 — 恒瑞教训的宏观版） ──
+cause_breakdown:
+  growth_driven: unknown      # 若经济强驱动利率升 → 未必利空权益
+  inflation_driven: medium    # 通胀粘性 → 估值压力
+  fiscal_term_premium: high   # 本轮主因 → 纯估值分母冲击
+  credit_spread: unknown      # 待观察 (信用恶化=危险升级信号)
+
+# ── 系统影响 (L0 Regime 通道B 观察) ──
+regime_view:
+  l0_channel_B: "10Y 63日Δ >30bp — 需复核是否已触发 CAUTION 信号"
+  mode: CAUTION_OBSERVE       # 观察, 非自动减仓
+  effects:
+    - "成长/长久期资产 PE 压缩压力 (AI/半导体/创新药/COHR)"
+    - "红利/公用/银行相对占优"
+    - "中美利差加深 → 港股敏感性 > A股"
+
+# ── 正确响应 (非机械减仓) ──
+action_policy:
+  primary: "提高安全边际要求 — 评分门槛上调(85→88), 非禁止买入"
+  note: "高利率环境只允许更便宜、更确定的机会 (黄金坑体系)"
+  not: "US10Y破位=自动降仓 (会错过盈利驱动的机会)"
+
+# ── 待验证 (T+30) ──
+validation_points:
+  - "10Y 是否站稳 4.8-5.0%?"
+  - "盈利预期是否下修 (分子端) — 若盈利强, 利率单独不构成系统性风险"
+  - "信用利差是否恶化 (危险升级信号)"
+  - "油价回落/财政回购/核心PCE下行 → 长端回落信号"
+
+# ── 学习点 (与 CAL-001 同构) ──
+lesson:
+  - "不要相信单一宏观指标 (与单一经营指标同理)"
+  - "利率须拆: 水平/变化速度/原因(增长vs通胀vs财政)/风险资产反馈"
+  - "影响分层: 估值压缩(不改Thesis) vs 盈利下修(改Thesis) vs 信用恶化(系统性)"
