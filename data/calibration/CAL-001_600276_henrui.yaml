@@ -1,58 +1,53 @@
-# Calibration Sample #001
-# 恒瑞医药 (600276) | L1 探针低基数误报 + 行业相对缺失
+# Calibration Sample #001 — 恒瑞医药 (600276)
+# 状态: PENDING_VALIDATION (Q3 未出, 不确认失败; 结构化为多层假设)
 
 calibration_id: CAL-001
-company: {name: 恒瑞医药, code: "600276", industry: 医药生物(SW1)}
+company: {name: 恒瑞医药, code: "600276", industry: 医药生物/化学制剂}
 date_recorded: 2026-09-03
-source: 人工核验（系统标 A 级机会 vs 数据证伪）
-status: PENDING_T30_VALIDATION
+status: PENDING_VALIDATION   # 非 confirmed failure — Q3 验证前不下定论
 
-# ── 原始信号 ──
+# ── 信号与系统视图 ──
 signal:
-  type: contract_liability_growth (L1 probe trigger)
-  original: "合同负债 YoY +371% → 系统标 L1 × A 级"
-  system_view: {L: L1, E: E1, attention: A2, price: PS2}
+  type: contract_liability_growth (L1 probe)
+  original: "合同负债 YoY +371%"
+  system_view: {L: L1, E: E1, attention: A2, priority: A}
 
-# ── 失败归因（三层独立错误）──
-failure:
-  category:
-    - low_base_bias          # 同比无环比/绝对规模过滤
-    - leading_indicator_failure  # 领先指标未做经营结果验证
-    - missing_peer_comparison    # 无行业相对位置
-  layer: [L1_probe, missing_L_relative]
+# ── 多层失败假设 (非定论, 是待验证假设) ──
+failure_hypothesis:
+  H1_low_base_bias:
+    name: 合同负债低基数扰动
+    evidence: "YoY+371% 但 QoQ-35% (14.5亿→9.5亿)"
+    confidence: high
+  H2_result_metric_mismatch:
+    name: 领先指标与结果指标背离
+    evidence: "收入 +13%→-1.9% 转负; 扣非 -12.7%"
+    confidence: medium
+  H3_relative_position_decline:
+    name: 相对竞争位置下降
+    evidence: "Peer 分化: 复星+19%/通化东宝+34%/人福+14% vs 恒瑞-12.7%"
+    confidence: medium
+    caveat: "科伦-29%/丽珠-29% 比恒瑞差 — '分化中落后'非'唯一恶化'; CXO(泰格/药明)排除(商业模式不同)"
 
-# ── 证据链 ──
-validation:
-  company_trend:           # Layer 2-3: 真实趋势
-    contract_liability_qoq: "-35% (14.5亿→9.5亿) 恶化"
-    revenue_yoy: "+13%→-1.9% 转负"
-    deducted_profit_yoy: "-12.7% 恶化"
-    gross_margin: "86% (高但为常态, 非边际信号)"
-  industry_relative:       # Layer 4: 行业对照 (医药467只 2026Q2)
-    industry_revenue_yoy_median: "+1.5% (Q1 +0.6%, 行业改善中)"
-    industry_deducted_yoy_median: "-2.0%"
-    henrui_revenue_rank: "后41% (跑输行业)"
-    interpretation: "行业营收改善中恒瑞转负 → 公司性走弱; 行业扣非弱 → 部分行业背景"
+# ── 三层行业比较中的发现 (从简单到精确) ──
+relative_layers:
+  R1_industry_sw1: {median_revenue: "+1.6%", verdict: "误导 — 分化大, 中位数无代表", use: "仅作行业周期背景"}
+  R2_sector_sw3: {median_deducted: "+5.4%", verdict: "恒瑞落后, 但组内分化仍大", use: "赛道趋势参考"}
+  R3_peer_group: {verdict: "真正回答竞争问题 — 大型药企改善中恒瑞落后", use: "竞争判断核心"}
+  lesson: "SW1 中位数在分化行业会系统性误导; 竞争判断必须走 Peer, 且 Peer 需商业模式同质"
 
-# ── 五层判断框架应用（v4 候选）──
-five_layer_check:
-  L1_指标变化: PASS (YoY+371%)
-  L2_真实性验证: FAIL (QoQ-35%)
-  L3_经营结果验证: FAIL (收入/扣非恶化)
-  L4_行业相对验证: FAIL (跑输行业)
-  L5_市场错误定价: N/A (前层已否决)
+# ── 待验证 (Q3 2026 + Peer) ──
+required_validation:
+  Q3_2026:
+    - revenue_growth (收入是否恢复)
+    - innovative_drug_sales (创新药收入)
+    - license_out (对外授权/BD)
+    - rnd_output (研发产出)
+    - peer_relative (相对复星/通化/人福等)
 
-# ── 教训与规则候选 ──
-lesson:
-  rule_added:
-    - "YoY 必须结合 QoQ 与绝对规模 (防低基数)"
-    - "领先指标(合同负债)必须要求经营结果验证 (收入/扣非方向)"
-    - "公司判断必须加行业相对位置 (L-relative)"
-  reverse_question: "如果它没有变好, 最可能被骗在哪? → 低基数/一次性/结构变化/会计"
+final_label: not_confirmed  # 等 Q3 + Peer 完整验证后更新
 
-# ── 未来验证节点 ──
-t30_checkpoints (2026-10-02):
-  - "Q3 合同负债是否转化收入?"
-  - "收入是否恢复增长?"
-  - "是否继续跑输医药行业?"
-  - "原 L1 信号是否提前(若经营反转)?"
+# ── 对系统的意义 ──
+system_lesson:
+  - "L 层缺相对竞争位置 (Relative Position) — 公司自身变化 vs 行业/竞争格局变化易混"
+  - "L1 强信号 v2 需 8 项验证 (YoY/QoQ/占比/毛利/扣非/行业/Peer/领先-结果一致)"
+  - "L-relative 设计见 docs/L_RELATIVE_DESIGN_NOTE_v0.1.md"
