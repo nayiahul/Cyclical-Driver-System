@@ -1,0 +1,21 @@
+# Shadow Thesis Lite — 300308 中际旭创 (观察池, 非完整Thesis Card)
+# 运行期纪律: 非重点持仓不建完整Card; 只记录核心假设与证伪
+
+company: 中际旭创
+classification: QUALITY_LEADER
+core_question: "AI光模块周期结束后还能保持超额利润吗?"
+price_discipline: "现价隐含2027利润+33~67%; 安全边际区 ~650-700 (2027 400亿×18x)"
+
+core_assumptions:
+  A1: "AI光通信需求持续 (云capex+90% / 2027订单指引已给)"
+  A2: "800G/1.6T份额维持第一梯队 (vs 新易盛/COHR)"
+  A3: "毛利率维持45%+ (1.6T价格战风险)"
+  A4: "高增长转化为FCF (OCF 18亿 Q2 同比下降44% — 验证点)"
+
+falsify:
+  X1: "800G ASP 快速下降 → 毛利 <43%"
+  X2: "Peer (新易盛) 收入增速持续超车 → 份额反超"
+  X3: "云厂商 capex 周期结束 → 2027 订单不兑现"
+  X4: "FCF 无法匹配利润 (库存/应收持续恶化)"
+
+evidence_status: "R2_VERIFIED (2026-09-03 数据包: 中报/订单指引/FCC/回购)"
