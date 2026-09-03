@@ -66,3 +66,38 @@ L-company (现L) → L-industry(R1) → L-sector(R2) → L-relative(R3) → E-pr
 
 - CAL-001 恒瑞 (PENDING_VALIDATION)
 - data/calibration/README.md
+
+## 八、设计风险补充（2026-09-03 二次校准）
+
+### 1. Reference Class Selection 偏差（最大风险）
+> 比较对象选择是投资研究中最容易隐藏错误的地方。
+> 风险: 过去"用错行业" → 未来"用错同行"（可能选有利于结论的 Peer）。
+> 对策: 每个 relative 分析必须输出 **Reference Class Confidence**:
+
+```yaml
+relative_analysis:
+  peer_group: {name: "large_innovation_pharma"}
+  confidence:
+    business_model_similarity: 0.7   # 收入驱动相似度
+    revenue_structure_similarity: 0.6 # 国内商业化 vs 海外权重
+    market_overlap: 0.8              # 市场/客户重叠
+  overall: medium                     # low 时结论降权或标注
+```
+
+### 2. 层级扩展 R0/R4（未来 v4 候选）
+```
+R0 宏观周期 → R1 行业(SW1) → R2 赛道(SW3) → R3 商业模式 Peer → R4 产业位置龙头
+```
+例: COHR 不是"与光通信公司比", 是"AI 光互联链条中谁占据关键位置";
+FORM 不是"半导体设备公司比", 是"先进封装测试链的位置"。
+
+### 3. CAL-001 定位修正
+- 类型: Calibration Sample（发现 L1 信号可靠性不足 + 错误发生在哪一层）
+- 不是"系统错误案例"
+- 暴露缺陷四层: YoY低基数 / 领先-结果脱节 / Relative缺失 / Reference Class选择风险
+
+### 4. 30 天收集三类样本
+- 类型1 假机会(系统看好/人工否定): 哪些信号骗人
+- 类型2 漏掉机会(系统未发现/后来涨): 缺什么变量
+- 类型3 正确机会(系统发现/兑现): 哪些信号稳定
+→ 多案例验证后才定 v4
