@@ -1,0 +1,58 @@
+# Calibration Sample #001
+# 恒瑞医药 (600276) | L1 探针低基数误报 + 行业相对缺失
+
+calibration_id: CAL-001
+company: {name: 恒瑞医药, code: "600276", industry: 医药生物(SW1)}
+date_recorded: 2026-09-03
+source: 人工核验（系统标 A 级机会 vs 数据证伪）
+status: PENDING_T30_VALIDATION
+
+# ── 原始信号 ──
+signal:
+  type: contract_liability_growth (L1 probe trigger)
+  original: "合同负债 YoY +371% → 系统标 L1 × A 级"
+  system_view: {L: L1, E: E1, attention: A2, price: PS2}
+
+# ── 失败归因（三层独立错误）──
+failure:
+  category:
+    - low_base_bias          # 同比无环比/绝对规模过滤
+    - leading_indicator_failure  # 领先指标未做经营结果验证
+    - missing_peer_comparison    # 无行业相对位置
+  layer: [L1_probe, missing_L_relative]
+
+# ── 证据链 ──
+validation:
+  company_trend:           # Layer 2-3: 真实趋势
+    contract_liability_qoq: "-35% (14.5亿→9.5亿) 恶化"
+    revenue_yoy: "+13%→-1.9% 转负"
+    deducted_profit_yoy: "-12.7% 恶化"
+    gross_margin: "86% (高但为常态, 非边际信号)"
+  industry_relative:       # Layer 4: 行业对照 (医药467只 2026Q2)
+    industry_revenue_yoy_median: "+1.5% (Q1 +0.6%, 行业改善中)"
+    industry_deducted_yoy_median: "-2.0%"
+    henrui_revenue_rank: "后41% (跑输行业)"
+    interpretation: "行业营收改善中恒瑞转负 → 公司性走弱; 行业扣非弱 → 部分行业背景"
+
+# ── 五层判断框架应用（v4 候选）──
+five_layer_check:
+  L1_指标变化: PASS (YoY+371%)
+  L2_真实性验证: FAIL (QoQ-35%)
+  L3_经营结果验证: FAIL (收入/扣非恶化)
+  L4_行业相对验证: FAIL (跑输行业)
+  L5_市场错误定价: N/A (前层已否决)
+
+# ── 教训与规则候选 ──
+lesson:
+  rule_added:
+    - "YoY 必须结合 QoQ 与绝对规模 (防低基数)"
+    - "领先指标(合同负债)必须要求经营结果验证 (收入/扣非方向)"
+    - "公司判断必须加行业相对位置 (L-relative)"
+  reverse_question: "如果它没有变好, 最可能被骗在哪? → 低基数/一次性/结构变化/会计"
+
+# ── 未来验证节点 ──
+t30_checkpoints (2026-10-02):
+  - "Q3 合同负债是否转化收入?"
+  - "收入是否恢复增长?"
+  - "是否继续跑输医药行业?"
+  - "原 L1 信号是否提前(若经营反转)?"
