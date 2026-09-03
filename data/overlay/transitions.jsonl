@@ -1,0 +1,3 @@
+{"date": "2026-09-03", "code": "600276", "machine": "L1_Growth_A", "human": "IGNORE_PENDING", "signal_type": "LOW_BASE_BIAS", "evidence": "CAL-001: 低基数+结果背离+Peer落后, Q3验证", "author": "human"}
+{"date": "2026-09-03", "code": "600338", "machine": "L1_Growth_A", "human": "WATCH_RESEARCH", "signal_type": "CYCLE_BETA", "evidence": "CAL-003: 塔中真实改善但锌周期+治理折价, NAV待验", "author": "human"}
+{"date": "2026-09-03", "code": "300308", "machine": "L0_Shadow_P2", "human": "QUALITY_OBSERVE", "signal_type": "QUALITY_VALUATION", "evidence": "CAL-004: 好公司≠好买点, ReverseDCF隐含+33~67%, 650-700安全边际", "author": "human"}
