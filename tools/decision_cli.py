@@ -1,135 +1,127 @@
-"""Step 7-C: Investment Decision CLI — 投资判断留痕系统。
+"""Decision CLI — 极简判断留痕（v2: 30 秒/条）。
 
-不是"人工打分", 是"判断留痕":
-  记录 当时基于什么证据 → 做了什么决策 → 承担什么风险 → 什么情况证明错
-
-Decision 枚举: IGNORE / WATCH / DEEP_RESEARCH / HOLD / DROP
-Conviction: LOW / MEDIUM / HIGH
-核心字段: thesis(why_now) + key_risk + counter_thesis(为什么可能错) + expected_path
-
-输出: data/ledger/decisions.jsonl (与 outcomes.jsonl 通过 stock+research_date 关联)
+设计原则 (2026-09-03 收敛):
+- 投资判断发生在脑子里, 不发生在命令行 — 输入必须 30 秒完成
+- 最小必填: 动作 / 一句话判断 / 反证 / 验证节点
+- 可选: 置信度(默认MEDIUM) / 备注
+- 输出: data/ledger/decisions.jsonl (追加)
 
 用法:
-  python tools/decision_cli.py --book output/research_book_20260901.csv
-  python tools/decision_cli.py --book ... --resume   # 跳过已决策的
+  python tools/decision_cli.py --book output/research_book_YYYYMMDD.csv
+  python tools/decision_cli.py --stock 600338   # 指定单只
+  python tools/decision_cli.py --quick 600338,WATCH,"锌价驱动但周期未消","若锌价续涨则低估成立","Q3"
 """
-from __future__ import annotations
-
 import argparse
 import json
 import os
 import sys
 from datetime import datetime
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import pandas as pd
-
-DECISIONS = ["WATCH", "DEEP_RESEARCH", "IGNORE", "HOLD", "DROP"]
-CONVICTIONS = ["LOW", "MEDIUM", "HIGH"]
-LEDGER = "data/ledger/decisions.jsonl"
-
-SCHEMA_DOC = "docs/OUTCOME_LEDGER_SCHEMA.md 对象2: InvestmentDecision (+ counter_thesis 扩展)"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LEDGER = os.path.join(ROOT, "data", "ledger", "decisions.jsonl")
+ACTIONS = ["WATCH", "IGNORE", "BUY_CANDIDATE", "RESEARCH_REQUIRED", "UNKNOWN"]
 
 
-def prompt_choice(label: str, options: list[str]) -> str:
-    while True:
-        print(f"\n{label}:")
-        for i, opt in enumerate(options, 1):
-            print(f"  {i}. {opt}")
-        try:
-            n = int(input("选择 > ").strip())
-            if 1 <= n <= len(options):
-                return options[n - 1]
-        except (ValueError, EOFError):
-            pass
-        print("无效输入，重试")
+def save(rec: dict):
+    os.makedirs(os.path.dirname(LEDGER), exist_ok=True)
+    with open(LEDGER, "a") as f:
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    print(f"✅ 已记录: {rec['stock']} | {rec['action']}")
 
 
-def prompt_text(label: str, optional: bool = False) -> str:
-    while True:
-        val = input(f"{label} > ").strip()
-        if val or optional:
-            return val
-        print("不能为空")
+def interactive(stock: str, name: str = "", context: str = ""):
+    """极简交互: 每字段一行输入, 回车跳过可选。"""
+    print(f"\n{'='*50}")
+    print(f"{stock} {name}")
+    if context:
+        print(f"  {context[:120]}")
+    print(f"{'='*50}")
+
+    # 1. 动作 (必填)
+    print(f"动作 ({'/'.join(ACTIONS)}):")
+    action = input("> ").strip().upper()
+    if action not in ACTIONS:
+        action = "UNKNOWN"
+
+    # 2. 一句话判断 (必填)
+    thesis = input("判断(一句话) > ").strip()
+    while not thesis:
+        thesis = input("判断不能为空 > ").strip()
+
+    # 3. 反证 (必填 — 恒瑞教训)
+    counter = input("反证(什么情况我错?) > ").strip()
+    while not counter:
+        counter = input("反证不能为空 > ").strip()
+
+    # 4. 验证节点 (可选, 默认 Q3)
+    check = input("验证节点(默认Q3) > ").strip() or "Q3"
+
+    # 5. 置信度 (可选)
+    conf = input("置信度 H/M/L(默认M) > ").strip().upper()
+    conf = conf if conf in ("H", "M", "L") else "M"
+
+    save({
+        "stock": stock, "name": name, "action": action,
+        "thesis": thesis, "counter": counter, "check": check,
+        "confidence": conf, "date": datetime.now().strftime("%Y-%m-%d"),
+        "created_at": datetime.now().isoformat(),
+        "status": "PENDING_VALIDATION",
+    })
 
 
 def main():
-    ap = argparse.ArgumentParser(description="投资判断留痕 CLI")
-    ap.add_argument("--book", required=True, help="Daily Research Book CSV")
-    ap.add_argument("--resume", action="store_true", help="跳过已决策股票")
+    ap = argparse.ArgumentParser(description="极简判断留痕")
+    ap.add_argument("--book", help="研究书 CSV (逐只提示)")
+    ap.add_argument("--stock", help="指定代码")
+    ap.add_argument("--name", default="")
+    ap.add_argument("--quick", help="快速模式: code,ACTION,判断,反证,验证")
     args = ap.parse_args()
 
-    df = pd.read_csv(args.book)
-    df["code"] = df["code"].astype(str).str.zfill(6)
-    research_date = os.path.basename(args.book).replace("research_book_", "")[:8]
+    # 快速模式: 单条命令完成
+    if args.quick:
+        parts = [p.strip() for p in args.quick.split(",")]
+        if len(parts) >= 4:
+            stock, action, thesis, counter = parts[0], parts[1].upper(), parts[2], parts[3]
+            check = parts[4] if len(parts) > 4 else "Q3"
+            if action not in ACTIONS:
+                print(f"❌ 动作必须是 {ACTIONS}")
+                return
+            save({"stock": stock, "name": args.name, "action": action,
+                  "thesis": thesis, "counter": counter, "check": check,
+                  "confidence": "M", "date": datetime.now().strftime("%Y-%m-%d"),
+                  "created_at": datetime.now().isoformat(),
+                  "status": "PENDING_VALIDATION"})
+            return
 
-    os.makedirs(os.path.dirname(LEDGER), exist_ok=True)
-    done = set()
-    if args.resume and os.path.exists(LEDGER):
-        for line in open(LEDGER):
+    # Book 模式: 逐只(可中断)
+    if args.book:
+        import pandas as pd
+        df = pd.read_csv(args.book)
+        df["code"] = df["code"].astype(str).str.zfill(6)
+        done = set()
+        if os.path.exists(LEDGER):
+            for line in open(LEDGER):
+                try:
+                    done.add(json.loads(line)["stock"])
+                except Exception:
+                    pass
+        for _, row in df.head(20).iterrows():
+            code = row["code"]
+            if code in done:
+                continue
             try:
-                done.add(json.loads(line)["stock_code"])
-            except Exception:
-                pass
+                interactive(code, context=f"{row.get('research_stage','')} | {str(row.get('drivers',''))[:80]}")
+            except (KeyboardInterrupt, EOFError):
+                print("\n已中断, 已记录保留")
+                return
+        print("\n完成 (可 --book 继续, 自动跳过已录)")
+        return
 
-    n = 0
-    for _, row in df.iterrows():
-        code = row["code"]
-        if code in done:
-            continue
+    if args.stock:
+        interactive(args.stock, args.name)
+        return
 
-        print("\n" + "=" * 60)
-        print(f"{code} [{row['research_stage']}] radar={row['radar']} priority={row['research_priority']}")
-        print("=" * 60)
-        if pd.notna(row["drivers"]):
-            print(f"Why Now:\n  {row['drivers'][:150]}")
-        if pd.notna(row["risks"]) and str(row["risks"]).strip():
-            print(f"Risk:\n  {row['risks'][:120]}")
-
-        decision = prompt_choice("Decision", DECISIONS)
-        if decision == "IGNORE":
-            conviction = "LOW"
-        else:
-            conviction = prompt_choice("Conviction", CONVICTIONS)
-
-        # 特殊样本类型 (默认 STANDARD; MODEL_EXCEPTION 供人工覆盖系统判定时使用)
-        d_type = prompt_choice("Decision Type", ["STANDARD", "MODEL_EXCEPTION"])
-
-        thesis = prompt_text("Thesis (你的判断依据, 简短)", optional=True)
-        counter = prompt_text("Counter Thesis (什么情况下你的判断是错的?)", optional=True)
-        check = prompt_text("Check Points (要验证什么, 逗号分隔)", optional=True)
-
-        rec = {
-            "stock_code": code,
-            "research_date": research_date,
-            "radar": row["radar"],
-            "state_at_memo": row["lifecycle_state"],
-            "decision_type": d_type,
-            "decision": decision,
-            "conviction": conviction,
-            "thesis": thesis,
-            "counter_thesis": counter,
-            "check_points": [c.strip() for c in check.split(",") if c.strip()],
-            "key_risk": str(row["risks"]) if pd.notna(row["risks"]) else "",
-            "expected_path": {
-                "bull": "L5→L2" if row["radar"] == "recovery_radar" else "L1→L2/L3",
-                "base": "保持观察",
-                "bear": "→L0（判断证伪）",
-            },
-            "created_by": "human",
-            "created_at": datetime.now().isoformat(),
-            "schema": SCHEMA_DOC,
-        }
-        with open(LEDGER, "a") as f:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-        n += 1
-        print(f"✓ 已记录: {code} [{decision}/{conviction}]")
-
-    print(f"\n完成: 新增 {n} 条判断 → {LEDGER}")
-    if os.path.exists(LEDGER):
-        total = sum(1 for _ in open(LEDGER))
-        print(f"累计判断: {total} 条")
+    ap.print_help()
 
 
 if __name__ == "__main__":
