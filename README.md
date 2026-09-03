@@ -124,6 +124,8 @@ tests/                  # 29 测试（characterization + PIT + schema）
 | `docs/L5_BOUNDARY_REPORT.md` | 能力边界确认 |
 | `docs/CALIBRATION_PROTOTYPE_V1.md` | 校准原型（6 样本） |
 | `docs/PDR_Remediation_Plan.md` | PDR 全程（数据可信修复） |
+| `docs/RESEARCH_WORKFLOW_LAYER_V2_SCHEMA.md` | Workflow v2 数据契约（Thesis/Task/ID 链, 冻结） |
+| `docs/RESEARCH_WORKFLOW_LAYER_V2_PHASE0_IMPLEMENTATION.md` | Workflow v2 Phase0 实施映射 + characterization 验收证据（16/16 GREEN） |
 
 ## 历史模块（保留供参考）
 
