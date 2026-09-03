@@ -101,3 +101,22 @@ FORM 不是"半导体设备公司比", 是"先进封装测试链的位置"。
 - 类型2 漏掉机会(系统未发现/后来涨): 缺什么变量
 - 类型3 正确机会(系统发现/兑现): 哪些信号稳定
 → 多案例验证后才定 v4
+
+## 九、触发条件（v0.1 补充 — 防验证链拖垮行动效率）
+
+> L-relative 是二级验证器，不是一级扫描器。默认不进入。
+
+**Relative Analysis Trigger**（满足其一才深挖 Peer）:
+- A. 信号强度 ≥ 阈值（如探针全绿/大额订单）
+- B. 公司处于核心观察池（DEEP_RESEARCH 级）
+- C. Signal 与结果指标冲突（领先指标↑ 但 收入/扣非↓）
+- D. 进入交易决策区（04 候选/Golden Pit 触发）
+
+普通扫描路径: Signal → 基础验证 → PASS/IGNORE（不进 Peer）
+恒瑞属 C+D 才深挖; 普通小票不启动。
+
+```
+XIS → Signal
+        ├─ 基础验证 → PASS → 候选
+        └─ Conflict → L-relative (Peer/Reference) → Calibration
+```
