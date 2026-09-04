@@ -205,3 +205,20 @@ Pilot economic conclusion     ⛔ not yet (反直觉结果=基数伪影嫌疑, �
 Growth identity               ⛔ unresolved (留 C-Full)
 Production                    🔒 unchanged
 ```
+
+## 表述纪律 (3 条, 2026-09-04 评审锁定 — 后续会话必须遵守)
+
+### S1 — "匹配度 6/10" 只是认知摘要, 不是模型评分
+- 允许用于个人判断"系统大约偏离到什么程度"
+- **禁止**进入 diagnostics 作为正式指标; **禁止**出现"6→7.5"类伪量化
+- 可追踪的事实量只有: Growth PE dependence (11/25, Spearman 0.154) / 危险区比例 (36%) /
+  Recovery 目标区比例 (20/25) / Audit C 兑现梯度与迁移率
+
+### S2 — Recovery 表述上限
+- 正确表述: **"结构上高度符合 质量代理(B_proxy) + 估值压缩 + 基本面未坏 的错杀逻辑"**
+- **禁止**缩写为"已经找到了高壁垒公司" — Gate 0 已证明机器测的是 B_proxy, 不是 moat 本身
+
+### S3 — Pilot 证据等级
+- 正确表述: **"F/M 联合确认与 T+2Q 利润兑现存在明显方向性梯度 (supportive pilot evidence)"**
+- **禁止**写成"文章双确认已被证明" — Pilot 仅 4 时点 + Survivor-conditioned + 低基数未修
+- 等级 = supportive pilot evidence, 非 validation; 经济结论全部 ⛔ not yet
