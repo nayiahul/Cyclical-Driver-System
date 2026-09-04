@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import warnings
 from collections import Counter
@@ -69,16 +70,42 @@ def has_risk(text: str) -> bool:
     return any(k in text for k in RISK_KEYWORDS)
 
 # 行业代码前缀 → 关键词组
-CODE_PREFIX_KEYWORDS = {
-    ("300", "301", "688"): ["通信/电子", "通用"],
-    ("002", "000", "600", "601", "603", "605"): ["通用"],
-}
-
 FLASH_SOURCE = {"source": "CLS", "source_rank": "B"}      # 财联社 (聚合快讯)
 ANNOUNCE_SOURCE = {"source": "CNINFO", "source_rank": "A"}  # 交易所公告 (巨潮)
 
 
-def get_keywords_for(code: str) -> list[str]:
+def normalize_title(title: str) -> str:
+    """标题归一化: 去空格/标点/常见前后缀 → 供 dedup 硬键。"""
+    t = title
+    for w in ["提示性公告", "进展公告", "的公告", "公告", "关于", "公司",
+              "股份", "有限公司", "提示", "说明"]:
+        t = t.replace(w, "")
+    return re.sub(r"[\s，。、：:；;（）()【】\[\]·—-]+", "", t).lower()[:40]
+
+
+def dedup_events(events: list[dict]) -> list[dict]:
+    """v1.3 软去重: 同 (code, date, 归一化标题) → 合并 source 列表 + dedup_candidate 标记。
+
+    只做同源同事件合并 (公告同文件多发的实证痛点); 跨源语义合并不做 ——
+    宁重复看一次, 不错误合并两个不同事件 (投资系统原则)。
+    """
+    merged: dict[tuple, dict] = {}
+    for e in events:
+        code = str(e.get("code", "") or "")
+        date = str(e.get("date", ""))[:10]
+        key = (code, date, normalize_title(e.get("title", "")))
+        if key not in merged:
+            e["source_list"] = [e.get("source", "")]
+            e["first_seen"] = date
+            e["dedup_candidate"] = False
+            merged[key] = e
+        else:
+            prev = merged[key]
+            prev["source_list"] = sorted(set(prev.get("source_list", []) + [e.get("source", "")]))
+            if e.get("date", "") > prev.get("last_seen", prev["date"]):
+                prev["last_seen"] = e["date"]
+            prev["dedup_candidate"] = True  # 软标记: 人工确认是否同一事件, 不自动删
+    return list(merged.values())
     kws = []
     for prefix, groups in CODE_PREFIX_KEYWORDS.items():
         if code.startswith(prefix):
@@ -218,9 +245,10 @@ def main():
     in_ann, out_ann = scan_announcements(codes)
     flash_kws = sum(INDUSTRY_KEYWORDS.values(), [])
     flash, top_kw = scan_flash(flash_kws)
-    events = in_ann + out_ann + flash
+    events = dedup_events(in_ann + out_ann + flash)
+    n_dup = sum(1 for e in events if e.get("dedup_candidate"))
     print(f"事件: 池内公告 {len(in_ann)} + 池外白名单 {len(out_ann)} + 快讯 {len(flash)} "
-          f"= {len(events)} 条 | 热词 {len(top_kw)}")
+          f"→ 去重后 {len(events)} 条 (软标记 {n_dup} 候选重复) | 热词 {len(top_kw)}")
 
     # 3. 保存
     today = datetime.now().strftime("%Y%m%d")
