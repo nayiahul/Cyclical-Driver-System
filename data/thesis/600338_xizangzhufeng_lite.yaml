@@ -1,0 +1,33 @@
+# Shadow Thesis Lite — 600338 西藏珠峰 (candidate)
+# 运行期纪律: 非重点持仓不建完整Card; 只记录核心假设与证伪 (300308 Lite 同模板)
+# thesis_id / scope / status: Research Workflow v2 字段 (2026-09-04, Thesis 沉淀协议 v1 首次沉淀)
+# 合并来源: CAL-003-PENDING (假设结构) + decisions.jsonl ×4 (判断史) + overlay WATCH_RESEARCH (人机状态)
+
+thesis_id: TH-20260904-001
+scope: company
+status: candidate
+
+company: 西藏珠峰
+classification: CYCLE_BETA_WITH_REAL_IMPROVEMENT   # CAL-003: 真实经营改善 vs 市场折价是否错误
+core_question: "塔中矿业真实盈利 + 锌周期上行下, 市场 7.5x 折价是错杀还是合理(治理/锂PPT历史已定价)?"
+trigger_evidence: "3 次非 IGNORE 判断(09-03×3) + CAL-003-PENDING 校准样本 + 系统唯一干净 L1×E0 (三探针绿 + PE分位0.04)"
+
+core_assumptions:
+  A1: "塔中矿业盈利贡献真实 (2026H1 4.8亿, 其他子公司亏损上亿)"
+  A2: "锌价上行有基本面支撑 (LME库存低位 9.9万吨 + TC转负 = 矿端紧缺), 非纯情绪"
+  A3: "锂项目按免费期权估值 (2021开工→2026未投产, 不注入估值)"
+  A4: "折价合理部分 = 单矿依赖 + 治理信用 + 锂PPT历史 (市场已定价)"
+
+falsify:
+  X1: "锌价回落 20% → PE 实际 20x (H3 周期陷阱触发)"
+  X2: "锂继续延期 → 期权价值 ≈ 0"
+  X3: "治理折价永久化 (无改善证据)"
+  X4: "塔中盈利依赖单一矿山, 若塔中出问题 → 无第二增长点"
+
+x_monitors:
+  commodity: ["锌价", "LME库存", "TC加工费"]
+  company: ["塔中矿业盈利", "2026Q3经营", "锂项目进展", "管理层治理动作"]
+
+evidence_status: "CAL-003-PENDING (2026-09-03: 事实已核验, 三假设待验证)"
+next_validation: "Q3 财报 + 锌价/TC 趋势 + 塔中NAV 敏感性 (锌价 4000/3500/3000 → 利润)"
+upgrade_path: "active: falsify 补可判定阈值 + monitors 接数据源后, 随 v2 Signal 桥供料"
