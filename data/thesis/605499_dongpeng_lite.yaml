@@ -1,0 +1,33 @@
+# Shadow Thesis Lite — 605499 东鹏饮料 (candidate)
+# 运行期纪律: 非重点持仓不建完整Card; 只记录核心假设与证伪 (300308 Lite 同模板)
+# thesis_id / scope / status: Research Workflow v2 字段 (2026-09-05, Thesis 沉淀协议 v1 周五盘点)
+# 合并来源: decisions.jsonl ×3 (MODEL_CONFIRM L5-A / MODEL_MIXED / RESEARCH_REQUIRED)
+
+thesis_id: TH-20260905-001
+scope: company
+status: candidate
+
+company: 东鹏饮料
+classification: L5_RECOVERY_CONSUMER_PARADIGM   # 错杀恢复 × 消费范式跨范式验证样本
+core_question: "过去强势(RPS峰值96) + 深度回撤(-34%) + 估值极端压缩(PE分位80%→1.2%) 的东鹏, 是错杀还是消费估值体系切换下的合理重估?"
+trigger_evidence: "3 次非 IGNORE 判断(09-02×2 + 09-03) + MODEL_CONFIRM 卡 + 系统 L5-A 最高置信 0.95"
+
+core_assumptions:
+  A1: "核心经营指标未破坏: 合同负债 +33% / 毛利 46% 稳定"
+  A2: "收入增速恢复至 15%+ 水平 (能量饮料基本盘 + 新品放量)"
+  A3: "估值压缩是短期错杀而非成长溢价永久下移"
+  A4: "电解质水/无糖茶竞争加剧是主要威胁 (新进入者)"
+
+falsify:
+  X1: "2026Q3 收入增速 <15% → 增长中枢下移, 压缩是合理重估"
+  X2: "毛利率 <44% → 竞争导致定价权受损"
+  X3: "合同负债环比转负 → 渠道动销恶化"
+  X4: "市场将公司重新定义为成熟饮料公司 (PE 10-20x 永久切换)"
+
+x_monitors:
+  industry: ["电解质水", "无糖茶", "功能饮料竞争格局"]
+  company: ["收入增速", "毛利率", "合同负债", "新品放量", "渠道库存"]
+
+evidence_status: "MODEL_CONFIRM PENDING_VALIDATION (2026-09-02, L5-A confidence 0.95)"
+next_validation: "2026Q3 财报: 收入增速/毛利/合同负债 + 新品(补水啦等)放量节奏"
+upgrade_path: "active: Q3 验证后若 L5 逻辑成立 → 升级; monitors 接数据源后随 v2 Signal 桥供料"
