@@ -169,3 +169,39 @@ T+2Q/T+4Q outcome valid 96%+ / B_UNK 3-5% / F_UNK 4-5% / M_UNK=0。Pilot 数据�
 4. L/E backcast 叠加 (Full 阶段核心: L1×E0 落在 3×3×B 哪些格子)
 
 **不因 Pilot 结果裁决**: Growth 身份 / B_proxy 有效性 / Early vs Confirmed — 均留 Full。
+
+## 停点保留意见 (2026-09-04 评审固化, 防 C-Full 误读)
+
+### R1 — T+4Q 收敛的解释优先级: 指标衰减 > 基数效应 > 市场环境 (环境排第三)
+T+4Q ≈50% 收敛**不得优先归因于熊市 Beta**。至少三种机械解释并存:
+1. 利润同比自身的均值回归 (跨期后 yoy>0 收敛至 ~50% 是统计自然)
+2. F0/F1/F2 初始状态信息随财报周期推移衰减 (领先信号时效约 2 季度)
+3. 市场环境 (2022-2025 熊市) — **解释顺位第三**
+C-Full 必须先排除指标自身衰减与基数效应, 才能谈环境解释。
+
+### R2 — B_WEAK 必须拆子类, 禁止混成单组
+`ROIC<=0` 与 `margin red` 代表两种不同经济状态:
+- ROIC<=0: 可能大量含**周期底部/扭亏型**公司 (低基数 → 后续 yoy 天然高)
+- margin red: 更接近**经营质量恶化** (竞争/成本侵蚀)
+混成 WEAK 会把两种相反状态揉在一起 → 反直觉结果不可归因。
+C-Full F2 前置顺序固定为:
+```
+F1 先修低基数口径 → F2 再拆 B_WEAK 子类 → F3 再判 T+4Q 衰减来源 → F4 最后叠 L/E
+```
+
+### R3 — 值得记录但暂不行动的信号
+F 与 M 不是重复维度: F0M0→F1M1→F2M2 的 T+2Q 梯度 (0.23→0.54→0.78) 支持原文核心直觉 —
+基本面确认与市场确认同时增强时短中期兑现可靠性提高。真正待裁决问题收窄为:
+> 是否必须等到 F2M2, 还是 F2M0 / L1×E0 已足够早且足够可靠。
+留 C-Full。
+
+## 项目状态 (正式定性, 2026-09-04)
+
+```
+Selection bloodline problem   ✅ located (bloodline_snapshot_audit)
+Audit C framework             ✅ established (AUDIT_C_GROWTH_IDENTITY_DESIGN v0.2)
+Pilot pipeline                ✅ validated (Commit 2+3, P1-P8 全过)
+Pilot economic conclusion     ⛔ not yet (反直觉结果=基数伪影嫌疑, 不裁决)
+Growth identity               ⛔ unresolved (留 C-Full)
+Production                    🔒 unchanged
+```
